@@ -1,0 +1,358 @@
+// Optimal Pagination Engine using Dynamic Programming
+
+import {
+  CanvasSettings,
+  DocumentState,
+  PageData,
+  PaginationResult,
+  SpacingSettings,
+  TypographySettings,
+  AdvancedSettings,
+  WrappedLine,
+} from '../types';
+import { wrapDocument } from './lineWrapper';
+import { computeBalanceScore, VisualBalanceOptions } from './visualBalance';
+
+export interface PaginationOptions {
+  canvas: CanvasSettings;
+  typography: TypographySettings;
+  spacing: SpacingSettings;
+  advanced: AdvancedSettings;
+}
+
+export function computePageAvailableHeight(canvas: CanvasSettings, spacing: SpacingSettings): number {
+  return Math.max(100, canvas.height - spacing.paddingTop - spacing.paddingBottom - spacing.minBottomSpace);
+}
+
+export function computePageRenderedHeight(
+  lines: WrappedLine[],
+  lineHeightPx: number,
+  paragraphSpacing: number
+): number {
+  if (lines.length === 0) return 0;
+  let height = lines.length * lineHeightPx;
+  for (let i = 0; i < lines.length - 1; i++) {
+    if (lines[i].isParagraphEnd) {
+      height += paragraphSpacing;
+    }
+  }
+  return height;
+}
+
+export function paginateDocument(
+  doc: DocumentState,
+  options: PaginationOptions
+): PaginationResult {
+  const { canvas, typography, spacing, advanced } = options;
+  const originalText = doc.text;
+  const pageCount = Math.max(1, Math.floor(doc.pageCount));
+
+  const availableWidth = Math.max(100, canvas.width - spacing.paddingLeft - spacing.paddingRight);
+  const availableHeight = computePageAvailableHeight(canvas, spacing);
+  const lineHeightPx = typography.fontSize * typography.lineHeight;
+
+  // Wrap all text into lines
+  const allLines = wrapDocument(originalText, {
+    availableWidth,
+    typography,
+  });
+
+  const M = allLines.length;
+
+  // Handle empty document
+  if (M === 0 || originalText.length === 0) {
+    const pages: PageData[] = [];
+    for (let p = 0; p < pageCount; p++) {
+      pages.push({
+        pageIndex: p,
+        text: '',
+        startIndex: 0,
+        endIndex: 0,
+        lines: [],
+        renderedHeight: 0,
+        availableHeight,
+        utilization: 0,
+        overflowPx: 0,
+        isOverflowing: false,
+      });
+    }
+    return {
+      pages,
+      totalAvailableHeight: availableHeight * pageCount,
+      effectiveFontSize: typography.fontSize,
+      isAutoFitFailed: false,
+      overallScore: 0,
+    };
+  }
+
+  // Handle Manual Mode
+  if (doc.distributionMode === 'manual' && doc.manualBreaks && doc.manualBreaks.length > 0) {
+    const sortedBreaks = [...doc.manualBreaks]
+      .filter((b) => b > 0 && b < originalText.length)
+      .sort((a, b) => a - b);
+
+    // Break lines according to character boundaries
+    const breakIndices = [0, ...sortedBreaks, originalText.length];
+    const pages: PageData[] = [];
+
+    for (let i = 0; i < breakIndices.length - 1; i++) {
+      const bStart = breakIndices[i];
+      const bEnd = breakIndices[i + 1];
+      const pageSlice = originalText.slice(bStart, bEnd);
+      const pageLines = wrapDocument(pageSlice, { availableWidth, typography }).map((l) => ({
+        ...l,
+        startIndex: l.startIndex + bStart,
+        endIndex: l.endIndex + bStart,
+      }));
+
+      const renderedH = computePageRenderedHeight(pageLines, lineHeightPx, spacing.paragraphSpacing);
+      const overflow = Math.max(0, renderedH - availableHeight);
+
+      pages.push({
+        pageIndex: i,
+        text: pageSlice,
+        startIndex: bStart,
+        endIndex: bEnd,
+        lines: pageLines,
+        renderedHeight: renderedH,
+        availableHeight,
+        utilization: Math.min(100, Math.round((renderedH / availableHeight) * 100)),
+        overflowPx: overflow,
+        isOverflowing: overflow > 0,
+      });
+    }
+
+    // Pad or slice to match pageCount if requested
+    while (pages.length < pageCount) {
+      const last = pages[pages.length - 1];
+      pages.push({
+        pageIndex: pages.length,
+        text: '',
+        startIndex: last.endIndex,
+        endIndex: last.endIndex,
+        lines: [],
+        renderedHeight: 0,
+        availableHeight,
+        utilization: 0,
+        overflowPx: 0,
+        isOverflowing: false,
+      });
+    }
+
+    return {
+      pages,
+      totalAvailableHeight: availableHeight * pages.length,
+      effectiveFontSize: typography.fontSize,
+      isAutoFitFailed: false,
+      overallScore: 0,
+    };
+  }
+
+  // If pageCount === 1, all lines go to single page
+  if (pageCount === 1) {
+    const renderedH = computePageRenderedHeight(allLines, lineHeightPx, spacing.paragraphSpacing);
+    const overflow = Math.max(0, renderedH - availableHeight);
+    return {
+      pages: [
+        {
+          pageIndex: 0,
+          text: originalText,
+          startIndex: 0,
+          endIndex: originalText.length,
+          lines: allLines,
+          renderedHeight: renderedH,
+          availableHeight,
+          utilization: Math.min(100, Math.round((renderedH / availableHeight) * 100)),
+          overflowPx: overflow,
+          isOverflowing: overflow > 0,
+        },
+      ],
+      totalAvailableHeight: availableHeight,
+      effectiveFontSize: typography.fontSize,
+      isAutoFitFailed: false,
+      overallScore: 0,
+    };
+  }
+
+  // If fewer lines than page count, assign 1 line per page until empty
+  if (M < pageCount) {
+    const pages: PageData[] = [];
+    let currentIdx = 0;
+    for (let p = 0; p < pageCount; p++) {
+      if (p < M) {
+        const line = allLines[p];
+        const pageText = originalText.slice(currentIdx, line.endIndex);
+        const renderedH = computePageRenderedHeight([line], lineHeightPx, spacing.paragraphSpacing);
+        pages.push({
+          pageIndex: p,
+          text: pageText,
+          startIndex: currentIdx,
+          endIndex: line.endIndex,
+          lines: [line],
+          renderedHeight: renderedH,
+          availableHeight,
+          utilization: Math.min(100, Math.round((renderedH / availableHeight) * 100)),
+          overflowPx: 0,
+          isOverflowing: false,
+        });
+        currentIdx = line.endIndex;
+      } else {
+        pages.push({
+          pageIndex: p,
+          text: '',
+          startIndex: currentIdx,
+          endIndex: currentIdx,
+          lines: [],
+          renderedHeight: 0,
+          availableHeight,
+          utilization: 0,
+          overflowPx: 0,
+          isOverflowing: false,
+        });
+      }
+    }
+    return {
+      pages,
+      totalAvailableHeight: availableHeight * pageCount,
+      effectiveFontSize: typography.fontSize,
+      isAutoFitFailed: false,
+      overallScore: 0,
+    };
+  }
+
+  // BALANCED & PARAGRAPH-PRESERVING: Dynamic Programming
+  const totalDocHeight = computePageRenderedHeight(allLines, lineHeightPx, spacing.paragraphSpacing);
+
+  let targetHeight = totalDocHeight / pageCount;
+  if (advanced.densityTarget === 'airy') {
+    targetHeight = Math.min(targetHeight, availableHeight * 0.72);
+  } else if (advanced.densityTarget === 'dense') {
+    targetHeight = Math.min(targetHeight, availableHeight * 0.95);
+  } else {
+    targetHeight = Math.min(targetHeight, availableHeight * 0.84);
+  }
+
+  const balanceOpts: VisualBalanceOptions = {
+    availableHeight,
+    targetHeight,
+    balanceStrength: advanced.balanceStrength,
+    densityTarget: advanced.densityTarget,
+    preventOrphanLines: advanced.preventOrphanLines,
+    mode: doc.distributionMode === 'paragraph-preserving' ? 'paragraph-preserving' : 'balanced',
+  };
+
+  // Precompute heights for lines i..j-1
+  // To keep memory small, compute on the fly or with prefix sums
+  const prefixLineHeights = new Float64Array(M + 1);
+  const prefixParaEnds = new Int32Array(M + 1);
+  for (let i = 0; i < M; i++) {
+    prefixLineHeights[i + 1] = prefixLineHeights[i] + lineHeightPx;
+    prefixParaEnds[i + 1] = prefixParaEnds[i] + (allLines[i].isParagraphEnd ? 1 : 0);
+  }
+
+  function getSpanHeight(i: number, j: number): number {
+    if (j <= i) return 0;
+    const baseH = prefixLineHeights[j] - prefixLineHeights[i];
+    // paragraph ends strictly between i and j-2 (not including the last line j-1)
+    const paraEnds = Math.max(0, prefixParaEnds[j - 1] - prefixParaEnds[i]);
+    return baseH + paraEnds * spacing.paragraphSpacing;
+  }
+
+  // DP table: dp[p][j] = min cost to partition first j lines into p pages
+  // parent[p][j] = optimal previous line index k
+  const dp: number[][] = Array.from({ length: pageCount + 1 }, () => new Array(M + 1).fill(Infinity));
+  const parent: number[][] = Array.from({ length: pageCount + 1 }, () => new Array(M + 1).fill(0));
+
+  dp[0][0] = 0;
+
+  for (let p = 1; p <= pageCount; p++) {
+    for (let j = p; j <= M; j++) {
+      // Line j-1 metadata
+      const lastLine = allLines[j - 1];
+      const isParaEnd = lastLine.isParagraphEnd;
+      const isSentenceEnd = lastLine.isSentenceEnd;
+      const isOrphan = lastLine.lineInParagraph === 0 && lastLine.totalLinesInParagraph > 1;
+      const isWidow = j < M && allLines[j].lineInParagraph === allLines[j].totalLinesInParagraph - 1 && allLines[j].totalLinesInParagraph > 1;
+
+      // Search previous boundary k
+      const minK = p - 1;
+      const maxK = j - 1;
+
+      for (let k = minK; k <= maxK; k++) {
+        if (dp[p - 1][k] === Infinity) continue;
+
+        const spanH = getSpanHeight(k, j);
+        const cost = computeBalanceScore(spanH, balanceOpts, isParaEnd, isSentenceEnd, isOrphan, isWidow);
+        const total = dp[p - 1][k] + cost;
+
+        if (total < dp[p][j]) {
+          dp[p][j] = total;
+          parent[p][j] = k;
+        }
+      }
+    }
+  }
+
+  // Backtrack to find partition line indices
+  const splitPoints: number[] = new Array(pageCount + 1);
+  splitPoints[pageCount] = M;
+  let curr = M;
+  for (let p = pageCount; p >= 1; p--) {
+    curr = parent[p][curr];
+    splitPoints[p - 1] = curr;
+  }
+
+  // If DP failed to find a valid non-infinite path (e.g. extreme constraints), fall back to even line distribution
+  if (splitPoints[0] !== 0 || splitPoints[pageCount] !== M) {
+    for (let p = 0; p <= pageCount; p++) {
+      splitPoints[p] = Math.round((p * M) / pageCount);
+    }
+  }
+
+  const pages: PageData[] = [];
+  let prevEndIndex = 0;
+
+  for (let p = 0; p < pageCount; p++) {
+    const startLineIdx = splitPoints[p];
+    const endLineIdx = splitPoints[p + 1];
+    const pageLines = allLines.slice(startLineIdx, endLineIdx);
+
+    const startChar = prevEndIndex;
+    const endChar = pageLines.length > 0 ? pageLines[pageLines.length - 1].endIndex : startChar;
+    const pageText = originalText.slice(startChar, endChar);
+    prevEndIndex = endChar;
+
+    const renderedH = getSpanHeight(startLineIdx, endLineIdx);
+    const overflow = Math.max(0, renderedH - availableHeight);
+
+    pages.push({
+      pageIndex: p,
+      text: pageText,
+      startIndex: startChar,
+      endIndex: endChar,
+      lines: pageLines,
+      renderedHeight: renderedH,
+      availableHeight,
+      utilization: Math.min(100, Math.round((renderedH / availableHeight) * 100)),
+      overflowPx: overflow,
+      isOverflowing: overflow > 0,
+    });
+  }
+
+  // Ensure last page reaches the end of originalText
+  if (pages.length > 0) {
+    const lastPage = pages[pages.length - 1];
+    if (lastPage.endIndex < originalText.length) {
+      lastPage.endIndex = originalText.length;
+      lastPage.text = originalText.slice(lastPage.startIndex, originalText.length);
+    }
+  }
+
+  return {
+    pages,
+    totalAvailableHeight: availableHeight * pageCount,
+    effectiveFontSize: typography.fontSize,
+    isAutoFitFailed: false,
+    overallScore: dp[pageCount][M],
+  };
+}
