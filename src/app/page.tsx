@@ -256,7 +256,8 @@ function Workspace() {
     setTypography(optimized.typography);
     setSpacing(optimized.spacing);
     setCanvas(optimized.canvas);
-    pushHistory(doc, optimized.canvas, optimized.typography, optimized.spacing, advanced);
+    setAdvanced((prev) => ({ ...prev, autoFit: false }));
+    pushHistory(doc, optimized.canvas, optimized.typography, optimized.spacing, { ...advanced, autoFit: false });
   }, [doc, canvas, typography, spacing, advanced, pushHistory]);
 
   // Layout primitives for zero-overhead color adjustments and strict debounced typing
@@ -268,7 +269,7 @@ function Workspace() {
     projectName: docProjectName,
   } = doc;
 
-  const { width: canvasWidth, height: canvasHeight } = canvas;
+  const { width: canvasWidth, height: canvasHeight, trimLastPageHeight: canvasTrimLast } = canvas;
 
   const {
     fontFamily: typoFamily,
@@ -373,6 +374,7 @@ function Workspace() {
     docLayoutLocked,
     canvasWidth,
     canvasHeight,
+    canvasTrimLast,
     typoFamily,
     typoFontSize,
     typoWeight,

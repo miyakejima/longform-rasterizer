@@ -10,7 +10,7 @@ import {
   TypographySettings,
   AdvancedSettings,
 } from '../types';
-import { paginateDocument, PaginationOptions } from './pagination';
+import { paginateDocument, PaginationOptions, computePageAvailableHeight } from './pagination';
 
 export interface OptimizedFillResult {
   typography: TypographySettings;
@@ -32,14 +32,22 @@ export function optimizeCanvasFill(
   spacing: SpacingSettings,
   advanced: AdvancedSettings
 ): OptimizedFillResult {
+  const availableWidth = Math.max(100, canvas.width - spacing.paddingLeft - spacing.paddingRight);
+  const availableHeight = computePageAvailableHeight(canvas, spacing);
+  const canvasScaleMax = Math.max(160, Math.floor(Math.min(availableWidth, availableHeight) / 2));
   const minFont = Math.max(12, advanced.minFontSize || 14);
-  const maxFont = Math.max(minFont, 96);
+  const maxFont = advanced.maxFontSize && advanced.maxFontSize !== 64
+    ? Math.max(minFont, advanced.maxFontSize)
+    : Math.max(minFont, canvasScaleMax);
 
   // Base configuration: eliminate minimum bottom margin & enable trimLastPageHeight
   const baseCanvas: CanvasSettings = {
     ...canvas,
     trimLastPageHeight: true,
   };
+
+  // Reset any runaway bloat from previous high-res runs or manual slider extremes
+  const baseLineHeight = typography.lineHeight > 1.8 ? 1.45 : typography.lineHeight;
 
   const baseSpacing: SpacingSettings = {
     ...spacing,
@@ -49,6 +57,7 @@ export function optimizeCanvasFill(
 
   const baseTypography: TypographySettings = {
     ...typography,
+    lineHeight: baseLineHeight,
     verticalAlignment: 'center',
   };
 
@@ -115,24 +124,31 @@ export function optimizeCanvasFill(
 
   // If average utilization is below 96%, search over line-height and paragraph-spacing combinations
   if (bestAvgUtil < 0.96) {
-    const candidateLineHeights = [
-      baseTypography.lineHeight,
-      Math.min(2.1, baseTypography.lineHeight + 0.05),
-      Math.min(2.1, baseTypography.lineHeight + 0.1),
-      Math.min(2.1, baseTypography.lineHeight + 0.15),
-      Math.min(2.1, baseTypography.lineHeight + 0.2),
-      Math.min(2.1, baseTypography.lineHeight + 0.25),
-    ];
+    // Clean, typographic line-height candidates (bounded to 1.85 to avoid bloated gaps)
+    const baselineLH = Math.min(baseTypography.lineHeight, 1.55);
+    const candidateLineHeights = Array.from(
+      new Set([
+        baselineLH,
+        Number((baselineLH + 0.05).toFixed(2)),
+        Number((baselineLH + 0.10).toFixed(2)),
+        Number((baselineLH + 0.15).toFixed(2)),
+        Number((baselineLH + 0.20).toFixed(2)),
+      ])
+    ).filter((lh) => lh <= 1.85);
 
-    const currentPacing = baseSpacing.paragraphSpacing;
-    const candidateSpacing = [
-      currentPacing,
-      Math.min(64, currentPacing + 6),
-      Math.min(64, currentPacing + 12),
-      Math.min(64, currentPacing + 18),
-      Math.min(64, currentPacing + 24),
-      Math.min(64, currentPacing + 32),
-    ];
+    // Scale candidate paragraph spacings proportionally to canvas available height
+    // On 1080x1350, baseSpacingPx is ~29px. On 4000x4000, baseSpacingPx is ~95px.
+    const baseSpacingPx = Math.max(20, Math.round(availableHeight * 0.025));
+    const candidateSpacing = Array.from(
+      new Set([
+        Math.max(16, Math.round(baseSpacingPx * 0.8)),
+        baseSpacingPx,
+        Math.round(baseSpacingPx * 1.2),
+        Math.round(baseSpacingPx * 1.5),
+        Math.round(baseSpacingPx * 1.8),
+        Math.round(baseSpacingPx * 2.2),
+      ])
+    );
 
     for (const lh of candidateLineHeights) {
       for (const ps of candidateSpacing) {

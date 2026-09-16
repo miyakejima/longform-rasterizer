@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { optimizeCanvasFill } from '../engine/canvasFillOptimizer';
+import { autoFitFontSize } from '../engine/autoFit';
 import { getPageCanvasDimensions } from '../engine/canvasRenderer';
 import { wrapDocument } from '../engine/lineWrapper';
 import { computePageRenderedHeight } from '../engine/pagination';
@@ -71,8 +72,7 @@ then the crowd begins feeding on itself, thousands singing the same words, screa
     expect(fullReconstructed).toBe(text);
   });
 
-  it('diagnoses user 16-paragraph essay utilization', () => {
-    const fullUserText = `thousands of people pay for admission, travel to the same place, wait in lines, give up comfort and personal space, often unable to see or hear properly, all for a few hours of an experience built around music they can already access almost anywhere at any time
+  const fullUserText = `thousands of people pay for admission, travel to the same place, wait in lines, give up comfort and personal space, often unable to see or hear properly, all for a few hours of an experience built around music they can already access almost anywhere at any time
 
 the music still matters, but it is only one part of what is being sold, physical presence, proximity to the performer, spectacle, ritual, crowd intensity, scarcity, shared excitement and the feeling of participating in something important enough for thousands of other people to gather around it too
 
@@ -104,6 +104,7 @@ and that is what all the flattering language is covering up, a pile of assumptio
 
 wrote this after hearing that a girl died around one of these concerts, after watching an entire culture glorify the same crowding, exhaustion, discomfort and loss of judgment as passion thousands are paying for, waiting, screaming and packing themselves together for proximity to strangers they have elevated far beyond anything they actually know about them a few people on stage filling their pockets and feeding their ego while the crowd supplies the money, worship, noise and importance that keeps the whole machine alive mass naïvety turned into ritual, collective stupidity sold back as something special, then romanticized as “humanity” by the same people participating in it`;
 
+  it('diagnoses user 16-paragraph essay utilization', () => {
     const paragraphs = fullUserText.split(/\n\s*\n/).filter(Boolean);
 
     const N = paragraphs.length;
@@ -225,6 +226,110 @@ wrote this after hearing that a girl died around one of these concerts, after wa
     // Assert high visual utilization across all pages (>= 90%)
     expect(optResult.minUtilization).toBeGreaterThanOrEqual(0.90);
     expect(optResult.averageUtilization).toBeGreaterThanOrEqual(0.90);
+  });
+
+  it('diagnoses 4000x4000 custom resolution fill and reset', () => {
+    const userExcerpt = `thousands of people pay for admission, travel to the same place, wait in lines, give up comfort and personal space, often unable to see or hear properly, all for a few hours of an experience built around music they can already access almost anywhere at any time
+
+the music still matters, but it is only one part of what is being sold, physical presence, proximity to the performer, spectacle, ritual, crowd intensity, scarcity, shared excitement and the feeling of participating in something important enough for thousands of other people to gather around it too
+
+the recorded music can already be heard exactly as produced, without crowd noise, at any volume, paused, replayed, repeated and listened to under conditions chosen by the listener, so the entire extra value of the concert has to come from everything surrounding the music, physical presence, proximity`;
+
+    const doc = {
+      ...DEFAULT_DOCUMENT,
+      text: userExcerpt,
+      pageCount: 4,
+    };
+
+    const canvas4k = {
+      ...DEFAULT_CANVAS,
+      width: 4000,
+      height: 4000,
+      preset: 'custom' as const,
+    };
+
+    const res4k = optimizeCanvasFill(doc, canvas4k, DEFAULT_TYPOGRAPHY, DEFAULT_SPACING, DEFAULT_ADVANCED);
+    console.log('4K EXCERPT FILL RESULT:', {
+      fontSize: res4k.typography.fontSize,
+      lineHeight: res4k.typography.lineHeight,
+      paragraphSpacing: res4k.spacing.paragraphSpacing,
+      avgUtil: res4k.averageUtilization,
+      minUtil: res4k.minUtilization,
+      pages: res4k.paginationResult.pages.map(p => ({
+        idx: p.pageIndex,
+        util: p.utilization,
+        h: p.renderedHeight,
+        avail: p.availableHeight,
+      })),
+    });
+
+    const canvasNormal = {
+      ...DEFAULT_CANVAS,
+      width: 1080,
+      height: 1350,
+      preset: 'twitter' as const,
+    };
+
+    // Scenario A: Auto-fit is on when user changes canvas back to 1080x1350
+    const autoFitBack = autoFitFontSize(doc, {
+      canvas: canvasNormal,
+      typography: res4k.typography,
+      spacing: res4k.spacing,
+      advanced: { ...DEFAULT_ADVANCED, autoFit: true },
+    });
+    console.log('AUTO-FIT BACK TO 1080 RESULT:', {
+      effectiveFontSize: autoFitBack.effectiveFontSize,
+      isAutoFitFailed: autoFitBack.isAutoFitFailed,
+      pages: autoFitBack.pages.map(p => ({
+        idx: p.pageIndex,
+        util: p.utilization,
+        h: p.renderedHeight,
+        avail: p.availableHeight,
+        overflow: p.isOverflowing,
+      })),
+    });
+
+    const resBack = optimizeCanvasFill(doc, canvasNormal, res4k.typography, res4k.spacing, DEFAULT_ADVANCED);
+    expect(res4k.averageUtilization).toBeGreaterThanOrEqual(0.80);
+    expect(resBack.averageUtilization).toBeGreaterThanOrEqual(0.80);
+  });
+
+  it('verifies 16-paragraph concert essay on 4000x4000 and clean reset to 1080x1350', () => {
+    const doc = {
+      ...DEFAULT_DOCUMENT,
+      text: fullUserText,
+      pageCount: 4,
+    };
+
+    const canvas4k = {
+      ...DEFAULT_CANVAS,
+      width: 4000,
+      height: 4000,
+      preset: 'custom' as const,
+    };
+
+    const res4k = optimizeCanvasFill(doc, canvas4k, DEFAULT_TYPOGRAPHY, DEFAULT_SPACING, DEFAULT_ADVANCED);
+    expect(res4k.paginationResult.pages.every(p => !p.isOverflowing)).toBe(true);
+    // On 4000x4000, font size now scales dynamically past 96px!
+    expect(res4k.typography.fontSize).toBeGreaterThanOrEqual(96);
+    expect(res4k.minUtilization).toBeGreaterThanOrEqual(0.88);
+    expect(res4k.averageUtilization).toBeGreaterThanOrEqual(0.92);
+
+    const canvasNormal = {
+      ...DEFAULT_CANVAS,
+      width: 1080,
+      height: 1350,
+      preset: 'twitter' as const,
+    };
+
+    // Switching back to normal resolution immediately re-optimizes cleanly
+    const resBack = optimizeCanvasFill(doc, canvasNormal, res4k.typography, res4k.spacing, DEFAULT_ADVANCED);
+    expect(resBack.paginationResult.pages.every(p => !p.isOverflowing)).toBe(true);
+    expect(resBack.typography.fontSize).toBeLessThanOrEqual(32);
+    expect(resBack.typography.fontSize).toBeGreaterThanOrEqual(22);
+    expect(resBack.typography.lineHeight).toBeLessThanOrEqual(1.65);
+    expect(resBack.minUtilization).toBeGreaterThanOrEqual(0.90);
+    expect(resBack.averageUtilization).toBeGreaterThanOrEqual(0.92);
   });
 });
 
