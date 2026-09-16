@@ -16,7 +16,7 @@ import {
   SpacingSettings,
   TypographySettings,
 } from '../types';
-import { renderPageToCanvas } from '../engine/canvasRenderer';
+import { renderPageToCanvas, getPageCanvasDimensions } from '../engine/canvasRenderer';
 import { exportSinglePage } from '../engine/exportEngine';
 
 interface PageCardProps {
@@ -38,6 +38,7 @@ interface PageCardProps {
 
 export const PageCard: React.FC<PageCardProps> = ({
   page,
+  totalPages,
   canvas,
   typography,
   spacing,
@@ -55,6 +56,15 @@ export const PageCard: React.FC<PageCardProps> = ({
   const [copied, setCopied] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
 
+  // Compute dynamic dimensions (supports auto-trimming last page height to content)
+  const pageDims = getPageCanvasDimensions(
+    page.pageIndex,
+    totalPages,
+    page.renderedHeight,
+    canvas,
+    spacing
+  );
+
   // Render canvas whenever layout/page changes with rAF throttling for buttery-smooth 60fps updates
   useEffect(() => {
     let animId: number;
@@ -63,6 +73,7 @@ export const PageCard: React.FC<PageCardProps> = ({
       animId = requestAnimationFrame(() => {
         renderPageToCanvas(c, {
           page,
+          totalPages,
           canvas,
           typography,
           spacing,
@@ -73,7 +84,7 @@ export const PageCard: React.FC<PageCardProps> = ({
     return () => {
       if (animId) cancelAnimationFrame(animId);
     };
-  }, [page, canvas, typography, spacing]);
+  }, [page, totalPages, canvas, typography, spacing]);
 
   const handleCopyText = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -96,6 +107,7 @@ export const PageCard: React.FC<PageCardProps> = ({
     try {
       await exportSinglePage(page, {
         canvas,
+        totalPages,
         typography,
         spacing,
         scale: exportScale,
@@ -118,7 +130,7 @@ export const PageCard: React.FC<PageCardProps> = ({
           ? 'border-red-800 shadow-red-950/20'
           : 'border-[#262630] hover:border-zinc-500'
       }`}
-      style={{ aspectRatio: `${canvas.width} / ${canvas.height}` }}
+      style={{ aspectRatio: `${pageDims.width} / ${pageDims.height}` }}
       onMouseEnter={() => onHover(true)}
       onMouseLeave={() => onHover(false)}
       onClick={() => {

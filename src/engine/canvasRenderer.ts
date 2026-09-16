@@ -11,22 +11,50 @@ import { measureTextWidth } from './textMeasurement';
 
 export interface RenderCanvasOptions {
   page: PageData;
+  totalPages?: number;
   canvas: CanvasSettings;
   typography: TypographySettings;
   spacing: SpacingSettings;
   scale?: ExportScale;
 }
 
+export function getPageCanvasDimensions(
+  pageIndex: number,
+  totalPages: number,
+  pageRenderedHeight: number,
+  canvas: CanvasSettings,
+  spacing: SpacingSettings
+): { width: number; height: number; isTrimmed: boolean } {
+  if (canvas.trimLastPageHeight && totalPages > 1 && pageIndex === totalPages - 1) {
+    const naturalHeight = Math.round(pageRenderedHeight + spacing.paddingTop + spacing.paddingBottom);
+    if (naturalHeight < canvas.height && naturalHeight > 100) {
+      return { width: canvas.width, height: naturalHeight, isTrimmed: true };
+    }
+  }
+  return { width: canvas.width, height: canvas.height, isTrimmed: false };
+}
+
 export function renderPageToCanvas(
   targetCanvas: HTMLCanvasElement,
   options: RenderCanvasOptions
 ): void {
-  const { page, canvas, typography, spacing, scale = 1 } = options;
+  const { page, totalPages = 1, canvas, typography, spacing, scale = 1 } = options;
   const ctx = targetCanvas.getContext('2d');
   if (!ctx) return;
 
-  const width = canvas.width * scale;
-  const height = canvas.height * scale;
+  const pageDims = getPageCanvasDimensions(
+    page.pageIndex,
+    totalPages,
+    page.renderedHeight,
+    canvas,
+    spacing
+  );
+
+  const effectiveCanvasWidth = pageDims.width;
+  const effectiveCanvasHeight = pageDims.height;
+
+  const width = effectiveCanvasWidth * scale;
+  const height = effectiveCanvasHeight * scale;
 
   targetCanvas.width = width;
   targetCanvas.height = height;
@@ -37,16 +65,16 @@ export function renderPageToCanvas(
 
   // Background
   if (canvas.transparentBackground) {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, effectiveCanvasWidth, effectiveCanvasHeight);
   } else {
     ctx.fillStyle = canvas.backgroundColor;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillRect(0, 0, effectiveCanvasWidth, effectiveCanvasHeight);
   }
 
   const { fontFamily, fontSize, fontWeight, lineHeight, letterSpacing, textColor, alignment } =
     typography;
   const { paddingTop, paddingLeft, paddingRight, paragraphSpacing } = spacing;
-  const contentWidth = Math.max(10, canvas.width - paddingLeft - paddingRight);
+  const contentWidth = Math.max(10, effectiveCanvasWidth - paddingLeft - paddingRight);
   const lineBoxHeight = fontSize * lineHeight;
 
   ctx.fillStyle = textColor;
@@ -62,33 +90,33 @@ export function renderPageToCanvas(
   }
 
   const verticalAlignment = typography.verticalAlignment ?? spacing.verticalAlignment ?? 'center';
-  const availableHeight = page.availableHeight ?? (canvas.height - paddingTop - spacing.paddingBottom - (spacing.minBottomSpace || 0));
+  const availableHeight = effectiveCanvasHeight - paddingTop - spacing.paddingBottom - (spacing.minBottomSpace || 0);
 
   // Compute vertical space distribution
   const remainingSpace = Math.max(0, availableHeight - page.renderedHeight);
-  const internalParagraphEnds = page.lines.reduce((acc, line, idx) => {
-    return idx < page.lines.length - 1 && line.isParagraphEnd ? acc + 1 : acc;
-  }, 0);
-
   let extraParaSpacing = 0;
-  let extraLineSpacing = 0;
+  const extraLineSpacing = 0;
   let currentY = paddingTop;
 
-  if (verticalAlignment === 'justify' && remainingSpace > 0) {
-    if (internalParagraphEnds > 0) {
+  if (pageDims.isTrimmed) {
+    // When trimmed, the canvas height matches the text exactly + padding
+    currentY = paddingTop;
+  } else if (verticalAlignment === 'center' && remainingSpace > 0) {
+    // Clean, natural vertical centering as a unified block (normal uniform paragraph spacing!)
+    currentY = paddingTop + remainingSpace / 2;
+  } else if (verticalAlignment === 'top') {
+    currentY = paddingTop;
+  } else if (verticalAlignment === 'justify' && remainingSpace > 0) {
+    // Only micro-feather if space is small (<= 8px per gap), otherwise center cleanly!
+    const internalParagraphEnds = page.lines.reduce((acc, line, idx) => {
+      return idx < page.lines.length - 1 && line.isParagraphEnd ? acc + 1 : acc;
+    }, 0);
+    const maxSaneGap = 8;
+    if (internalParagraphEnds > 0 && (remainingSpace / internalParagraphEnds) <= maxSaneGap) {
       extraParaSpacing = remainingSpace / internalParagraphEnds;
-    } else if (page.lines.length > 1) {
-      const perLine = remainingSpace / (page.lines.length - 1);
-      if (perLine <= lineBoxHeight * 0.4) {
-        extraLineSpacing = perLine;
-      } else {
-        currentY = paddingTop + remainingSpace / 2;
-      }
     } else {
       currentY = paddingTop + remainingSpace / 2;
     }
-  } else if (verticalAlignment === 'center' && remainingSpace > 0) {
-    currentY = paddingTop + remainingSpace / 2;
   }
 
   for (let i = 0; i < page.lines.length; i++) {

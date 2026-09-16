@@ -17,6 +17,7 @@ export interface CanvasSettings {
   preset: CanvasPreset;
   backgroundColor: string; // Hex string e.g. '#000000'
   transparentBackground: boolean;
+  trimLastPageHeight?: boolean;
 }
 
 export interface TypographySettings {

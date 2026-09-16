@@ -12,6 +12,7 @@ import {
   TypographySettings,
 } from '../types';
 import { PageCard } from './PageCard';
+import { getPageCanvasDimensions } from '../engine/canvasRenderer';
 
 interface PreviewPanelProps {
   pages: PageData[];
@@ -214,14 +215,23 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
             </div>
           )}
 
-          <div className="flex-1 min-h-0 w-full flex items-center justify-center p-2">
-            <div
-              className="max-h-full max-w-full relative flex items-center justify-center"
-              style={{
-                aspectRatio: `${canvas.width} / ${canvas.height}`,
-                height: '100%',
-              }}
-            >
+          {(() => {
+            const singleDims = getPageCanvasDimensions(
+              activeSinglePage.pageIndex,
+              pages.length,
+              activeSinglePage.renderedHeight,
+              canvas,
+              spacing
+            );
+            return (
+              <div className="flex-1 min-h-0 w-full flex items-center justify-center p-2">
+                <div
+                  className="max-h-full max-w-full relative flex items-center justify-center"
+                  style={{
+                    aspectRatio: `${singleDims.width} / ${singleDims.height}`,
+                    height: '100%',
+                  }}
+                >
               <PageCard
                 page={activeSinglePage}
                 totalPages={pages.length}
@@ -240,6 +250,8 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
               />
             </div>
           </div>
+            );
+          })()}
         </div>
       )}
 
@@ -279,14 +291,22 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
             onScroll={handleCarouselScroll}
             className="flex-1 min-h-0 w-full flex items-center overflow-x-auto snap-x snap-mandatory py-4 px-12 gap-8 scroll-smooth"
           >
-            {pages.map((page, idx) => (
-              <div
-                key={`preview-carousel-${page.pageIndex}`}
-                className="h-full max-h-[70vh] min-h-[280px] shrink-0 flex flex-col items-center justify-center snap-center"
-                style={{
-                  aspectRatio: `${canvas.width} / ${canvas.height}`,
-                }}
-              >
+            {pages.map((page, idx) => {
+              const cardDims = getPageCanvasDimensions(
+                page.pageIndex,
+                pages.length,
+                page.renderedHeight,
+                canvas,
+                spacing
+              );
+              return (
+                <div
+                  key={`preview-carousel-${page.pageIndex}`}
+                  className={`h-full ${isEditorCollapsed ? 'max-h-[82vh]' : 'max-h-[70vh]'} min-h-[280px] shrink-0 flex flex-col items-center justify-center snap-center`}
+                  style={{
+                    aspectRatio: `${cardDims.width} / ${cardDims.height}`,
+                  }}
+                >
                 <div className="w-full flex-1 min-h-0 relative flex items-center justify-center">
                   <PageCard
                     page={page}
@@ -312,7 +332,8 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                   Page {page.pageIndex + 1}
                 </span>
               </div>
-            ))}
+            );
+          })}
           </div>
 
           {/* Bottom Interactive Slide Indicators & Page Counter */}

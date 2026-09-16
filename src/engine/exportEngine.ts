@@ -81,6 +81,7 @@ export async function exportSinglePage(
   page: PageData,
   options: {
     canvas: CanvasSettings;
+    totalPages?: number;
     typography: TypographySettings;
     spacing: SpacingSettings;
     scale: ExportScale;
@@ -91,6 +92,7 @@ export async function exportSinglePage(
   const offscreenCanvas = document.createElement('canvas');
   renderPageToCanvas(offscreenCanvas, {
     page,
+    totalPages: options.totalPages ?? (page.pageIndex + 1),
     canvas: options.canvas,
     typography: options.typography,
     spacing: options.spacing,
@@ -126,6 +128,7 @@ export async function exportAllPagesAsZip(
     const offscreenCanvas = document.createElement('canvas');
     renderPageToCanvas(offscreenCanvas, {
       page,
+      totalPages: pages.length,
       canvas: options.canvas,
       typography: options.typography,
       spacing: options.spacing,
@@ -156,7 +159,10 @@ export async function exportAllPagesSeparately(
   }
 ): Promise<void> {
   for (let i = 0; i < pages.length; i++) {
-    await exportSinglePage(pages[i], options);
+    await exportSinglePage(pages[i], {
+      ...options,
+      totalPages: pages.length,
+    });
     // Stagger downloads slightly to prevent browser throttling
     if (i < pages.length - 1) {
       await new Promise((resolve) => setTimeout(resolve, 250));

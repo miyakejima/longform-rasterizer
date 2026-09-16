@@ -35,16 +35,21 @@ export function optimizeCanvasFill(
   const minFont = Math.max(12, advanced.minFontSize || 14);
   const maxFont = Math.max(minFont, 96);
 
-  // Base configuration: eliminate minimum bottom margin & justify vertically for balanced symmetry
+  // Base configuration: eliminate minimum bottom margin & enable trimLastPageHeight
+  const baseCanvas: CanvasSettings = {
+    ...canvas,
+    trimLastPageHeight: true,
+  };
+
   const baseSpacing: SpacingSettings = {
     ...spacing,
     minBottomSpace: 0,
-    verticalAlignment: 'justify',
+    verticalAlignment: 'center',
   };
 
   const baseTypography: TypographySettings = {
     ...typography,
-    verticalAlignment: 'justify',
+    verticalAlignment: 'center',
   };
 
   // Phase 1: Binary search to find the maximum font size that fits without overflow
@@ -56,7 +61,7 @@ export function optimizeCanvasFill(
   while (low <= high) {
     const mid = Math.floor((low + high) / 2);
     const testOptions: PaginationOptions = {
-      canvas,
+      canvas: baseCanvas,
       typography: { ...baseTypography, fontSize: mid },
       spacing: baseSpacing,
       advanced,
@@ -135,7 +140,7 @@ export function optimizeCanvasFill(
         const testSpace: SpacingSettings = { ...baseSpacing, paragraphSpacing: ps };
 
         const testOptions: PaginationOptions = {
-          canvas,
+          canvas: baseCanvas,
           typography: testTypo,
           spacing: testSpace,
           advanced,
@@ -165,7 +170,7 @@ export function optimizeCanvasFill(
   return {
     typography: bestTypography,
     spacing: bestSpacing,
-    canvas,
+    canvas: baseCanvas,
     paginationResult: bestPagination,
     averageUtilization: bestAvgUtil,
     minUtilization: bestMinUtil,

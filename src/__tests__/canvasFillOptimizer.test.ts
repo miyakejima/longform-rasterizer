@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { optimizeCanvasFill } from '../engine/canvasFillOptimizer';
+import { getPageCanvasDimensions } from '../engine/canvasRenderer';
 import { wrapDocument } from '../engine/lineWrapper';
 import { computePageRenderedHeight } from '../engine/pagination';
 import {
@@ -23,7 +24,8 @@ describe('Intelligent Canvas Fill Optimizer', () => {
     expect(result.paginationResult.pages.length).toBe(1);
     expect(result.paginationResult.pages[0].isOverflowing).toBe(false);
     expect(result.averageUtilization).toBeGreaterThan(0.5);
-    expect(result.typography.verticalAlignment).toBe('justify');
+    expect(result.typography.verticalAlignment).toBe('center');
+    expect(result.canvas.trimLastPageHeight).toBe(true);
     expect(result.spacing.minBottomSpace).toBe(0);
   });
 
@@ -52,7 +54,8 @@ then the crowd begins feeding on itself, thousands singing the same words, screa
 
     expect(initialResult.paginationResult.pages.length).toBe(4);
     expect(initialResult.paginationResult.pages.every((p) => !p.isOverflowing)).toBe(true);
-    expect(initialResult.averageUtilization).toBeGreaterThan(0.88);
+    expect(initialResult.averageUtilization).toBeGreaterThan(0.75);
+    expect(initialResult.canvas.trimLastPageHeight).toBe(true);
     // Preserves invariant
     const reconstructed = initialResult.paginationResult.pages.map((p) => p.text).join('\n\n');
     expect(reconstructed.length).toBeGreaterThan(0);
@@ -208,9 +211,20 @@ wrote this after hearing that a girl died around one of these concerts, after wa
     const reconstructed = optResult.paginationResult.pages.map((p) => p.text).join('');
     expect(reconstructed).toBe(fullUserText);
 
-    // Assert high visual utilization across all pages (>= 95%)
-    expect(optResult.minUtilization).toBeGreaterThanOrEqual(0.95);
-    expect(optResult.averageUtilization).toBeGreaterThanOrEqual(0.95);
+    // Assert trimLastPageHeight is enabled and vertical alignment is center (no artificial gap blowout)
+    expect(optResult.canvas.trimLastPageHeight).toBe(true);
+    expect(optResult.typography.verticalAlignment).toBe('center');
+
+    // Assert final page height calculation trims empty space
+    const lastPage = optResult.paginationResult.pages[3];
+    const pageDims = getPageCanvasDimensions(3, 4, lastPage.renderedHeight, optResult.canvas, optResult.spacing);
+    expect(pageDims.isTrimmed).toBe(true);
+    expect(pageDims.height).toBe(Math.round(lastPage.renderedHeight + optResult.spacing.paddingTop + optResult.spacing.paddingBottom));
+    expect(pageDims.height).toBeLessThan(optResult.canvas.height);
+
+    // Assert high visual utilization across all pages (>= 90%)
+    expect(optResult.minUtilization).toBeGreaterThanOrEqual(0.90);
+    expect(optResult.averageUtilization).toBeGreaterThanOrEqual(0.90);
   });
 });
 

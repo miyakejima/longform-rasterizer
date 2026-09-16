@@ -20,7 +20,7 @@ import {
   SpacingSettings,
   TypographySettings,
 } from '../types';
-import { renderPageToCanvas } from '../engine/canvasRenderer';
+import { renderPageToCanvas, getPageCanvasDimensions } from '../engine/canvasRenderer';
 import { exportSinglePage } from '../engine/exportEngine';
 
 interface FullscreenModalProps {
@@ -91,17 +91,22 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
 
   const activePage = pages[currentPageIndex] || pages[0];
 
+  const pageDims = activePage
+    ? getPageCanvasDimensions(activePage.pageIndex, pages.length, activePage.renderedHeight, canvas, spacing)
+    : { width: canvas.width, height: canvas.height, isTrimmed: false };
+
   useEffect(() => {
     if (isOpen && canvasRef.current && activePage) {
       renderPageToCanvas(canvasRef.current, {
         page: activePage,
+        totalPages: pages.length,
         canvas,
         typography,
         spacing,
         scale: 1,
       });
     }
-  }, [isOpen, activePage, canvas, typography, spacing]);
+  }, [isOpen, activePage, pages.length, canvas, typography, spacing]);
 
   if (!isOpen || !activePage || typeof document === 'undefined') return null;
 
@@ -122,6 +127,7 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
     }
     await exportSinglePage(activePage, {
       canvas,
+      totalPages: pages.length,
       typography,
       spacing,
       scale: exportScale,
@@ -210,7 +216,7 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
           style={{
             maxHeight: zoomLevel === 'fit' ? '85vh' : 'none',
             maxWidth: zoomLevel === 'fit' ? '85vw' : 'none',
-            aspectRatio: `${canvas.width} / ${canvas.height}`,
+            aspectRatio: `${pageDims.width} / ${pageDims.height}`,
           }}
         >
           <canvas

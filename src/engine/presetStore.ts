@@ -17,6 +17,7 @@ export const DEFAULT_CANVAS: CanvasSettings = {
   preset: 'twitter',
   backgroundColor: '#000000',
   transparentBackground: false,
+  trimLastPageHeight: false,
 };
 
 export const DEFAULT_TYPOGRAPHY: TypographySettings = {

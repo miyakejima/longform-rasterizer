@@ -155,12 +155,17 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
   );
 
   const getFormatLabel = () => {
-    if (canvas.preset === 'twitter') return '1080×1350 (4:5)';
-    if (canvas.preset === 'square') return '1080×1080 (1:1)';
-    if (canvas.preset === 'portrait') return '1080×1440 (3:4)';
-    if (canvas.preset === 'story') return '1080×1920 (9:16)';
-    if (canvas.preset === 'landscape') return '1600×900 (16:9)';
-    return `${canvas.width}×${canvas.height}`;
+    let base = `${canvas.width}×${canvas.height}`;
+    if (canvas.preset === 'twitter') base = '1080×1350 (4:5)';
+    else if (canvas.preset === 'square') base = '1080×1080 (1:1)';
+    else if (canvas.preset === 'portrait') base = '1080×1440 (3:4)';
+    else if (canvas.preset === 'story') base = '1080×1920 (9:16)';
+    else if (canvas.preset === 'landscape') base = '1600×900 (16:9)';
+
+    if (canvas.trimLastPageHeight) {
+      return `${base} · Trim`;
+    }
+    return base;
   };
 
   const getMarginLabel = () => {
@@ -578,6 +583,31 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                       />
                     </div>
                   </div>
+                </div>
+
+                <div className="pt-2.5 mt-2.5 border-t border-[#18181f] flex items-center justify-between">
+                  <div className="flex flex-col pr-2">
+                    <span className="text-xs font-medium text-zinc-200">Trim last page height</span>
+                    <span className="text-[10px] text-zinc-500">Fit final image height to content (no empty space)</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onCanvasChange({
+                        ...canvas,
+                        trimLastPageHeight: !canvas.trimLastPageHeight,
+                      })
+                    }
+                    className={`w-9 h-5 rounded-full p-0.5 transition-colors shrink-0 ${
+                      canvas.trimLastPageHeight ? 'bg-[#24242e] border border-[#3e3e4c]' : 'bg-[#18181f]'
+                    }`}
+                  >
+                    <div
+                      className={`w-4 h-4 rounded-full transition-transform ${
+                        canvas.trimLastPageHeight ? 'translate-x-4 bg-zinc-200' : 'translate-x-0 bg-zinc-600'
+                      }`}
+                    />
+                  </button>
                 </div>
               </div>
             )}

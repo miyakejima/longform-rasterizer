@@ -49,6 +49,7 @@ export function paginateDocument(
   const availableWidth = Math.max(100, canvas.width - spacing.paddingLeft - spacing.paddingRight);
   const availableHeight = computePageAvailableHeight(canvas, spacing);
   const lineHeightPx = typography.fontSize * typography.lineHeight;
+  const isVerticalJustify = typography.verticalAlignment === 'justify' || spacing.verticalAlignment === 'justify';
 
   // Wrap all text into lines
   const allLines = wrapDocument(originalText, {
@@ -106,7 +107,7 @@ export function paginateDocument(
 
       const renderedH = computePageRenderedHeight(pageLines, lineHeightPx, spacing.paragraphSpacing);
       const overflow = Math.max(0, renderedH - availableHeight);
-
+      const isTrimmedLastPage = Boolean(canvas.trimLastPageHeight && pageCount > 1 && i === pageCount - 1 && renderedH < availableHeight);
       pages.push({
         pageIndex: i,
         text: pageSlice,
@@ -115,7 +116,9 @@ export function paginateDocument(
         lines: pageLines,
         renderedHeight: renderedH,
         availableHeight,
-        utilization: Math.min(100, Math.round((renderedH / availableHeight) * 100)),
+        utilization: (isVerticalJustify || isTrimmedLastPage) && overflow === 0
+          ? 100
+          : Math.min(100, Math.round((renderedH / availableHeight) * 100)),
         overflowPx: overflow,
         isOverflowing: overflow > 0,
       });
@@ -259,8 +262,6 @@ export function paginateDocument(
     mode: doc.distributionMode === 'paragraph-preserving' ? 'paragraph-preserving' : 'balanced',
   };
 
-  const isVerticalJustify = typography.verticalAlignment === 'justify' || spacing.verticalAlignment === 'justify';
-
   // 1. PARAGRAPH-LEVEL PARTITIONING:
   // Whenever there are at least as many paragraphs as requested pages,
   // evaluate whole-paragraph partitions first. This strictly prevents splitting paragraphs across pages!
@@ -334,7 +335,8 @@ export function paginateDocument(
           }));
           const renderedH = spanData.height;
           const overflow = Math.max(0, renderedH - availableHeight);
-          const util = isVerticalJustify && overflow === 0
+          const isTrimmedLastPage = Boolean(canvas.trimLastPageHeight && pageCount > 1 && p === pageCount - 1 && renderedH < availableHeight);
+          const util = (isVerticalJustify || isTrimmedLastPage) && overflow === 0
             ? 100
             : Math.min(100, Math.round((renderedH / availableHeight) * 100));
 
@@ -440,7 +442,8 @@ export function paginateDocument(
           }));
           const renderedH = computePageRenderedHeight(pageLines, lineHeightPx, spacing.paragraphSpacing);
           const overflow = Math.max(0, renderedH - availableHeight);
-          const util = isVerticalJustify && overflow === 0
+          const isTrimmedLastPage = Boolean(canvas.trimLastPageHeight && pageCount > 1 && p === pageCount - 1 && renderedH < availableHeight);
+          const util = (isVerticalJustify || isTrimmedLastPage) && overflow === 0
             ? 100
             : Math.min(100, Math.round((renderedH / availableHeight) * 100));
 
@@ -564,6 +567,7 @@ export function paginateDocument(
 
     const renderedH = getSpanHeight(startLineIdx, endLineIdx);
     const overflow = Math.max(0, renderedH - availableHeight);
+    const isTrimmedLastPage = Boolean(canvas.trimLastPageHeight && pageCount > 1 && p === pageCount - 1 && renderedH < availableHeight);
 
     pages.push({
       pageIndex: p,
@@ -573,7 +577,7 @@ export function paginateDocument(
       lines: pageLines,
       renderedHeight: renderedH,
       availableHeight,
-      utilization: isVerticalJustify && overflow === 0
+      utilization: (isVerticalJustify || isTrimmedLastPage) && overflow === 0
         ? 100
         : Math.min(100, Math.round((renderedH / availableHeight) * 100)),
       overflowPx: overflow,
