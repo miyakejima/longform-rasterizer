@@ -80,8 +80,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
   // Grid column class matching large card display
   const getGridCols = () => {
     if (pages.length === 1) return 'grid-cols-1 max-w-xl';
-    if (pages.length === 2) return 'grid-cols-1 md:grid-cols-2 max-w-4xl';
-    return 'grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 max-w-7xl';
+    return 'grid-cols-1 xl:grid-cols-2 max-w-5xl';
   };
 
   const activeSinglePage = pages[effectiveSingleIndex] ?? pages[0];
