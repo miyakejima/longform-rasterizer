@@ -122,12 +122,12 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
           type="button"
           onClick={() => setShowExportMenu((prev) => !prev)}
           disabled={isExporting}
-          className={`h-7 px-3 rounded-[6px] bg-[#0c0c0e] hover:bg-[#16161c] border border-[#1b1b22] hover:border-[#2e2e3a] text-xs font-medium text-zinc-300 hover:text-white transition-all shadow-xs flex items-center gap-1.5 focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-zinc-500 ${
+          className={`h-8 px-3.5 rounded-[8px] bg-[#0c0c0e] hover:bg-[#16161c] border border-[#1b1b22] hover:border-[#2e2e3a] text-xs font-medium text-zinc-300 hover:text-white transition-all shadow-xs flex items-center gap-1.5 focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-zinc-500 ${
             showExportMenu ? 'bg-[#16161c] border-[#2e2e3a] text-white' : ''
           }`}
         >
           <span>{isExporting ? 'Exporting...' : 'Export'}</span>
-          <ChevronDown className="w-3 h-3 text-zinc-400" />
+          <ChevronDown className="w-3.5 h-3.5 text-zinc-400" />
         </button>
 
         {/* Export Options Dropdown */}

@@ -223,16 +223,16 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
   return (
     <div ref={toolbarRef} className="relative select-none flex items-center">
       {/* 4 Calm Control Groups on Dark Obsidian Surface */}
-      <div className="flex items-center gap-4 text-xs select-none py-1">
+      <div className="flex items-center gap-2.5 text-xs select-none py-1">
 
         {/* ========================================================= */}
-        {/* GROUP 1: PAGES */}
+        {/* GROUP 1: PAGES (Editable Page Count Control)              */}
         {/* ========================================================= */}
         <div className="relative">
           <button
             type="button"
             onClick={() => togglePopover('pages')}
-            className={`h-7 px-2.5 flex items-center gap-1.5 bg-[#0c0c0e] border border-[#1b1b22] rounded-[6px] text-xs transition-colors ${
+            className={`h-8 px-3 flex items-center gap-1.5 bg-[#0c0c0e] border border-[#1b1b22] rounded-[8px] text-xs transition-colors shadow-xs ${
               activePopover === 'pages'
                 ? 'bg-[#16161c] text-white border-[#2e2e3a]'
                 : 'text-zinc-300 hover:bg-[#16161c] hover:text-white'
@@ -312,19 +312,16 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
           )}
         </div>
 
-        {/* Faint Divider between major groups */}
-        <div className="w-px h-3.5 bg-[#18181f]" />
-
         {/* ========================================================= */}
-        {/* GROUP 2: TYPOGRAPHY (Font · Size · Auto-fit · Fill) */}
+        {/* GROUP 2: TYPOGRAPHY (Inter + 29px + Auto-fit + Fill)       */}
         {/* ========================================================= */}
-        <div className="h-7 flex items-center bg-[#0c0c0e] border border-[#1b1b22] rounded-[6px] p-0.5 gap-0.5">
+        <div className="h-8 flex items-center bg-[#0c0c0e] border border-[#1b1b22] rounded-[8px] p-0.5 gap-0.5 shadow-xs">
           {/* Font Family Trigger */}
           <div className="relative">
             <button
               type="button"
               onClick={() => togglePopover('font')}
-              className={`h-6 px-2 flex items-center gap-1 text-xs rounded-[4px] transition-colors ${
+              className={`h-7 px-2.5 flex items-center gap-1 text-xs rounded-[6px] transition-colors ${
                 activePopover === 'font'
                   ? 'bg-[#16161c] text-white'
                   : 'text-zinc-300 hover:bg-[#16161c] hover:text-white'
@@ -395,14 +392,14 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
             )}
           </div>
 
-          <span className="text-zinc-600 text-[10px] px-0.5 select-none">·</span>
+          <span className="text-zinc-700 text-[10px] px-0.5 select-none">·</span>
 
           {/* Font Size Trigger */}
           <div className="relative">
             <button
               type="button"
               onClick={() => togglePopover('size')}
-              className={`h-6 px-2 flex items-center gap-1 text-xs rounded-[4px] transition-colors ${
+              className={`h-7 px-2.5 flex items-center gap-1 text-xs rounded-[6px] transition-colors ${
                 activePopover === 'size'
                   ? 'bg-[#16161c] text-white'
                   : 'text-zinc-300 hover:bg-[#16161c] hover:text-white'
@@ -511,13 +508,13 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
             )}
           </div>
 
-          <span className="text-zinc-600 text-[10px] px-0.5 select-none">·</span>
+          <span className="text-zinc-700 text-[10px] px-0.5 select-none">·</span>
 
           {/* Auto-fit Toggle (Tasteful Obsidian Active State) */}
           <button
             type="button"
             onClick={() => onAdvancedChange({ ...advanced, autoFit: !advanced.autoFit })}
-            className={`h-6 px-2 flex items-center gap-1 rounded-[4px] text-[11px] font-medium transition-colors ${
+            className={`h-7 px-2.5 flex items-center gap-1 rounded-[6px] text-[11px] font-medium transition-colors ${
               advanced.autoFit
                 ? 'bg-[#24242e] text-white border border-[#3e3e4c] shadow-xs'
                 : 'text-zinc-400 hover:text-zinc-200 hover:bg-[#16161c]'
@@ -532,7 +529,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
           <button
             type="button"
             onClick={onFillCanvas}
-            className="h-6 px-2 flex items-center gap-1 rounded-[4px] text-[11px] text-zinc-400 hover:text-white hover:bg-[#16161c] transition-colors"
+            className="h-7 px-2.5 flex items-center gap-1 rounded-[6px] text-[11px] text-zinc-400 hover:text-white hover:bg-[#16161c] transition-colors"
             title="1-click: Optimize font size, line height, and vertical justification to maximize page fill"
           >
             <Maximize2 className="w-3 h-3 text-zinc-400" />
@@ -540,19 +537,16 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
           </button>
         </div>
 
-        {/* Faint Divider between major groups */}
-        <div className="w-px h-3.5 bg-[#18181f]" />
-
         {/* ========================================================= */}
-        {/* GROUP 3: LAYOUT (Format · Alignment · Top/Center) */}
+        {/* GROUP 3: LAYOUT (Dimensions + Alignment + Vertical)        */}
         {/* ========================================================= */}
-        <div className="h-7 flex items-center bg-[#0c0c0e] border border-[#1b1b22] rounded-[6px] p-0.5 gap-0.5">
+        <div className="h-8 flex items-center bg-[#0c0c0e] border border-[#1b1b22] rounded-[8px] p-0.5 gap-0.5 shadow-xs">
           {/* Canvas Format / Ratio */}
           <div className="relative">
             <button
               type="button"
               onClick={() => togglePopover('format')}
-              className={`h-6 px-2 flex items-center gap-1 text-xs rounded-[4px] transition-colors ${
+              className={`h-7 px-2.5 flex items-center gap-1 text-xs rounded-[6px] transition-colors ${
                 activePopover === 'format'
                   ? 'bg-[#16161c] text-white'
                   : 'text-zinc-300 hover:bg-[#16161c] hover:text-white'
@@ -683,7 +677,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
             )}
           </div>
 
-          <span className="text-zinc-600 text-[10px] px-0.5 select-none">·</span>
+          <span className="text-zinc-700 text-[10px] px-0.5 select-none">·</span>
 
           {/* Horizontal Alignment */}
           <div className="flex items-center gap-0.5">
@@ -700,7 +694,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                   key={al.id}
                   type="button"
                   onClick={() => onTypographyChange({ ...typography, alignment: al.id as TextAlignment })}
-                  className={`h-6 w-6 flex items-center justify-center rounded-[4px] transition-colors ${
+                  className={`h-7 w-7 flex items-center justify-center rounded-[6px] transition-colors ${
                     isActive
                       ? 'bg-[#1c1c24] text-[#f4f4f6] border border-[#2e2e3a]'
                       : 'text-zinc-400 hover:text-white hover:bg-[#16161c]'
@@ -713,7 +707,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
             })}
           </div>
 
-          <span className="text-zinc-600 text-[10px] px-0.5 select-none">·</span>
+          <span className="text-zinc-700 text-[10px] px-0.5 select-none">·</span>
 
           {/* Vertical Alignment (Top / Center / Justify) */}
           <div className="flex items-center gap-0.5">
@@ -730,7 +724,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                     onTypographyChange({ ...typography, verticalAlignment: va });
                     onSpacingChange({ ...spacing, verticalAlignment: va });
                   }}
-                  className={`h-6 px-1.5 flex items-center justify-center rounded-[4px] text-[11px] font-medium transition-colors ${
+                  className={`h-7 px-2 flex items-center justify-center rounded-[6px] text-[11px] font-medium transition-colors ${
                     isActive
                       ? 'bg-[#1c1c24] text-[#f4f4f6] border border-[#2e2e3a]'
                       : 'text-zinc-400 hover:text-white hover:bg-[#16161c]'
@@ -744,26 +738,25 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
           </div>
         </div>
 
-        {/* Faint Divider between major groups */}
-        <div className="w-px h-3.5 bg-[#18181f]" />
-
         {/* ========================================================= */}
-        {/* GROUP 4: SPACING (Compact ⌵) */}
+        {/* GROUP 4: SPACING & MORE (Compact + More)                   */}
         {/* ========================================================= */}
-        <div className="relative">
-          <button
-            type="button"
-            onClick={() => togglePopover('margins')}
-            className={`h-7 px-2.5 flex items-center gap-1.5 bg-[#0c0c0e] border border-[#1b1b22] rounded-[6px] text-xs transition-colors ${
-              activePopover === 'margins'
-                ? 'bg-[#16161c] text-white border-[#2e2e3a]'
-                : 'text-zinc-300 hover:bg-[#16161c] hover:text-white'
-            }`}
-            title="Change margins & paragraph spacing"
-          >
-            <span>{getMarginLabel()}</span>
-            <ChevronDown className="w-3 h-3 text-zinc-500" />
-          </button>
+        <div className="h-8 flex items-center bg-[#0c0c0e] border border-[#1b1b22] rounded-[8px] p-0.5 gap-0.5 shadow-xs">
+          {/* Margins Trigger */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => togglePopover('margins')}
+              className={`h-7 px-2.5 flex items-center gap-1.5 rounded-[6px] text-xs transition-colors ${
+                activePopover === 'margins'
+                  ? 'bg-[#16161c] text-white'
+                  : 'text-zinc-300 hover:bg-[#16161c] hover:text-white'
+              }`}
+              title="Change margins & paragraph spacing"
+            >
+              <span>{getMarginLabel()}</span>
+              <ChevronDown className="w-3 h-3 text-zinc-500" />
+            </button>
 
           {activePopover === 'margins' && (
             <div className="absolute bottom-full right-0 mb-3 w-72 bg-[#0c0c0e] border border-[#1b1b22] rounded-xl shadow-2xl shadow-black p-4 text-zinc-200 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
@@ -813,25 +806,22 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
           )}
         </div>
 
-        {/* Faint Divider between spacing and more */}
-        <div className="w-px h-3.5 bg-[#18181f]" />
+        <span className="text-zinc-700 text-[10px] px-0.5 select-none">·</span>
 
-        {/* ========================================================= */}
-        {/* GROUP 5: MORE OPTIONS (···) */}
-        {/* ========================================================= */}
-        <div className="relative">
-          <button
-            type="button"
-            onClick={() => togglePopover('more')}
-            className={`h-7 w-7 flex items-center justify-center rounded-[6px] bg-[#0c0c0e] border border-[#1b1b22] text-xs transition-colors ${
-              activePopover === 'more'
-                ? 'bg-[#16161c] text-white border-[#2e2e3a]'
-                : 'text-zinc-400 hover:text-white hover:bg-[#16161c]'
-            }`}
-            title="More options (colors, presets, lock layout, reset)"
-          >
-            <MoreHorizontal className="w-3.5 h-3.5" />
-          </button>
+          {/* More Options Trigger */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => togglePopover('more')}
+              className={`h-7 w-7 flex items-center justify-center rounded-[6px] text-xs transition-colors ${
+                activePopover === 'more'
+                  ? 'bg-[#16161c] text-white'
+                  : 'text-zinc-400 hover:text-white hover:bg-[#16161c]'
+              }`}
+              title="More options (colors, presets, lock layout, reset)"
+            >
+              <MoreHorizontal className="w-3.5 h-3.5" />
+            </button>
 
             {activePopover === 'more' && (
               <div className="absolute bottom-full right-0 mb-3 w-80 bg-[#0c0c0e] border border-[#1b1b22] rounded-xl shadow-2xl shadow-black p-4 text-zinc-200 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
@@ -932,6 +922,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
               </div>
             )}
           </div>
+        </div>
 
         </div>
       </div>

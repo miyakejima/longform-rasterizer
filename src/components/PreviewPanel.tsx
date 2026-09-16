@@ -194,7 +194,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                 <span>Prev</span>
               </button>
 
-              <span className="text-xs font-mono text-zinc-400 tracking-wide">
+              <span className="text-xs font-mono font-medium text-zinc-300 tracking-wide">
                 Page {effectiveSingleIndex + 1} of {pages.length}
               </span>
 
@@ -328,7 +328,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                     onBlockedExport={onBlockedExport}
                   />
                 </div>
-                <span className="text-[11px] font-mono text-zinc-500 mt-2 shrink-0 select-none">
+                <span className="text-[11px] font-mono font-medium text-zinc-300/90 mt-2 shrink-0 select-none tracking-wide">
                   Page {page.pageIndex + 1}
                 </span>
               </div>
@@ -339,7 +339,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
           {/* Bottom Interactive Slide Indicators & Page Counter */}
           {pages.length > 1 && (
             <div className="flex items-center gap-3 py-1.5 px-3 rounded-full bg-[#0c0c0e]/80 border border-[#1b1b22] backdrop-blur-md shrink-0 shadow-lg mt-2 select-none">
-              <span className="text-[11px] font-mono text-zinc-400">
+              <span className="text-[11px] font-mono font-medium text-zinc-300">
                 {activeCarouselIndex + 1} / {pages.length}
               </span>
               <div className="w-px h-3 bg-[#18181f]" />
@@ -385,7 +385,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                 allowClippedExport={allowClippedExport}
                 onBlockedExport={onBlockedExport}
               />
-              <span className="text-[11px] font-mono text-zinc-500 select-none">
+              <span className="text-[11px] font-mono font-medium text-zinc-300/90 select-none tracking-wide">
                 Page {page.pageIndex + 1}
               </span>
             </div>

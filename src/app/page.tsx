@@ -580,40 +580,33 @@ function Workspace() {
         >
           {/* Top Header above Previews: Symmetrical 3-Zone Studio Layout */}
           <div className="h-14 px-4 md:px-8 flex items-center justify-between shrink-0 bg-[#09090b] border-b border-[#18181c]/60 z-20">
-            {/* Left Zone: Sidebar Toggle & Page Breadcrumb */}
-            <div className="flex items-center gap-3 select-none flex-1 min-w-0">
+            {/* Left Zone: Editor Panel State Toggle */}
+            <div className="flex items-center gap-2 select-none flex-1 min-w-0">
               <button
                 type="button"
                 onClick={() => setIsEditorCollapsed((prev) => !prev)}
-                className={`h-7 w-7 rounded-[6px] bg-[#0c0c0e] border border-[#1b1b22] hover:border-[#2e2e3a] hover:bg-[#16161c] text-zinc-400 hover:text-white transition-all flex items-center justify-center shadow-xs focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-zinc-500 ${
-                  isEditorCollapsed ? 'border-zinc-500/40 text-white' : ''
+                className={`h-8 px-2.5 rounded-[8px] bg-[#0c0c0e] border border-[#1b1b22] hover:border-[#2e2e3a] hover:bg-[#16161c] text-zinc-400 hover:text-white transition-all flex items-center gap-2 shadow-xs focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-zinc-500 text-xs font-medium ${
+                  isEditorCollapsed ? 'border-zinc-500/40 text-zinc-200 bg-[#16161c]' : ''
                 }`}
-                title={isEditorCollapsed ? 'Show editor (Ctrl+B)' : 'Collapse editor / Focus preview (Ctrl+B)'}
-                aria-label={isEditorCollapsed ? 'Show editor' : 'Collapse editor'}
+                title={isEditorCollapsed ? 'Show editor panel (Ctrl+B)' : 'Collapse editor to expand preview (Ctrl+B)'}
+                aria-label={isEditorCollapsed ? 'Show editor panel' : 'Collapse editor panel'}
               >
                 {isEditorCollapsed ? (
-                  <PanelLeft className="w-3.5 h-3.5" />
+                  <PanelLeft className="w-4 h-4 text-zinc-300" />
                 ) : (
-                  <PanelLeftClose className="w-3.5 h-3.5" />
+                  <PanelLeftClose className="w-4 h-4 text-zinc-400" />
                 )}
+                <span>{isEditorCollapsed ? 'Show Editor' : 'Editor'}</span>
               </button>
-
-              <span className="text-zinc-700 text-xs select-none">/</span>
-
-              {/* Refined Page Count Context (clean editorial status) */}
-              <div className="flex items-center gap-1.5 text-xs font-mono text-zinc-400 select-none">
-                <span className="text-zinc-200 font-semibold">{doc.pageCount}</span>
-                <span className="text-zinc-500">{doc.pageCount === 1 ? 'page' : 'pages'}</span>
-              </div>
             </div>
 
             {/* Center Zone: Symmetrical View Mode Segmented Control */}
             <div className="flex items-center justify-center select-none shrink-0">
-              <div className="h-7 p-0.5 rounded-[6px] bg-[#0c0c0e] border border-[#1b1b22] flex items-center gap-0.5 shadow-xs">
+              <div className="h-8 p-0.5 rounded-[8px] bg-[#0c0c0e] border border-[#1b1b22] flex items-center gap-1 shadow-xs">
                 <button
                   type="button"
                   onClick={() => setPreviewMode('grid')}
-                  className={`h-6 px-2.5 rounded-[4px] flex items-center gap-1.5 text-xs transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-zinc-500 ${
+                  className={`h-7 px-3 rounded-[6px] flex items-center gap-1.5 text-xs transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-zinc-500 ${
                     previewMode === 'grid'
                       ? 'bg-[#1c1c24] text-[#f4f4f6] font-medium border border-[#2e2e3a] shadow-xs'
                       : 'text-zinc-400 hover:text-white hover:bg-[#16161c]'
@@ -622,12 +615,12 @@ function Workspace() {
                   aria-label="Grid view"
                 >
                   <GridModeIcon className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline text-[11px]">Grid</span>
+                  <span className="hidden sm:inline text-[11.5px] font-medium">Grid</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setPreviewMode('single')}
-                  className={`h-6 px-2.5 rounded-[4px] flex items-center gap-1.5 text-xs transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-zinc-500 ${
+                  className={`h-7 px-3 rounded-[6px] flex items-center gap-1.5 text-xs transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-zinc-500 ${
                     previewMode === 'single'
                       ? 'bg-[#1c1c24] text-[#f4f4f6] font-medium border border-[#2e2e3a] shadow-xs'
                       : 'text-zinc-400 hover:text-white hover:bg-[#16161c]'
@@ -636,12 +629,12 @@ function Workspace() {
                   aria-label="Single page view"
                 >
                   <SingleModeIcon className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline text-[11px]">Single</span>
+                  <span className="hidden sm:inline text-[11.5px] font-medium">Single</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setPreviewMode('carousel')}
-                  className={`h-6 px-2.5 rounded-[4px] flex items-center gap-1.5 text-xs transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-zinc-500 ${
+                  className={`h-7 px-3 rounded-[6px] flex items-center gap-1.5 text-xs transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-zinc-500 ${
                     previewMode === 'carousel'
                       ? 'bg-[#1c1c24] text-[#f4f4f6] font-medium border border-[#2e2e3a] shadow-xs'
                       : 'text-zinc-400 hover:text-white hover:bg-[#16161c]'
@@ -650,7 +643,7 @@ function Workspace() {
                   aria-label="Carousel view"
                 >
                   <CarouselModeIcon className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline text-[11px]">Carousel</span>
+                  <span className="hidden sm:inline text-[11.5px] font-medium">Carousel</span>
                 </button>
               </div>
             </div>
