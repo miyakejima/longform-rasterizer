@@ -5,12 +5,28 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)](https://www.typescriptlang.org)
 [![Tests](https://img.shields.io/badge/tests-63%20passing-brightgreen)](src/__tests__)
 
-**Turn any long-form text into balanced, export-ready image cards. No AI rewrites, no servers.**
+**Turn any text into beautifully balanced, export-ready image cards.**
 
-Paste a thread, essay, quote, or any prose — get cleanly typeset image cards with the font size, line-height, and page distribution all solved automatically, entirely in the browser. Export individual pages or a full ZIP and share without opening a design tool.
+Paste your text—whether it's a single quote or a 2,000-word essay—and get publication-grade images instantly. The engine automatically solves for the perfect font size, line height, and page distribution entirely in your browser. No AI rewrites, no server uploads, and no need to open a design tool.
 
 ![Hero Balancing](docs/hero-balancing.webp)
 *A 1,000-word text pasted into the editor: instant 4-card balance at 27px with 95–97% vertical utilization. ([WebP](docs/hero-balancing.webp) · [MP4](docs/hero-balancing.mp4))*
+
+---
+
+## Use Cases
+
+**1. Bypass character limits on social feeds**
+Free accounts on X (Twitter) limit you to 280 characters, and Threads to 500. Instead of writing messy 15-post threads or linking out to a blog nobody will click, paste your entire text here and post it natively as a highly readable image carousel.
+
+**2. Single-image quotes and aphorisms**
+It's not just for long-form prose. Drop in a single sentence or a short quote, select the 1:1 Square preset, and instantly generate a beautifully centered, typography-focused image for Instagram or Pinterest. No more fiddling with text boxes in Canva.
+
+**3. Kill the "Notes app screenshot"**
+When you want to share a written statement or announcement on an image-first platform, taking a screenshot of Apple Notes looks terrible. This engine turns your text into clean, publication-grade imagery with zero UI chrome or autocorrect underlines.
+
+**4. Bulletproof cross-platform formatting**
+Native text formatting breaks unpredictably across different apps, OS fonts, and screen sizes. A rasterized image looks exactly the same everywhere.
 
 ---
 
@@ -29,15 +45,6 @@ Paste a thread, essay, quote, or any prose — get cleanly typeset image cards w
 - **Distribution modes** — Balanced, Paragraph-Preserving, or Manual with drag-to-set page breaks
 - **Keyboard-first** — `Ctrl+B` editor toggle, `←/→` page step, `F` fullscreen inspect
 - **Fully client-side** — layout, rendering, and export all run in the browser with no backend
-
----
-
-## Use Cases
-
-- **Bypassing Character Limits** — The free tier of X (Twitter) limits you to 280 characters, and Threads to 500. Instead of writing messy 15-post threads or linking out to a blog that nobody will click, paste your entire essay and post it natively as a multi-image set.
-- **Single-Image Quote Cards** — Not just for long-form prose. Drop in a 50-word quote, select the 1:1 Square preset, and instantly get a perfectly justified, typography-focused image for Instagram or LinkedIn.
-- **Swipeable Carousels** — Turn an article or newsletter excerpt into a seamless Instagram or LinkedIn carousel. The layout engine guarantees that your paragraphs will never awkwardly split between slides.
-- **Cross-Platform Consistency** — Native text formatting breaks unpredictably across different apps and OS fonts. A rendered image looks exactly the same everywhere.
 
 ---
 
@@ -64,7 +71,7 @@ Paste a thread, essay, quote, or any prose — get cleanly typeset image cards w
 
 | Key | Action |
 | :--- | :--- |
-| `Ctrl + B` | Toggle editor panel |
+| `Ctrl + B` | Toggle editor panel (expands canvas to full width) |
 | `← / →` | Step through pages in Single or Carousel view |
 | `F` | Open full-resolution inspection modal |
 
