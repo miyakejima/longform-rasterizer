@@ -105,16 +105,19 @@ export const PageCard: React.FC<PageCardProps> = ({
 
   return (
     <div
-      className={`group relative flex flex-col bg-[#000000] border transition-all cursor-pointer select-none rounded-md shadow-2xl shadow-black/80 ${
+      className={`group relative flex flex-col bg-[#000000] border transition-all cursor-zoom-in select-none rounded-md shadow-2xl shadow-black/80 ${
         isHovered
           ? 'border-zinc-400 shadow-zinc-950 ring-1 ring-zinc-500/30'
           : hasOverflow
           ? 'border-red-800 shadow-red-950/20'
-          : 'border-[#222226] hover:border-zinc-600'
+          : 'border-[#222226] hover:border-zinc-500'
       }`}
       onMouseEnter={() => onHover(true)}
       onMouseLeave={() => onHover(false)}
-      onClick={onClick}
+      onClick={() => {
+        onClick();
+        onEnlarge();
+      }}
     >
       {/* Floating hover micro-actions in top-right */}
       <div className="absolute top-2 right-2 flex items-center gap-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 backdrop-blur-xs p-1 rounded-md border border-[#27272a]">

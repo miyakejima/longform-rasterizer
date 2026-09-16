@@ -12,14 +12,10 @@ import {
   Copy,
   Edit2,
   Check,
-  Folder,
-  Save,
-  FileDown,
-  FileUp,
   AlertTriangle,
   ChevronDown,
 } from 'lucide-react';
-import { VisualPreset, SavedProject, ExportFormat, ExportScale } from '../types';
+import { VisualPreset, ExportFormat, ExportScale } from '../types';
 
 interface HeaderBarProps {
   onExportAll: () => void;
@@ -37,16 +33,8 @@ interface HeaderBarProps {
   onDeletePreset: (id: string) => void;
   isExporting: boolean;
   hasOverflow: boolean;
-  savedProjects?: SavedProject[];
-  onSaveCurrentProject?: () => void;
-  onLoadProject?: (project: SavedProject) => void;
-  onDeleteProject?: (id: string) => void;
-  onExportProjectJson?: (project?: SavedProject) => void;
-  onImportProjectJson?: (file: File) => void;
   showPresetManagerModal?: boolean;
   onClosePresetManagerModal?: () => void;
-  showProjectManagerModal?: boolean;
-  onCloseProjectManagerModal?: () => void;
   showShortcutsModal?: boolean;
   onCloseShortcutsModal?: () => void;
 }
@@ -67,42 +55,27 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
   onDeletePreset,
   isExporting,
   hasOverflow,
-  savedProjects = [],
-  onSaveCurrentProject,
-  onLoadProject,
-  onDeleteProject,
-  onExportProjectJson,
-  onImportProjectJson,
   showPresetManagerModal = false,
   onClosePresetManagerModal,
-  showProjectManagerModal = false,
-  onCloseProjectManagerModal,
   showShortcutsModal = false,
   onCloseShortcutsModal,
 }) => {
   const [internalShowPresets, setInternalShowPresets] = useState(false);
-  const [internalShowProjects, setInternalShowProjects] = useState(false);
   const [internalShowShortcuts, setInternalShowShortcuts] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
 
   const showPresets = showPresetManagerModal || internalShowPresets;
-  const showProjects = showProjectManagerModal || internalShowProjects;
   const showShortcuts = showShortcutsModal || internalShowShortcuts;
 
   const closePresets = () => {
     setInternalShowPresets(false);
     onClosePresetManagerModal?.();
   };
-  const closeProjects = () => {
-    setInternalShowProjects(false);
-    onCloseProjectManagerModal?.();
-  };
   const closeShortcuts = () => {
     setInternalShowShortcuts(false);
     onCloseShortcutsModal?.();
   };
 
-  const projectFileInputRef = useRef<HTMLInputElement>(null);
   const exportMenuRef = useRef<HTMLDivElement>(null);
   const [newPresetName, setNewPresetName] = useState('');
   const [isSavingPreset, setIsSavingPreset] = useState(false);
@@ -149,15 +122,15 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
           type="button"
           onClick={() => setShowExportMenu((prev) => !prev)}
           disabled={isExporting}
-          className="h-8 px-3.5 rounded-lg bg-[#141418] hover:bg-[#1c1c22] border border-[#27272a] hover:border-zinc-500 text-xs font-medium text-zinc-200 hover:text-white transition-all shadow-xs flex items-center gap-1.5"
+          className="h-8 px-3.5 rounded-lg bg-[#14141a] hover:bg-[#1e1e26] border border-[#262630] hover:border-zinc-400 text-xs font-medium text-zinc-200 hover:text-white transition-all shadow-xs flex items-center gap-1.5"
         >
           <span>{isExporting ? 'Exporting...' : 'Export'}</span>
           <ChevronDown className="w-3 h-3 text-zinc-400" />
         </button>
 
-        {/* Export Options Dropdown - Matching Pure Black Aesthetic */}
+        {/* Export Options Dropdown */}
         {showExportMenu && (
-          <div className="absolute right-0 top-full mt-2 w-64 bg-[#000000] border border-[#1f1f23] rounded-xl shadow-2xl shadow-black p-3 text-zinc-200 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+          <div className="absolute right-0 top-full mt-2 w-64 bg-[#101014] border border-[#202026] rounded-xl shadow-2xl shadow-black p-3 text-zinc-200 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
             <span className="text-[10px] font-semibold text-zinc-500 uppercase font-mono tracking-wider block mb-2">
               Export Options
             </span>
@@ -169,14 +142,14 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
               </div>
             )}
 
-            <div className="space-y-1 pb-2 border-b border-[#141417]">
+            <div className="space-y-1 pb-2 border-b border-[#181820]">
               <button
                 type="button"
                 onClick={() => {
                   setShowExportMenu(false);
                   onExportAll();
                 }}
-                className="w-full px-2.5 py-1.5 text-xs text-left rounded-md flex items-center justify-between bg-[#08080a] border border-[#1a1a1e] hover:bg-[#141418] text-zinc-300 hover:text-white transition-colors"
+                className="w-full px-2.5 py-1.5 text-xs text-left rounded-md flex items-center justify-between bg-[#0b0b0e] border border-[#1a1a20] hover:bg-[#16161e] text-zinc-300 hover:text-white transition-colors"
               >
                 <span className="flex items-center gap-2">
                   <Download className="w-3.5 h-3.5 text-zinc-400" />
@@ -192,7 +165,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
                     setShowExportMenu(false);
                     onExportZip();
                   }}
-                  className="w-full px-2.5 py-1.5 text-xs text-left rounded-md flex items-center justify-between bg-[#08080a] border border-[#1a1a1e] hover:bg-[#141418] text-zinc-300 hover:text-white transition-colors"
+                  className="w-full px-2.5 py-1.5 text-xs text-left rounded-md flex items-center justify-between bg-[#0b0b0e] border border-[#1a1a20] hover:bg-[#16161e] text-zinc-300 hover:text-white transition-colors"
                 >
                   <span className="flex items-center gap-2">
                     <FileArchive className="w-3.5 h-3.5 text-zinc-400" />
@@ -207,14 +180,16 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
             <div className="pt-2 space-y-2">
               <div className="flex items-center justify-between text-xs text-zinc-400">
                 <span className="text-[11px]">Format</span>
-                <div className="flex gap-1 bg-[#08080a] p-0.5 rounded border border-[#1a1a1e]">
+                <div className="flex gap-1 bg-[#0b0b0e] p-0.5 rounded border border-[#1a1a20]">
                   {(['png', 'jpeg', 'webp'] as ExportFormat[]).map((fmt) => (
                     <button
                       key={fmt}
                       type="button"
                       onClick={() => onExportFormatChange(fmt)}
                       className={`px-2 py-0.5 text-[10px] rounded uppercase font-mono transition-colors ${
-                        exportFormat === fmt ? 'bg-white text-black font-semibold' : 'text-zinc-400 hover:text-zinc-200'
+                        exportFormat === fmt
+                          ? 'bg-[#24242c] text-[#f4f4f6] font-medium border border-[#3e3e4c]'
+                          : 'text-zinc-400 hover:text-zinc-200'
                       }`}
                     >
                       {fmt}
@@ -225,14 +200,16 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
 
               <div className="flex items-center justify-between text-xs text-zinc-400">
                 <span className="text-[11px]">Resolution Scale</span>
-                <div className="flex gap-1 bg-[#08080a] p-0.5 rounded border border-[#1a1a1e]">
+                <div className="flex gap-1 bg-[#0b0b0e] p-0.5 rounded border border-[#1a1a20]">
                   {([1, 2, 3] as ExportScale[]).map((sc) => (
                     <button
                       key={sc}
                       type="button"
                       onClick={() => onExportScaleChange(sc)}
                       className={`px-2 py-0.5 text-[10px] rounded font-mono transition-colors ${
-                        exportScale === sc ? 'bg-white text-black font-semibold' : 'text-zinc-400 hover:text-zinc-200'
+                        exportScale === sc
+                          ? 'bg-[#24242c] text-[#f4f4f6] font-medium border border-[#3e3e4c]'
+                          : 'text-zinc-400 hover:text-zinc-200'
                       }`}
                     >
                       {sc}x
@@ -253,8 +230,8 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
             if (e.target === e.currentTarget) closePresets();
           }}
         >
-          <div className="bg-[#000000] border border-[#1f1f23] text-white rounded-xl max-w-md w-full p-5 shadow-2xl space-y-4 my-auto max-h-[90vh] flex flex-col">
-            <div className="flex items-center justify-between border-b border-[#141417] pb-3">
+          <div className="bg-[#101014] border border-[#202026] text-white rounded-xl max-w-md w-full p-5 shadow-2xl space-y-4 my-auto max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between border-b border-[#181820] pb-3">
               <h3 className="text-sm font-medium text-zinc-100 flex items-center gap-2">
                 <Bookmark className="w-4 h-4 text-zinc-400" />
                 Visual Presets
@@ -262,7 +239,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
               <button
                 type="button"
                 onClick={closePresets}
-                className="text-zinc-400 hover:text-zinc-100 p-1 rounded hover:bg-[#121214] transition-colors"
+                className="text-zinc-400 hover:text-zinc-100 p-1 rounded hover:bg-[#16161e] transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -270,7 +247,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
 
             {/* Save current preset */}
             {isSavingPreset ? (
-              <div className="flex items-center gap-2 bg-[#08080a] p-2 rounded border border-[#1f1f23]">
+              <div className="flex items-center gap-2 bg-[#0b0b0e] p-2 rounded border border-[#1f1f26]">
                 <input
                   type="text"
                   value={newPresetName}
@@ -286,14 +263,14 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
                 <button
                   type="button"
                   onClick={handleSavePreset}
-                  className="bg-white text-black text-xs px-2 py-1 rounded font-medium hover:bg-zinc-200"
+                  className="px-2 py-1 bg-white text-black text-xs rounded hover:bg-zinc-200 transition-colors"
                 >
                   Save
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsSavingPreset(false)}
-                  className="text-zinc-400 hover:text-zinc-200 text-xs px-1"
+                  className="p-1 text-zinc-400 hover:text-zinc-200 text-xs"
                 >
                   Cancel
                 </button>
@@ -302,27 +279,27 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
               <button
                 type="button"
                 onClick={() => setIsSavingPreset(true)}
-                className="w-full flex items-center justify-center gap-1.5 text-xs bg-[#08080a] hover:bg-[#121214] border border-[#1f1f23] text-zinc-200 py-1.5 rounded transition-colors"
+                className="w-full py-1.5 border border-dashed border-[#2b2b36] hover:border-zinc-500 rounded-lg text-xs text-zinc-400 hover:text-white flex items-center justify-center gap-1.5 transition-colors"
               >
                 <Plus className="w-3.5 h-3.5" />
-                Save Current Settings as Preset
+                <span>Save Current Layout as Preset</span>
               </button>
             )}
 
-            {/* Presets list */}
-            <div className="flex-1 min-h-0 max-h-60 overflow-y-auto space-y-1.5 pr-1">
+            {/* Preset list */}
+            <div className="flex-1 min-h-0 max-h-64 overflow-y-auto space-y-1 pr-1">
               {presets.map((p) => {
-                const isCurrent = p.id === selectedPresetId;
-                const isEditing = editingPresetId === p.id;
+                const isSelected = selectedPresetId === p.id;
                 const isDefault = p.id === 'x-essay';
+                const isEditing = editingPresetId === p.id;
 
                 return (
                   <div
                     key={p.id}
-                    className={`flex items-center justify-between p-2.5 rounded-lg border text-xs transition-colors ${
-                      isCurrent
-                        ? 'bg-[#121216] border-zinc-500 text-white'
-                        : 'bg-[#08080a] border-[#1a1a1e] text-zinc-300 hover:border-zinc-700'
+                    className={`flex items-center justify-between p-2 rounded-lg border text-xs transition-colors ${
+                      isSelected
+                        ? 'bg-[#181820] border-[#383846] text-white'
+                        : 'bg-[#0b0b0e] border-[#181820] text-zinc-400 hover:text-zinc-200 hover:bg-[#14141a]'
                     }`}
                   >
                     {isEditing ? (
@@ -331,8 +308,8 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
                           type="text"
                           value={editingPresetName}
                           onChange={(e) => setEditingPresetName(e.target.value)}
+                          className="bg-[#181820] border border-zinc-600 rounded px-1.5 py-0.5 text-xs text-white flex-1"
                           autoFocus
-                          className="bg-[#000000] border border-zinc-700 px-1.5 py-0.5 rounded text-xs text-white w-full outline-none"
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') handleSaveRename(p.id);
                             if (e.key === 'Escape') setEditingPresetId(null);
@@ -341,42 +318,36 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
                         <button
                           type="button"
                           onClick={() => handleSaveRename(p.id)}
-                          className="p-1 hover:text-emerald-400"
+                          className="p-1 text-emerald-400 hover:text-emerald-300"
                         >
-                          <Check className="w-3.5 h-3.5" />
+                          <Check className="w-3 h-3" />
                         </button>
                       </div>
                     ) : (
-                      <div
-                        className="flex-1 cursor-pointer pr-2"
+                      <button
+                        type="button"
                         onClick={() => {
                           onSelectPreset(p.id);
                           closePresets();
                         }}
+                        className="flex-1 text-left flex items-center gap-2"
                       >
-                        <div className="font-medium flex items-center gap-2">
-                          <span>{p.name}</span>
-                          {isDefault && (
-                            <span className="text-[10px] bg-zinc-800 text-zinc-400 px-1.5 py-0.2 rounded">
-                              Default
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-[10px] text-zinc-500 mt-0.5">
-                          {p.canvas.width}×{p.canvas.height} · {p.typography.fontFamily} · {p.typography.fontSize}px
-                        </div>
-                      </div>
+                        <span className="font-medium text-white">{p.name}</span>
+                        {isDefault && (
+                          <span className="text-[10px] text-zinc-500 font-mono">Default</span>
+                        )}
+                      </button>
                     )}
 
                     <div className="flex items-center gap-1">
-                      {!isEditing && !isDefault && (
+                      {!isDefault && !isEditing && (
                         <button
                           type="button"
                           onClick={() => {
                             setEditingPresetId(p.id);
                             setEditingPresetName(p.name);
                           }}
-                          className="p-1 text-zinc-400 hover:text-zinc-100 rounded hover:bg-[#121214]"
+                          className="p-1 text-zinc-400 hover:text-zinc-100 rounded hover:bg-[#16161e]"
                           title="Rename"
                         >
                           <Edit2 className="w-3 h-3" />
@@ -385,7 +356,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
                       <button
                         type="button"
                         onClick={() => onDuplicatePreset(p.id)}
-                        className="p-1 text-zinc-400 hover:text-zinc-100 rounded hover:bg-[#121214]"
+                        className="p-1 text-zinc-400 hover:text-zinc-100 rounded hover:bg-[#16161e]"
                         title="Duplicate"
                       >
                         <Copy className="w-3 h-3" />
@@ -394,7 +365,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
                         <button
                           type="button"
                           onClick={() => onDeletePreset(p.id)}
-                          className="p-1 text-zinc-500 hover:text-red-400 rounded hover:bg-[#121214]"
+                          className="p-1 text-zinc-500 hover:text-red-400 rounded hover:bg-[#16161e]"
                           title="Delete"
                         >
                           <Trash2 className="w-3 h-3" />
@@ -410,125 +381,6 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
         document.body
       )}
 
-      {/* Project Manager Modal */}
-      {mounted && showProjects && typeof document !== 'undefined' && createPortal(
-        <div
-          className="fixed inset-0 bg-black/85 backdrop-blur-xs flex items-center justify-center z-50 p-4"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) closeProjects();
-          }}
-        >
-          <div className="bg-[#000000] border border-[#1f1f23] text-white rounded-xl max-w-lg w-full p-5 shadow-2xl space-y-4 my-auto max-h-[90vh] flex flex-col">
-            <div className="flex items-center justify-between border-b border-[#141417] pb-3">
-              <h3 className="text-sm font-medium text-zinc-100 flex items-center gap-2">
-                <Folder className="w-4 h-4 text-zinc-400" />
-                Saved Documents
-              </h3>
-              <button
-                type="button"
-                onClick={closeProjects}
-                className="text-zinc-400 hover:text-zinc-100 p-1 rounded hover:bg-[#121214] transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="flex gap-2">
-              {onSaveCurrentProject && (
-                <button
-                  type="button"
-                  onClick={onSaveCurrentProject}
-                  className="flex-1 flex items-center justify-center gap-1.5 text-xs bg-white text-black hover:bg-zinc-200 py-1.5 rounded font-medium transition-colors"
-                >
-                  <Save className="w-3.5 h-3.5" />
-                  Save Current Document
-                </button>
-              )}
-              {onImportProjectJson && (
-                <button
-                  type="button"
-                  onClick={() => projectFileInputRef.current?.click()}
-                  className="flex items-center gap-1 text-xs bg-[#08080a] border border-[#1f1f23] hover:bg-[#121214] text-zinc-200 px-3 py-1.5 rounded transition-colors"
-                  title="Import from JSON file"
-                >
-                  <FileUp className="w-3.5 h-3.5" />
-                  Import
-                </button>
-              )}
-              <input
-                ref={projectFileInputRef}
-                type="file"
-                accept=".json"
-                className="hidden"
-                onChange={(e) => {
-                  if (e.target.files?.[0]) {
-                    onImportProjectJson?.(e.target.files[0]);
-                    e.target.value = '';
-                  }
-                }}
-              />
-            </div>
-
-            <div className="flex-1 min-h-0 max-h-64 overflow-y-auto space-y-1.5 pr-1">
-              {savedProjects.length === 0 ? (
-                <div className="text-center py-8 text-zinc-500 text-xs">
-                  No saved documents yet. Click &quot;Save Current Document&quot; above.
-                </div>
-              ) : (
-                savedProjects.map((proj) => (
-                  <div
-                    key={proj.id}
-                    className="flex items-center justify-between p-2.5 rounded-lg border border-[#1a1a1e] bg-[#08080a] text-zinc-300 hover:border-zinc-600 transition-colors text-xs"
-                  >
-                    <div
-                      className="flex-1 cursor-pointer pr-2"
-                      onClick={() => {
-                        onLoadProject?.(proj);
-                        closeProjects();
-                      }}
-                    >
-                      <div className="font-medium text-white flex items-center gap-2">
-                        <span>{proj.name}</span>
-                        <span className="text-[10px] text-zinc-500 font-mono">
-                          {proj.document.pageCount} {proj.document.pageCount === 1 ? 'page' : 'pages'}
-                        </span>
-                      </div>
-                      <div className="text-[10px] text-zinc-500 mt-0.5">
-                        Updated {new Date(proj.updatedAt).toLocaleDateString()} · {proj.document.text.length} chars
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-1">
-                      {onExportProjectJson && (
-                        <button
-                          type="button"
-                          onClick={() => onExportProjectJson(proj)}
-                          className="p-1 text-zinc-400 hover:text-zinc-100 rounded hover:bg-[#121214]"
-                          title="Export document as JSON"
-                        >
-                          <FileDown className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                      {onDeleteProject && (
-                        <button
-                          type="button"
-                          onClick={() => onDeleteProject(proj.id)}
-                          className="p-1 text-zinc-500 hover:text-red-400 rounded hover:bg-[#121214]"
-                          title="Delete saved document"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
-
       {/* Shortcuts Modal */}
       {mounted && showShortcuts && typeof document !== 'undefined' && createPortal(
         <div
@@ -537,37 +389,37 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
             if (e.target === e.currentTarget) closeShortcuts();
           }}
         >
-          <div className="bg-[#000000] border border-[#1f1f23] text-white rounded-xl max-w-sm w-full p-5 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-[#141417] pb-3">
+          <div className="bg-[#101014] border border-[#202026] text-white rounded-xl max-w-sm w-full p-5 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-[#181820] pb-3">
               <h3 className="text-sm font-medium text-zinc-100">Keyboard Shortcuts</h3>
               <button
                 type="button"
                 onClick={closeShortcuts}
-                className="text-zinc-400 hover:text-zinc-100 p-1 rounded hover:bg-[#121214] transition-colors"
+                className="text-zinc-400 hover:text-zinc-100 p-1 rounded hover:bg-[#16161e] transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
             <div className="space-y-2 text-xs">
-              <div className="flex items-center justify-between py-1 border-b border-[#141417]">
+              <div className="flex items-center justify-between py-1 border-b border-[#181820]">
                 <span className="text-zinc-300">Export All</span>
-                <kbd className="px-2 py-0.5 bg-[#08080a] border border-[#1f1f23] rounded font-mono text-[11px]">⌘/Ctrl + Enter</kbd>
+                <kbd className="px-2 py-0.5 bg-[#0b0b0e] border border-[#202026] rounded font-mono text-[11px]">⌘/Ctrl + Enter</kbd>
               </div>
-              <div className="flex items-center justify-between py-1 border-b border-[#141417]">
+              <div className="flex items-center justify-between py-1 border-b border-[#181820]">
                 <span className="text-zinc-300">Undo</span>
-                <kbd className="px-2 py-0.5 bg-[#08080a] border border-[#1f1f23] rounded font-mono text-[11px]">⌘/Ctrl + Z</kbd>
+                <kbd className="px-2 py-0.5 bg-[#0b0b0e] border border-[#202026] rounded font-mono text-[11px]">⌘/Ctrl + Z</kbd>
               </div>
-              <div className="flex items-center justify-between py-1 border-b border-[#141417]">
+              <div className="flex items-center justify-between py-1 border-b border-[#181820]">
                 <span className="text-zinc-300">Redo</span>
-                <kbd className="px-2 py-0.5 bg-[#08080a] border border-[#1f1f23] rounded font-mono text-[11px]">⌘/Ctrl + Shift + Z</kbd>
+                <kbd className="px-2 py-0.5 bg-[#0b0b0e] border border-[#202026] rounded font-mono text-[11px]">⌘/Ctrl + Shift + Z</kbd>
               </div>
-              <div className="flex items-center justify-between py-1 border-b border-[#141417]">
+              <div className="flex items-center justify-between py-1 border-b border-[#181820]">
                 <span className="text-zinc-300">Toggle Layout Lock</span>
-                <kbd className="px-2 py-0.5 bg-[#08080a] border border-[#1f1f23] rounded font-mono text-[11px]">⌘/Ctrl + L</kbd>
+                <kbd className="px-2 py-0.5 bg-[#0b0b0e] border border-[#202026] rounded font-mono text-[11px]">⌘/Ctrl + L</kbd>
               </div>
               <div className="flex items-center justify-between py-1">
                 <span className="text-zinc-300">Fullscreen Preview</span>
-                <kbd className="px-2 py-0.5 bg-[#08080a] border border-[#1f1f23] rounded font-mono text-[11px]">⌘/Ctrl + Shift + P</kbd>
+                <kbd className="px-2 py-0.5 bg-[#0b0b0e] border border-[#202026] rounded font-mono text-[11px]">⌘/Ctrl + Shift + P</kbd>
               </div>
             </div>
           </div>

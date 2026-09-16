@@ -27,18 +27,41 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
   typography,
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const mirrorRef = useRef<HTMLDivElement>(null);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
 
-  // Auto-scroll to page position when a preview page is hovered or clicked
+  // Auto-scroll to exact pixel position when a preview page is hovered or clicked
   useEffect(() => {
     if (highlightedPageIndex === null || !pages[highlightedPageIndex]) return;
     const p = pages[highlightedPageIndex];
-    if (textareaRef.current) {
-      const ta = textareaRef.current;
+    const ta = textareaRef.current;
+    const mirror = mirrorRef.current;
+    if (!ta) return;
+
+    if (p.startIndex === 0) {
+      ta.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    if (mirror) {
+      const computed = window.getComputedStyle(ta);
+      mirror.style.width = `${ta.clientWidth}px`;
+      mirror.style.fontFamily = computed.fontFamily;
+      mirror.style.fontSize = computed.fontSize;
+      mirror.style.fontWeight = computed.fontWeight;
+      mirror.style.lineHeight = computed.lineHeight;
+      mirror.style.letterSpacing = computed.letterSpacing;
+      mirror.style.paddingLeft = computed.paddingLeft;
+      mirror.style.paddingRight = computed.paddingRight;
+      mirror.style.boxSizing = computed.boxSizing;
+
+      // Text up to the start of this page
       const textBefore = text.slice(0, p.startIndex);
-      const lineCountBefore = textBefore.split('\n').length - 1;
-      const computedLineHeight = 28;
-      ta.scrollTop = Math.max(0, (lineCountBefore - 1) * computedLineHeight);
+      mirror.textContent = textBefore;
+
+      // Exact pixel height where the page starts
+      const targetScroll = Math.max(0, mirror.scrollHeight - 8);
+      ta.scrollTo({ top: targetScroll, behavior: 'smooth' });
     }
   }, [highlightedPageIndex, pages, text]);
 
@@ -132,6 +155,20 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
           </div>
         )}
       </div>
+
+      {/* Invisible mirror div for 100% exact scroll calculation */}
+      <div
+        ref={mirrorRef}
+        aria-hidden="true"
+        className="absolute pointer-events-none opacity-0 -z-50 select-none overflow-hidden"
+        style={{
+          visibility: 'hidden',
+          top: -9999,
+          left: -9999,
+          whiteSpace: 'pre-wrap',
+          wordBreak: 'break-word',
+        }}
+      />
     </div>
   );
 };

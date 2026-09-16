@@ -17,7 +17,6 @@ import {
   AdvancedSettings,
   VisualPreset,
   PaginationResult,
-  SavedProject,
 } from '../types';
 import { GridModeIcon, SingleModeIcon, CarouselModeIcon } from '../components/icons/ViewModeIcons';
 import {
@@ -32,15 +31,11 @@ import {
   saveStoredPresets,
   saveStoredSession,
   clearStoredSession,
-  loadStoredProjects,
-  saveCurrentProject,
-  deleteStoredProject,
-  exportProjectAsJson,
-  importProjectFromJson,
   SessionState,
 } from '../engine/presetStore';
 import { paginateDocument } from '../engine/pagination';
 import { autoFitFontSize } from '../engine/autoFit';
+import { optimizeCanvasFill } from '../engine/canvasFillOptimizer';
 import { waitForFonts } from '../engine/fontLoader';
 import { exportAllPagesAsZip, exportAllPagesSeparately } from '../engine/exportEngine';
 
@@ -78,9 +73,6 @@ function Workspace() {
     typeof window !== 'undefined' ? loadStoredPresets() : [DEFAULT_PRESET]
   );
   const [selectedPresetId, setSelectedPresetId] = useState<string>(() => initialSession?.selectedPresetId ?? 'x-essay');
-  const [savedProjects, setSavedProjects] = useState<SavedProject[]>(() =>
-    typeof window !== 'undefined' ? loadStoredProjects() : []
-  );
   const [customFonts, setCustomFonts] = useState<string[]>([]);
   const [highlightedPageIndex, setHighlightedPageIndex] = useState<number | null>(null);
   const [fullscreenPageIndex, setFullscreenPageIndex] = useState<number | null>(null);
@@ -88,7 +80,6 @@ function Workspace() {
   const [isExporting, setIsExporting] = useState(false);
   const [exportWarning, setExportWarning] = useState<string | null>(null);
   const [showPresetsModal, setShowPresetsModal] = useState(false);
-  const [showProjectsModal, setShowProjectsModal] = useState(false);
   const [showShortcutsModal, setShowShortcutsModal] = useState(false);
 
   // Undo / Redo history
@@ -254,74 +245,14 @@ function Workspace() {
     saveStoredPresets(updated);
   };
 
-  // Project management handlers
-  const handleSaveCurrentProject = useCallback(() => {
-    const proj: SavedProject = {
-      id: `proj-${Date.now()}`,
-      name: doc.projectName || 'my-essay',
-      updatedAt: Date.now(),
-      document: { ...doc },
-      canvas: { ...canvas },
-      typography: { ...typography },
-      spacing: { ...spacing },
-      advanced: { ...advanced },
-      exportScale,
-      exportFormat,
-      selectedPresetId,
-    };
-    const updated = saveCurrentProject(proj);
-    setSavedProjects(updated);
-  }, [doc, canvas, typography, spacing, advanced, exportScale, exportFormat, selectedPresetId]);
-
-  const handleLoadProject = useCallback((proj: SavedProject) => {
-    setDoc(proj.document);
-    setCanvas(proj.canvas);
-    setTypography(proj.typography);
-    setSpacing(proj.spacing);
-    setAdvanced(proj.advanced);
-    setExportScale(proj.exportScale);
-    setExportFormat(proj.exportFormat);
-    setSelectedPresetId(proj.selectedPresetId);
-    pushHistory(proj.document, proj.canvas, proj.typography, proj.spacing, proj.advanced);
-  }, [pushHistory]);
-
-  const handleDeleteProject = useCallback((id: string) => {
-    const updated = deleteStoredProject(id);
-    setSavedProjects(updated);
-  }, []);
-
-  const handleImportProjectJson = useCallback(async (file: File) => {
-    try {
-      const imported = await importProjectFromJson(file);
-      const updated = saveCurrentProject(imported);
-      setSavedProjects(updated);
-      handleLoadProject(imported);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to import project';
-      alert(`Import error: ${msg}`);
-    }
-  }, [handleLoadProject]);
-
-  const handleExportProjectJson = useCallback((targetProject?: SavedProject) => {
-    if (targetProject) {
-      exportProjectAsJson(targetProject);
-      return;
-    }
-    const proj: SavedProject = {
-      id: `proj-${Date.now()}`,
-      name: doc.projectName || 'my-essay',
-      updatedAt: Date.now(),
-      document: { ...doc },
-      canvas: { ...canvas },
-      typography: { ...typography },
-      spacing: { ...spacing },
-      advanced: { ...advanced },
-      exportScale,
-      exportFormat,
-      selectedPresetId,
-    };
-    exportProjectAsJson(proj);
-  }, [doc, canvas, typography, spacing, advanced, exportScale, exportFormat, selectedPresetId]);
+  // Automated 1-click Canvas Fill Optimizer (Wasted Space Eliminator)
+  const handleFillCanvas = useCallback(() => {
+    const optimized = optimizeCanvasFill(doc, canvas, typography, spacing, advanced);
+    setTypography(optimized.typography);
+    setSpacing(optimized.spacing);
+    setCanvas(optimized.canvas);
+    pushHistory(doc, optimized.canvas, optimized.typography, optimized.spacing, advanced);
+  }, [doc, canvas, typography, spacing, advanced, pushHistory]);
 
   // Run pagination & auto-fit
   const paginationResult: PaginationResult = useMemo(() => {
@@ -514,15 +445,15 @@ function Workspace() {
 
               <div className="w-px h-3.5 bg-[#1f1f24]" />
 
-              {/* Minimalist Segmented View Mode Toggle */}
-              <div className="flex items-center bg-[#111114] border border-[#1f1f25] rounded-md p-0.5 gap-0.5">
+              {/* Minimalist Bare View Mode Icons (Unboxed, pure studio aesthetic) */}
+              <div className="flex items-center gap-1">
                 <button
                   type="button"
                   onClick={() => setPreviewMode('grid')}
-                  className={`p-1.5 rounded transition-all ${
+                  className={`p-1.5 rounded-md transition-all ${
                     previewMode === 'grid'
-                      ? 'bg-[#222228] text-white shadow-xs'
-                      : 'text-zinc-500 hover:text-zinc-300'
+                      ? 'text-zinc-100 bg-white/[0.08]'
+                      : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.03]'
                   }`}
                   title="Grid view"
                   aria-label="Grid view"
@@ -532,10 +463,10 @@ function Workspace() {
                 <button
                   type="button"
                   onClick={() => setPreviewMode('single')}
-                  className={`p-1.5 rounded transition-all ${
+                  className={`p-1.5 rounded-md transition-all ${
                     previewMode === 'single'
-                      ? 'bg-[#222228] text-white shadow-xs'
-                      : 'text-zinc-500 hover:text-zinc-300'
+                      ? 'text-zinc-100 bg-white/[0.08]'
+                      : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.03]'
                   }`}
                   title="Single page view"
                   aria-label="Single page view"
@@ -545,10 +476,10 @@ function Workspace() {
                 <button
                   type="button"
                   onClick={() => setPreviewMode('carousel')}
-                  className={`p-1.5 rounded transition-all ${
+                  className={`p-1.5 rounded-md transition-all ${
                     previewMode === 'carousel'
-                      ? 'bg-[#222228] text-white shadow-xs'
-                      : 'text-zinc-500 hover:text-zinc-300'
+                      ? 'text-zinc-100 bg-white/[0.08]'
+                      : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.03]'
                   }`}
                   title="Carousel swipe view"
                   aria-label="Carousel view"
@@ -573,16 +504,8 @@ function Workspace() {
               onDeletePreset={handleDeletePreset}
               isExporting={isExporting}
               hasOverflow={hasOverflow}
-              savedProjects={savedProjects}
-              onSaveCurrentProject={handleSaveCurrentProject}
-              onLoadProject={handleLoadProject}
-              onDeleteProject={handleDeleteProject}
-              onExportProjectJson={handleExportProjectJson}
-              onImportProjectJson={handleImportProjectJson}
               showPresetManagerModal={showPresetsModal}
               onClosePresetManagerModal={() => setShowPresetsModal(false)}
-              showProjectManagerModal={showProjectsModal}
-              onCloseProjectManagerModal={() => setShowProjectsModal(false)}
               showShortcutsModal={showShortcutsModal}
               onCloseShortcutsModal={() => setShowShortcutsModal(false)}
             />
@@ -663,9 +586,9 @@ function Workspace() {
           layoutLocked={doc.layoutLocked}
           onToggleLayoutLock={() => setDoc((prev) => ({ ...prev, layoutLocked: !prev.layoutLocked }))}
           onOpenPresetsModal={() => setShowPresetsModal(true)}
-          onOpenProjectsModal={() => setShowProjectsModal(true)}
           onOpenShortcutsModal={() => setShowShortcutsModal(true)}
           onResetAll={handleResetAll}
+          onFillCanvas={handleFillCanvas}
         />
 
         {/* Right: Discreet Doc Info */}
