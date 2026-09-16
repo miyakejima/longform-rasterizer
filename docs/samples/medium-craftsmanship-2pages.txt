@@ -1,0 +1,5 @@
+Software craftsmanship is often framed as a battle between speed and elegance, but this dichotomy misunderstands both. When an interface feels genuinely fast, it is almost never because the code cut corners; it is because the architecture respected the medium.
+
+A deterministic tool does not guess what the user wants. It gives them explicit, predictable knobs: line height, canvas dimensions, font weight, and boundary constraints. When you press a button, the system executes pure functions over known state, producing the exact same mathematical layout every single time.
+
+In typography, this predictability is everything. The distance between two paragraphs should be identical on page one and page three. A 4:5 portrait canvas should never silently deform into a squarish card simply because the last sentence was short. By treating text measurement as geometry rather than guesswork, we restore confidence to digital writing.

@@ -142,15 +142,24 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
     }
   }, [customWidth, customHeight, canvas, onCanvasChange]);
 
-  // Close popover on outside click
+  // Close popover on outside click or Escape
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (toolbarRef.current && !toolbarRef.current.contains(e.target as Node)) {
         setActivePopover(null);
       }
     };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setActivePopover(null);
+      }
+    };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
   }, []);
 
   const togglePopover = (name: 'pages' | 'font' | 'size' | 'format' | 'margins' | 'more') => {
