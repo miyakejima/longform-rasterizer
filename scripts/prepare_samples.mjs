@@ -8,6 +8,38 @@ if (!fs.existsSync(samplesDir)) {
   fs.mkdirSync(samplesDir, { recursive: true });
 }
 
+export const showcaseEssay = `The contemporary subject inhabits a regime of ceaseless sensory ingestion, wherein the quietest pause is experienced not as repose, but as unbearable ontological dread. Modern consciousness recoils from stillness, seeking refuge in uninterrupted ambient vibration. Silence has ceased to denote peace, signifying terrifying abandonment. To avert this terror, the individual compulsively saturates every waking interval with disposable signals.
+
+The glowing screen no longer functions merely as an instrument; it has become an externalized, prosthetic consciousness. Unmediated reality, demanding sustained attention and emotional vulnerability, is preemptively displaced by a rapid sequence of luminous fragments. Experience is atomized into flickering transmissions that demand instant reaction while defying comprehension. The subject no longer encounters the world directly, but solely through its backlit simulation.
+
+This frantic accumulation of data masks a profound digestive paralysis. What presents itself as an insatiable appetite for enlightenment is merely the twitching reflex of an overstimulated nervous system. Information cascades across the perceptive faculty without ever condensing into understanding. The consumer swallows endless varieties of novelty, yet remains fundamentally undernourished, mistaking the physical motion of scrolling for intellectual expansion and genuine spiritual nourishment.
+
+Under the dictates of the spectacle, human perception has been transformed into a harvestable resource. Attention is systematically splintered, commodified, and sold back to the highest bidder in fractions of a second. Every hesitation, glance, and involuntary impulse is cataloged by the machinery of extraction. The sensory apparatus, designed for contemplative communion with the living world, is thus reduced to an obedient conduit for algorithmic valorization.
+
+Parallel to this compulsive ingestion operates an industrial apparatus dedicated to the fabrication of cheerful consensus. The culture industry no longer tolerates ambiguity or tragedy; it mandates an enforced optimism. Joy is stripped of its spontaneous transcendence and manufactured as an obligatory commodity. Every cultural artifact must radiate infectious positivity, assuring the anxious populace that all contradictions have been reconciled within the prevailing economic order.
+
+In this administered paradise, unhappiness is pathologized as personal failure or chemical deficiency. The melancholy inherent to mortal existence is denied all philosophical dignity, treated instead as a malfunction requiring immediate pharmacological or therapeutic correction. Happiness ceases to be an elusive, unplannable resonance of a meaningful life; it becomes an operational metric, an aggressive corporate dogma that commands individuals to perform contentment at all times.
+
+The spectacle demands that each participant serve as their own promotional agent, staging an idealized pantomime of triumph for public consumption. Through calculated poses, luminous filters, and orchestrated rituals of leisure, the individual exhibits a simulated euphoria designed to elicit envy. Yet behind these radiant surfaces lies an acute desolation, where the exhaustion of continuous self-display corrodes the very self it purports to celebrate.
+
+This manufactured ecstasy is deliberately calibrated to expire the moment it is received. Because synthetic euphoria cannot satisfy the authentic human longing for connection or purpose, it leaves an ever-widening void in its wake. The victim of this deception returns instantly to the apparatus, craving a fresh dose of synthetic stimulation. What masquerades as supreme abundance is revealed as an iron cage of perpetual craving.
+
+The most devastating casualty of this relentless deluge is the human capacity to inhabit uncertainty without irritable reaching after certainty. Negative capability, the quiet fortitude required to endure grief, paradox, and unresolvable mystery, has withered under constant exposure to instantaneous gratification. The modern psyche no longer tolerates a question left unanswered or a sorrow unmedicated; it demands an immediate, frictionless palliative for every existential tremor.
+
+Boredom, historically the fertile soil from which original thought, deep self-examination, and artistic creation germinated, is now treated as an intolerable emergency. The moment the mind begins to turn inward, the user panics and reaches for the illuminated slab. In doing so, society forecloses the birth of authentic interiority. What remains is a hollowed chamber, perpetually receptive to external commands, yet incapable of generating solitary contemplation.
+
+This eradication of quietude represents the ultimate realization of what Adorno termed the total administration of life. Leisure, once an autonomous sanctuary beyond the demands of production, has been fully colonized by the logic of amusement. Even the most intimate recesses of leisure are pre-structured by algorithmic design. The citizen is permitted no unscripted moments; every second of free time is subsumed by engineered diversion.
+
+By exiling melancholy and contemplative silence, society achieves a catastrophic flattening of the human spirit. The profound dimensions of human existence, including tragic insight and the quiet dignity of longing, are traded away for sensory novocaine. We have constructed a culture incapable of enduring its own depth, opting instead for a flatland of perpetual distraction where nothing truly hurts and nothing matters.
+
+The triumph of this regime rests upon the voluntary compliance of the subjugated. Unlike historical tyrannies that ruled through coercion, the modern spectacle secures total submission by flattering the ego and indulging every fleeting impulse. The consumer experiences this servitude not as captivity, but as the height of personal liberation. In surrendering the burden of critical judgment, the individual mistakes effortless compliance for sovereign agency.
+
+This enclosure appears complete because the spectacle possesses the insidious power to neutralize critique by absorbing it. Dissent is swiftly commodified, packaged as a marketable aesthetic, and sold back to rebellious consumers as an emblem of individuality. Intellectual outrage becomes another consumable lifestyle choice, neutralized before it can challenge the machinery. The system thrives by assimilating its opposition, converting radical refusal into entertaining spectator sport.
+
+Genuine resistance cannot occur through the channels provided by the spectacle; it must begin with an uncompromising gesture of refusal. To withdraw attention from the perpetual broadcast is not mere retreat, but an act of political self-defense. By deliberately severing connection to the narcotic feed, the individual reclaims the sacred boundary between the sovereign self and the predatory market. Refusal restores the dignity of silence.
+
+In this restored silence, liberated from the compulsion to ingest and perform, the delicate faculty of discernment begins to breathe again. Thought ceases to be a reflexive reaction to external stimuli and returns to patient, solitary contemplation. Only by enduring the void and refusing synthetic ecstasy can we recover the fragile possibility of authentic happiness, grounded not in distraction, but in uncorrupted awareness.`;
+
 export const concertEssay = `thousands of people pay for admission, travel to the same place, wait in lines, give up comfort and personal space, often unable to see or hear properly, all for a few hours of an experience built around music they can already access almost anywhere at any time
 
 the music still matters, but it is only one part of what is being sold, physical presence, proximity to the performer, spectacle, ritual, crowd intensity, scarcity, shared excitement and the feeling of participating in something important enough for thousands of other people to gather around it too
@@ -54,6 +86,7 @@ In typography, this predictability is everything. The distance between two parag
 
 export const shortQuote = `Simplicity is not the absence of clutter, that's a consequence of simplicity. Simplicity is somehow essentially describing the purpose and place of an object and product. The best design is the one that disappears into utility, leaving only the thought itself.`;
 
+fs.writeFileSync(path.join(samplesDir, 'essay-critique-16paras.txt'), showcaseEssay, 'utf8');
 fs.writeFileSync(path.join(samplesDir, 'concert-essay-16paras.txt'), concertEssay, 'utf8');
 fs.writeFileSync(path.join(samplesDir, 'spanish-literary-essay.txt'), spanishEssay, 'utf8');
 fs.writeFileSync(path.join(samplesDir, 'medium-craftsmanship-2pages.txt'), mediumArticle, 'utf8');
