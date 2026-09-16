@@ -42,16 +42,20 @@ export function computeBalanceScore(
   // 3. Boundary split penalties
   if (mode === 'paragraph-preserving') {
     if (!isParagraphEnd) {
-      // Very heavy penalty to split inside paragraph in preserving mode
-      score += isSentenceEnd ? 50_000 : 150_000;
+      // Massive penalty to split inside paragraph in preserving mode
+      score += isSentenceEnd ? 500_000 : 50_000_000;
     }
   } else {
-    // Balanced mode: prefers paragraph, then sentence, then line
+    // Balanced mode:
+    // Paragraph boundary: 0 penalty
+    // Sentence boundary: 300 penalty
+    // Incomplete sentence (splitting a sentence across pages): 50,000,000 penalty
+    // This strictly prevents cutting sentences in half across pages.
     if (!isParagraphEnd) {
       if (isSentenceEnd) {
-        score += 80;
+        score += 300;
       } else {
-        score += 260;
+        score += 50_000_000;
       }
     }
   }

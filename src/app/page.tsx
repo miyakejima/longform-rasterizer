@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback, useSyncExternalStore } from 'react';
 import { HeaderBar } from '../components/HeaderBar';
 import { EditorPanel } from '../components/EditorPanel';
-import { ControlPanel } from '../components/ControlPanel';
+import { DockedToolbar } from '../components/DockedToolbar';
 import { PreviewPanel } from '../components/PreviewPanel';
 import { FullscreenModal } from '../components/FullscreenModal';
 import {
@@ -16,7 +16,7 @@ import {
   AdvancedSettings,
   VisualPreset,
   PaginationResult,
-  DistributionMode,
+  SavedProject,
 } from '../types';
 import {
   DEFAULT_ADVANCED,
@@ -30,12 +30,17 @@ import {
   saveStoredPresets,
   saveStoredSession,
   clearStoredSession,
+  loadStoredProjects,
+  saveCurrentProject,
+  deleteStoredProject,
+  exportProjectAsJson,
+  importProjectFromJson,
+  SessionState,
 } from '../engine/presetStore';
 import { paginateDocument } from '../engine/pagination';
 import { autoFitFontSize } from '../engine/autoFit';
 import { waitForFonts } from '../engine/fontLoader';
 import { exportAllPagesAsZip, exportAllPagesSeparately } from '../engine/exportEngine';
-import { FileText, Sliders } from 'lucide-react';
 
 interface HistoryItem {
   document: DocumentState;
@@ -45,29 +50,47 @@ interface HistoryItem {
   advanced: AdvancedSettings;
 }
 
-export default function Home() {
+function useIsMounted() {
+  return useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
+}
+
+function Workspace() {
+  // Initial session from localStorage (restored lazily)
+  const [initialSession] = useState<SessionState | null>(() =>
+    typeof window !== 'undefined' ? loadStoredSession() : null
+  );
+
   // State
-  const [doc, setDoc] = useState<DocumentState>(DEFAULT_DOCUMENT);
-  const [canvas, setCanvas] = useState<CanvasSettings>(DEFAULT_CANVAS);
-  const [typography, setTypography] = useState<TypographySettings>(DEFAULT_TYPOGRAPHY);
-  const [spacing, setSpacing] = useState<SpacingSettings>(DEFAULT_SPACING);
-  const [advanced, setAdvanced] = useState<AdvancedSettings>(DEFAULT_ADVANCED);
-  const [exportScale, setExportScale] = useState<ExportScale>(2);
+  const [doc, setDoc] = useState<DocumentState>(() => initialSession?.document ?? DEFAULT_DOCUMENT);
+  const [canvas, setCanvas] = useState<CanvasSettings>(() => initialSession?.canvas ?? DEFAULT_CANVAS);
+  const [typography, setTypography] = useState<TypographySettings>(() => initialSession?.typography ?? DEFAULT_TYPOGRAPHY);
+  const [spacing, setSpacing] = useState<SpacingSettings>(() => initialSession?.spacing ?? DEFAULT_SPACING);
+  const [advanced, setAdvanced] = useState<AdvancedSettings>(() => initialSession?.advanced ?? DEFAULT_ADVANCED);
+  const [exportScale, setExportScale] = useState<ExportScale>(() => initialSession?.exportScale ?? 2);
   const [exportFormat, setExportFormat] = useState<ExportFormat>('png');
-  const [presets, setPresets] = useState<VisualPreset[]>([DEFAULT_PRESET]);
-  const [selectedPresetId, setSelectedPresetId] = useState<string>('x-essay');
+  const [presets, setPresets] = useState<VisualPreset[]>(() =>
+    typeof window !== 'undefined' ? loadStoredPresets() : [DEFAULT_PRESET]
+  );
+  const [selectedPresetId, setSelectedPresetId] = useState<string>(() => initialSession?.selectedPresetId ?? 'x-essay');
+  const [savedProjects, setSavedProjects] = useState<SavedProject[]>(() =>
+    typeof window !== 'undefined' ? loadStoredProjects() : []
+  );
   const [customFonts, setCustomFonts] = useState<string[]>([]);
   const [highlightedPageIndex, setHighlightedPageIndex] = useState<number | null>(null);
   const [fullscreenPageIndex, setFullscreenPageIndex] = useState<number | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [exportWarning, setExportWarning] = useState<string | null>(null);
-  const [leftTab, setLeftTab] = useState<'editor' | 'controls'>('editor');
+  const [showPresetsModal, setShowPresetsModal] = useState(false);
+  const [showProjectsModal, setShowProjectsModal] = useState(false);
+  const [showShortcutsModal, setShowShortcutsModal] = useState(false);
 
   // Undo / Redo history
   const historyRef = useRef<HistoryItem[]>([]);
   const historyIndexRef = useRef<number>(-1);
-  const [canUndo, setCanUndo] = useState(false);
-  const [canRedo, setCanRedo] = useState(false);
 
   const pushHistory = useCallback((newDoc: DocumentState, newCanvas: CanvasSettings, newTypo: TypographySettings, newSpacing: SpacingSettings, newAdv: AdvancedSettings) => {
     const item: HistoryItem = {
@@ -82,9 +105,26 @@ export default function Home() {
     if (nextHistory.length > 50) nextHistory.shift();
     historyRef.current = nextHistory;
     historyIndexRef.current = nextHistory.length - 1;
-    setCanUndo(historyIndexRef.current > 0);
-    setCanRedo(false);
   }, []);
+
+  // Debounced pushHistory for text typing to protect history buffer
+  const textHistoryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const handleTextChange = useCallback(
+    (newText: string) => {
+      setDoc((prev) => ({ ...prev, text: newText }));
+      if (textHistoryTimeoutRef.current) {
+        clearTimeout(textHistoryTimeoutRef.current);
+      }
+      if (newText === '' || Math.abs(newText.length - doc.text.length) > 15) {
+        pushHistory({ ...doc, text: newText }, canvas, typography, spacing, advanced);
+      } else {
+        textHistoryTimeoutRef.current = setTimeout(() => {
+          pushHistory({ ...doc, text: newText }, canvas, typography, spacing, advanced);
+        }, 600);
+      }
+    },
+    [doc, canvas, typography, spacing, advanced, pushHistory]
+  );
 
   // Debounced text for smooth editing performance
   const [debouncedText, setDebouncedText] = useState(doc.text);
@@ -95,27 +135,12 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, [doc.text]);
 
-  // Restore session from localStorage on mount
+  // Push initial session into history and wait for fonts on mount
   useEffect(() => {
-    const storedSession = loadStoredSession();
-    const storedPresets = loadStoredPresets();
-    setPresets(storedPresets);
-
-    if (storedSession) {
-      setDoc(storedSession.document);
-      setCanvas(storedSession.canvas);
-      setTypography(storedSession.typography);
-      setSpacing(storedSession.spacing);
-      setAdvanced(storedSession.advanced);
-      setExportScale(storedSession.exportScale);
-      setSelectedPresetId(storedSession.selectedPresetId);
-      pushHistory(storedSession.document, storedSession.canvas, storedSession.typography, storedSession.spacing, storedSession.advanced);
-    } else {
-      pushHistory(DEFAULT_DOCUMENT, DEFAULT_CANVAS, DEFAULT_TYPOGRAPHY, DEFAULT_SPACING, DEFAULT_ADVANCED);
-    }
-
+    pushHistory(doc, canvas, typography, spacing, advanced);
     waitForFonts();
-  }, [pushHistory]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Save session on changes
   useEffect(() => {
@@ -138,8 +163,6 @@ export default function Home() {
       setTypography(prev.typography);
       setSpacing(prev.spacing);
       setAdvanced(prev.advanced);
-      setCanUndo(historyIndexRef.current > 0);
-      setCanRedo(true);
     }
   }, []);
 
@@ -152,8 +175,6 @@ export default function Home() {
       setTypography(next.typography);
       setSpacing(next.spacing);
       setAdvanced(next.advanced);
-      setCanUndo(true);
-      setCanRedo(historyIndexRef.current < historyRef.current.length - 1);
     }
   }, []);
 
@@ -230,6 +251,75 @@ export default function Home() {
     saveStoredPresets(updated);
   };
 
+  // Project management handlers
+  const handleSaveCurrentProject = useCallback(() => {
+    const proj: SavedProject = {
+      id: `proj-${Date.now()}`,
+      name: doc.projectName || 'my-essay',
+      updatedAt: Date.now(),
+      document: { ...doc },
+      canvas: { ...canvas },
+      typography: { ...typography },
+      spacing: { ...spacing },
+      advanced: { ...advanced },
+      exportScale,
+      exportFormat,
+      selectedPresetId,
+    };
+    const updated = saveCurrentProject(proj);
+    setSavedProjects(updated);
+  }, [doc, canvas, typography, spacing, advanced, exportScale, exportFormat, selectedPresetId]);
+
+  const handleLoadProject = useCallback((proj: SavedProject) => {
+    setDoc(proj.document);
+    setCanvas(proj.canvas);
+    setTypography(proj.typography);
+    setSpacing(proj.spacing);
+    setAdvanced(proj.advanced);
+    setExportScale(proj.exportScale);
+    setExportFormat(proj.exportFormat);
+    setSelectedPresetId(proj.selectedPresetId);
+    pushHistory(proj.document, proj.canvas, proj.typography, proj.spacing, proj.advanced);
+  }, [pushHistory]);
+
+  const handleDeleteProject = useCallback((id: string) => {
+    const updated = deleteStoredProject(id);
+    setSavedProjects(updated);
+  }, []);
+
+  const handleImportProjectJson = useCallback(async (file: File) => {
+    try {
+      const imported = await importProjectFromJson(file);
+      const updated = saveCurrentProject(imported);
+      setSavedProjects(updated);
+      handleLoadProject(imported);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to import project';
+      alert(`Import error: ${msg}`);
+    }
+  }, [handleLoadProject]);
+
+  const handleExportProjectJson = useCallback((targetProject?: SavedProject) => {
+    if (targetProject) {
+      exportProjectAsJson(targetProject);
+      return;
+    }
+    const proj: SavedProject = {
+      id: `proj-${Date.now()}`,
+      name: doc.projectName || 'my-essay',
+      updatedAt: Date.now(),
+      document: { ...doc },
+      canvas: { ...canvas },
+      typography: { ...typography },
+      spacing: { ...spacing },
+      advanced: { ...advanced },
+      exportScale,
+      exportFormat,
+      selectedPresetId,
+    };
+    exportProjectAsJson(proj);
+  }, [doc, canvas, typography, spacing, advanced, exportScale, exportFormat, selectedPresetId]);
+
   // Run pagination & auto-fit
   const paginationResult: PaginationResult = useMemo(() => {
     const effectiveDoc: DocumentState = {
@@ -237,7 +327,7 @@ export default function Home() {
       text: debouncedText,
     };
 
-    if (advanced.autoFit) {
+    if (advanced.autoFit && !doc.layoutLocked) {
       return autoFitFontSize(effectiveDoc, {
         canvas,
         typography,
@@ -254,22 +344,20 @@ export default function Home() {
     });
   }, [debouncedText, doc, canvas, typography, spacing, advanced]);
 
-  // Synchronize effective font size if auto-fit adjusted it
-  useEffect(() => {
-    if (advanced.autoFit && paginationResult.effectiveFontSize !== typography.fontSize) {
-      setTypography((prev) => ({
-        ...prev,
-        fontSize: paginationResult.effectiveFontSize,
-      }));
-    }
-  }, [advanced.autoFit, paginationResult.effectiveFontSize, typography.fontSize]);
+  // Derive guaranteed effective typography matching pagination result
+  const effectiveTypography = useMemo(
+    () => ({ ...typography, fontSize: paginationResult.effectiveFontSize }),
+    [typography, paginationResult.effectiveFontSize]
+  );
 
   const hasOverflow = paginationResult.pages.some((p) => p.isOverflowing);
 
-  // Export handlers
-  const handleExportAll = async () => {
-    if (hasOverflow && !advanced.allowClippedExport) {
-      setExportWarning('Export blocked: One or more pages contain overflowing text. Please adjust page count, font size, or enable Auto-fit.');
+  // Export handlers with strict text-safety checks
+  const handleExportAll = useCallback(async () => {
+    const overflowing = paginationResult.pages.filter((p) => p.isOverflowing);
+    if (overflowing.length > 0 && !advanced.allowClippedExport) {
+      const pageNumbers = overflowing.map((p) => p.pageIndex + 1).join(', ');
+      setExportWarning(`Export blocked: Page ${pageNumbers} contains clipped text.`);
       return;
     }
     setExportWarning(null);
@@ -277,7 +365,7 @@ export default function Home() {
     try {
       await exportAllPagesSeparately(paginationResult.pages, {
         canvas,
-        typography,
+        typography: effectiveTypography,
         spacing,
         scale: exportScale,
         format: exportFormat,
@@ -286,11 +374,22 @@ export default function Home() {
     } finally {
       setIsExporting(false);
     }
-  };
+  }, [
+    paginationResult.pages,
+    advanced.allowClippedExport,
+    canvas,
+    effectiveTypography,
+    spacing,
+    exportScale,
+    exportFormat,
+    doc.projectName,
+  ]);
 
-  const handleExportZip = async () => {
-    if (hasOverflow && !advanced.allowClippedExport) {
-      setExportWarning('Export blocked: One or more pages contain overflowing text. Please adjust page count, font size, or enable Auto-fit.');
+  const handleExportZip = useCallback(async () => {
+    const overflowing = paginationResult.pages.filter((p) => p.isOverflowing);
+    if (overflowing.length > 0 && !advanced.allowClippedExport) {
+      const pageNumbers = overflowing.map((p) => p.pageIndex + 1).join(', ');
+      setExportWarning(`Export blocked: Page ${pageNumbers} contains clipped text.`);
       return;
     }
     setExportWarning(null);
@@ -298,7 +397,7 @@ export default function Home() {
     try {
       await exportAllPagesAsZip(paginationResult.pages, {
         canvas,
-        typography,
+        typography: effectiveTypography,
         spacing,
         scale: exportScale,
         format: exportFormat,
@@ -307,7 +406,16 @@ export default function Home() {
     } finally {
       setIsExporting(false);
     }
-  };
+  }, [
+    paginationResult.pages,
+    advanced.allowClippedExport,
+    canvas,
+    effectiveTypography,
+    spacing,
+    exportScale,
+    exportFormat,
+    doc.projectName,
+  ]);
   // Keyboard Shortcuts Listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -338,34 +446,14 @@ export default function Home() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleUndo, handleRedo, handleExportAll]);
 
-  return (
-    <div className="flex flex-col h-screen overflow-hidden bg-[#111113] text-[#ededed]">
-      {/* Header bar */}
-      <HeaderBar
-        projectName={doc.projectName}
-        onProjectNameChange={(name) => setDoc((prev) => ({ ...prev, projectName: name }))}
-        layoutLocked={doc.layoutLocked}
-        onToggleLock={() => setDoc((prev) => ({ ...prev, layoutLocked: !prev.layoutLocked }))}
-        canUndo={canUndo}
-        canRedo={canRedo}
-        onUndo={handleUndo}
-        onRedo={handleRedo}
-        onResetAll={handleResetAll}
-        onExportAll={handleExportAll}
-        presets={presets}
-        selectedPresetId={selectedPresetId}
-        onSelectPreset={handleSelectPreset}
-        onSaveCurrentPreset={handleSaveCurrentPreset}
-        onRenamePreset={handleRenamePreset}
-        onDuplicatePreset={handleDuplicatePreset}
-        onDeletePreset={handleDeletePreset}
-        isExporting={isExporting}
-        hasOverflow={hasOverflow}
-      />
+  const wordCount = doc.text.trim().length === 0 ? 0 : doc.text.trim().split(/\s+/).filter(Boolean).length;
+  const charCount = doc.text.length;
 
+  return (
+    <div className="flex flex-col h-screen overflow-hidden bg-[#0c0c0e] text-[#ededed]">
       {/* Export Blocked Notification Banner */}
       {exportWarning && (
-        <div className="bg-red-950/80 border-b border-red-800 p-2.5 px-4 flex items-center justify-between text-xs text-red-200">
+        <div className="bg-red-950/80 border-b border-red-800 p-2.5 px-4 flex items-center justify-between text-xs text-red-200 shrink-0 z-40">
           <span>{exportWarning}</span>
           <button
             type="button"
@@ -377,166 +465,209 @@ export default function Home() {
         </div>
       )}
 
-      {/* Main 2-Column Responsive Workspace */}
-      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden min-h-0">
-        {/* Left Panel: Editor and Controls with tabs */}
-        <div className="w-full lg:w-[480px] xl:w-[540px] flex flex-col border-r border-zinc-800 bg-zinc-950/80 shrink-0 h-1/2 lg:h-full">
-          {/* Sub-header navigation tabs for Left Panel */}
-          <div className="h-10 border-b border-zinc-800 bg-zinc-950 px-3 flex items-center justify-between shrink-0 select-none">
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                onClick={() => setLeftTab('editor')}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded text-xs transition-colors ${
-                  leftTab === 'editor'
-                    ? 'bg-zinc-800 text-white font-medium shadow-xs'
-                    : 'text-zinc-400 hover:text-zinc-200'
-                }`}
-              >
-                <FileText className="w-3.5 h-3.5" />
-                <span>Text Editor</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setLeftTab('controls')}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded text-xs transition-colors ${
-                  leftTab === 'controls'
-                    ? 'bg-zinc-800 text-white font-medium shadow-xs'
-                    : 'text-zinc-400 hover:text-zinc-200'
-                }`}
-              >
-                <Sliders className="w-3.5 h-3.5" />
-                <span>Typography & Layout</span>
-              </button>
-            </div>
-
-            {/* Quick page count indicator */}
-            <div className="text-[11px] text-zinc-500 font-mono">
-              {paginationResult.pages.length} {paginationResult.pages.length === 1 ? 'Page' : 'Pages'}
-            </div>
-          </div>
-
-          {/* Tab content area */}
-          <div className="flex-1 overflow-hidden">
-            {leftTab === 'editor' ? (
-              <EditorPanel
-                text={doc.text}
-                onTextChange={(newText) => {
-                  setDoc((prev) => ({ ...prev, text: newText }));
-                  pushHistory({ ...doc, text: newText }, canvas, typography, spacing, advanced);
-                }}
-                pages={paginationResult.pages}
-                distributionMode={doc.distributionMode}
-                manualBreaks={doc.manualBreaks}
-                onManualBreaksChange={(breaks) => {
-                  setDoc((prev) => ({ ...prev, manualBreaks: breaks }));
-                  pushHistory({ ...doc, manualBreaks: breaks }, canvas, typography, spacing, advanced);
-                }}
-                highlightedPageIndex={highlightedPageIndex}
-                onSelectPage={(pIdx) => setHighlightedPageIndex(pIdx)}
-              />
-            ) : (
-              <ControlPanel
-                pageCount={doc.pageCount}
-                onPageCountChange={(cnt) => {
-                  setDoc((prev) => ({ ...prev, pageCount: cnt }));
-                  pushHistory({ ...doc, pageCount: cnt }, canvas, typography, spacing, advanced);
-                }}
-                distributionMode={doc.distributionMode}
-                onDistributionModeChange={(m) => {
-                  setDoc((prev) => ({ ...prev, distributionMode: m }));
-                  pushHistory({ ...doc, distributionMode: m }, canvas, typography, spacing, advanced);
-                }}
-                canvas={canvas}
-                onCanvasChange={(newCanvas) => {
-                  setCanvas(newCanvas);
-                  pushHistory(doc, newCanvas, typography, spacing, advanced);
-                }}
-                typography={typography}
-                onTypographyChange={(newTypo) => {
-                  setTypography(newTypo);
-                  pushHistory(doc, canvas, newTypo, spacing, advanced);
-                }}
-                spacing={spacing}
-                onSpacingChange={(newSpacing) => {
-                  setSpacing(newSpacing);
-                  pushHistory(doc, canvas, typography, newSpacing, advanced);
-                }}
-                advanced={advanced}
-                onAdvancedChange={(newAdv) => {
-                  setAdvanced(newAdv);
-                  pushHistory(doc, canvas, typography, spacing, newAdv);
-                }}
-                exportFormat={exportFormat}
-                onExportFormatChange={setExportFormat}
-                exportScale={exportScale}
-                onExportScaleChange={setExportScale}
-                layoutLocked={doc.layoutLocked}
-                onExportAll={handleExportAll}
-                onExportZip={handleExportZip}
-                isExporting={isExporting}
-                hasOverflow={hasOverflow}
-                autoFitWarning={paginationResult.autoFitWarning}
-                customFonts={customFonts}
-                onAddCustomFont={(name) => setCustomFonts((prev) => [...prev, name])}
-              />
-            )}
-          </div>
-        </div>
-
-        {/* Right Panel: Live Previews */}
-        <div className="flex-1 flex flex-col overflow-hidden h-1/2 lg:h-full">
-          <PreviewPanel
+      {/* Main 2-Column Responsive Workspace: 30% Editor, 70% Previews */}
+      <div className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0 bg-[#0c0c0e]">
+        {/* Left Column: Distraction-Free Editorial Text Editor (Zero navbar!) */}
+        <div className="w-full md:w-[30%] h-1/2 md:h-full flex flex-col bg-[#0c0c0e] overflow-hidden">
+          <EditorPanel
+            text={doc.text}
+            onTextChange={handleTextChange}
             pages={paginationResult.pages}
-            canvas={canvas}
-            typography={typography}
-            spacing={spacing}
-            exportFormat={exportFormat}
-            exportScale={exportScale}
-            projectName={doc.projectName}
-            highlightedPageIndex={highlightedPageIndex}
-            onPageHover={setHighlightedPageIndex}
-            onSelectPage={(idx) => {
-              setHighlightedPageIndex(idx);
-              setLeftTab('editor');
-            }}
-            onOpenFullscreen={(idx) => setFullscreenPageIndex(idx)}
-            onTriggerAutoFit={() => setAdvanced((prev) => ({ ...prev, autoFit: true }))}
-            onIncreasePageCount={() =>
-              setDoc((prev) => ({ ...prev, pageCount: prev.pageCount + 1 }))
-            }
-            onDecreaseFontSize={() =>
-              setTypography((prev) => ({ ...prev, fontSize: Math.max(12, prev.fontSize - 2) }))
-            }
-            onDecreaseMargins={() =>
-              setSpacing((prev) => ({
+            distributionMode={doc.distributionMode}
+            manualBreaks={doc.manualBreaks}
+            onManualBreaksChange={(breaks) => {
+              const updatedPageCount = Math.max(1, breaks.length + 1);
+              setDoc((prev) => ({
                 ...prev,
-                paddingTop: Math.max(20, prev.paddingTop - 16),
-                paddingRight: Math.max(20, prev.paddingRight - 16),
-                paddingBottom: Math.max(20, prev.paddingBottom - 16),
-                paddingLeft: Math.max(20, prev.paddingLeft - 16),
-              }))
-            }
+                manualBreaks: breaks,
+                pageCount: updatedPageCount,
+              }));
+              pushHistory(
+                { ...doc, manualBreaks: breaks, pageCount: updatedPageCount },
+                canvas,
+                typography,
+                spacing,
+                advanced
+              );
+            }}
+            highlightedPageIndex={highlightedPageIndex}
+            onSelectPage={(pIdx) => setHighlightedPageIndex(pIdx)}
+            typography={effectiveTypography}
           />
         </div>
+
+        {/* Center 1px Divider Line */}
+        <div className="w-px bg-[#18181c] hidden md:block shrink-0" />
+
+        {/* Right Column: Clean Live Preview Cards Grid + Single Top-Right Export Pill */}
+        <div className="w-full md:w-[70%] h-1/2 md:h-full flex flex-col bg-[#09090b] overflow-hidden">
+          {/* Top Header above Previews: Glowing Green Indicator on Left, Single Export Pill on Right */}
+          <div className="h-14 px-8 flex items-center justify-between shrink-0 bg-[#09090b] border-b border-[#18181c]/60 z-20">
+            <div className="flex items-center gap-2 select-none" title="Live canvas engine connected">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500 shadow-xs shadow-emerald-500/50"></span>
+              </span>
+            </div>
+            <HeaderBar
+              onExportAll={handleExportAll}
+              onExportZip={handleExportZip}
+              exportFormat={exportFormat}
+              onExportFormatChange={setExportFormat}
+              exportScale={exportScale}
+              onExportScaleChange={setExportScale}
+              presets={presets}
+              selectedPresetId={selectedPresetId}
+              onSelectPreset={handleSelectPreset}
+              onSaveCurrentPreset={handleSaveCurrentPreset}
+              onRenamePreset={handleRenamePreset}
+              onDuplicatePreset={handleDuplicatePreset}
+              onDeletePreset={handleDeletePreset}
+              isExporting={isExporting}
+              hasOverflow={hasOverflow}
+              savedProjects={savedProjects}
+              onSaveCurrentProject={handleSaveCurrentProject}
+              onLoadProject={handleLoadProject}
+              onDeleteProject={handleDeleteProject}
+              onExportProjectJson={handleExportProjectJson}
+              onImportProjectJson={handleImportProjectJson}
+              showPresetManagerModal={showPresetsModal}
+              onClosePresetManagerModal={() => setShowPresetsModal(false)}
+              showProjectManagerModal={showProjectsModal}
+              onCloseProjectManagerModal={() => setShowProjectsModal(false)}
+              showShortcutsModal={showShortcutsModal}
+              onCloseShortcutsModal={() => setShowShortcutsModal(false)}
+            />
+          </div>
+
+          {/* Previews Grid */}
+          <div className="flex-1 min-h-0 overflow-hidden">
+            <PreviewPanel
+              pages={paginationResult.pages}
+              canvas={canvas}
+              typography={effectiveTypography}
+              spacing={spacing}
+              exportFormat={exportFormat}
+              exportScale={exportScale}
+              projectName={doc.projectName}
+              highlightedPageIndex={highlightedPageIndex}
+              onPageHover={setHighlightedPageIndex}
+              onSelectPage={(idx) => setHighlightedPageIndex(idx)}
+              onOpenFullscreen={(idx) => setFullscreenPageIndex(idx)}
+              onTriggerAutoFit={() => setAdvanced((prev) => ({ ...prev, autoFit: true }))}
+              allowClippedExport={advanced.allowClippedExport}
+              onBlockedExport={(msg) => setExportWarning(msg)}
+            />
+          </div>
+        </div>
       </div>
+
+      {/* Bottom Shelf: Docked Toolbar + Stats */}
+      <footer className="h-14 border-t border-[#18181c] px-6 flex items-center justify-between bg-[#0e0e12] shrink-0 select-none z-30">
+        {/* Left: Docked Minimalist Toolbar (4 pages | Inter ⌵ | 48 ⌵ | ···) */}
+        <DockedToolbar
+          pageCount={doc.pageCount}
+          onPageCountChange={(cnt) => {
+            setDoc((prev) => ({ ...prev, pageCount: cnt }));
+            pushHistory({ ...doc, pageCount: cnt }, canvas, typography, spacing, advanced);
+          }}
+          distributionMode={doc.distributionMode}
+          onDistributionModeChange={(m) => {
+            setDoc((prev) => ({ ...prev, distributionMode: m }));
+            pushHistory({ ...doc, distributionMode: m }, canvas, typography, spacing, advanced);
+          }}
+          typography={typography}
+          onTypographyChange={(newTypo) => {
+            setTypography(newTypo);
+            pushHistory(doc, canvas, newTypo, spacing, advanced);
+          }}
+          effectiveFontSize={paginationResult.effectiveFontSize}
+          canvas={canvas}
+          onCanvasChange={(newCanvas) => {
+            setCanvas(newCanvas);
+            pushHistory(doc, newCanvas, typography, spacing, advanced);
+          }}
+          spacing={spacing}
+          onSpacingChange={(newSpacing) => {
+            setSpacing(newSpacing);
+            pushHistory(doc, canvas, typography, newSpacing, advanced);
+          }}
+          advanced={advanced}
+          onAdvancedChange={(newAdv) => {
+            setAdvanced(newAdv);
+            pushHistory(doc, canvas, typography, spacing, newAdv);
+          }}
+          customFonts={customFonts}
+          onCustomFontUpload={async (file) => {
+            const fontName = file.name.replace(/\.[^/.]+$/, '');
+            try {
+              const buffer = await file.arrayBuffer();
+              const fontFace = new FontFace(fontName, buffer);
+              await fontFace.load();
+              document.fonts.add(fontFace);
+              setCustomFonts((prev) => [...prev, fontName]);
+              setTypography((prev) => ({ ...prev, fontFamily: fontName }));
+            } catch (err) {
+              console.error('Failed to load font:', err);
+            }
+          }}
+          layoutLocked={doc.layoutLocked}
+          onToggleLayoutLock={() => setDoc((prev) => ({ ...prev, layoutLocked: !prev.layoutLocked }))}
+          onOpenPresetsModal={() => setShowPresetsModal(true)}
+          onOpenProjectsModal={() => setShowProjectsModal(true)}
+          onOpenShortcutsModal={() => setShowShortcutsModal(true)}
+          onResetAll={handleResetAll}
+        />
+
+        {/* Right: Discreet Doc Info */}
+        <div className="flex items-center gap-3 text-[11px] text-zinc-600 font-mono">
+          <span className="hidden sm:inline">
+            {wordCount} words · {charCount} chars
+          </span>
+          <span className="hidden sm:inline text-zinc-800">·</span>
+          <span>
+            {canvas.width}×{canvas.height}
+          </span>
+        </div>
+      </footer>
 
       {/* Fullscreen Modal */}
       {fullscreenPageIndex !== null && (
         <FullscreenModal
+          key={fullscreenPageIndex}
           isOpen={true}
           onClose={() => setFullscreenPageIndex(null)}
           pages={paginationResult.pages}
           initialPageIndex={fullscreenPageIndex}
           canvas={canvas}
-          typography={typography}
+          typography={effectiveTypography}
           spacing={spacing}
           exportFormat={exportFormat}
           exportScale={exportScale}
           projectName={doc.projectName}
+          allowClippedExport={advanced.allowClippedExport}
+          onBlockedExport={(msg) => setExportWarning(msg)}
         />
       )}
     </div>
   );
+}
+
+export default function Home() {
+  const isMounted = useIsMounted();
+
+  if (!isMounted) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center bg-[#09090b] text-zinc-500 font-mono text-xs select-none">
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 bg-white text-black font-bold flex items-center justify-center rounded-xs text-[10px]">
+            T
+          </div>
+          <span>Loading workspace...</span>
+        </div>
+      </div>
+    );
+  }
+
+  return <Workspace />;
 }

@@ -8,7 +8,7 @@ export function autoFitFontSize(
   options: PaginationOptions
 ): PaginationResult {
   const minFont = Math.max(8, options.advanced.minFontSize || 16);
-  const maxFont = Math.max(minFont, options.advanced.maxFontSize || 64);
+  const maxFont = Math.max(minFont, options.advanced.maxFontSize || 96);
 
   let low = minFont;
   let high = maxFont;

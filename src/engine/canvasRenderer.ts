@@ -61,7 +61,13 @@ export function renderPageToCanvas(
     }
   }
 
+  const verticalAlignment = typography.verticalAlignment ?? spacing.verticalAlignment ?? 'center';
+  const availableHeight = page.availableHeight ?? (canvas.height - paddingTop - spacing.paddingBottom - (spacing.minBottomSpace || 0));
+
   let currentY = paddingTop;
+  if (verticalAlignment === 'center' && page.renderedHeight < availableHeight) {
+    currentY = paddingTop + Math.max(0, (availableHeight - page.renderedHeight) / 2);
+  }
 
   for (let i = 0; i < page.lines.length; i++) {
     const line = page.lines[i];
@@ -77,19 +83,26 @@ export function renderPageToCanvas(
 
     const baselineY = currentY + lineBoxHeight / 2;
 
-    if (alignment === 'justify' && !line.isParagraphEnd) {
-      // Justified rendering
-      const words = lineText.trim().split(/\s+/).filter(Boolean);
+    if (alignment === 'justify' && !line.isParagraphEnd && !line.isHardBreak) {
+      // Justified rendering (only soft-wrapped lines, preserving indentation)
+      const leadingSpaceMatch = lineText.match(/^[\t ]+/);
+      const leadingSpace = leadingSpaceMatch ? leadingSpaceMatch[0] : '';
+      const contentText = lineText.slice(leadingSpace.length);
+      const leadingSpaceWidth = leadingSpace.length > 0
+        ? measureTextWidth(leadingSpace, fontFamily, fontSize, fontWeight, letterSpacing)
+        : 0;
+
+      const words = contentText.trim().split(/\s+/).filter(Boolean);
       if (words.length > 1) {
         const wordWidths = words.map((w) =>
           measureTextWidth(w, fontFamily, fontSize, fontWeight, letterSpacing)
         );
         const totalWordsWidth = wordWidths.reduce((a, b) => a + b, 0);
-        const totalGapSpace = contentWidth - totalWordsWidth;
+        const totalGapSpace = (contentWidth - leadingSpaceWidth) - totalWordsWidth;
         const gapSize = Math.max(0, totalGapSpace / (words.length - 1));
 
         ctx.textAlign = 'left';
-        let wordX = paddingLeft;
+        let wordX = paddingLeft + leadingSpaceWidth;
         for (let wIdx = 0; wIdx < words.length; wIdx++) {
           ctx.fillText(words[wIdx], wordX, baselineY);
           wordX += wordWidths[wIdx] + gapSize;

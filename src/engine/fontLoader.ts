@@ -1,9 +1,12 @@
 // Font Loader Engine: wait for fonts & custom font upload
 
+import { clearMeasurementCache } from './textMeasurement';
+
 export async function waitForFonts(): Promise<void> {
   if (typeof document !== 'undefined' && document.fonts && document.fonts.ready) {
     try {
       await document.fonts.ready;
+      clearMeasurementCache();
     } catch {
       // Ignore
     }
@@ -26,6 +29,7 @@ export async function loadCustomFont(
       await document.fonts.ready;
     }
 
+    clearMeasurementCache();
     return { fontFamily, success: true };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Failed to load custom font';

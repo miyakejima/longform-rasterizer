@@ -1,13 +1,5 @@
 // Text measurement engine supporting both browser Canvas 2D and deterministic headless/test fallback
 
-interface MeasurementCacheKey {
-  text: string;
-  fontFamily: string;
-  fontSize: number;
-  fontWeight: number;
-  letterSpacing: number;
-}
-
 const widthCache = new Map<string, number>();
 const MAX_CACHE_SIZE = 10000;
 
@@ -90,7 +82,7 @@ export function measureTextWidth(
   const ctx = getCanvasContext();
 
   if (ctx) {
-    ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}, system-ui, sans-serif`;
+    ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
     let supportsCanvasLetterSpacing = false;
     if ('letterSpacing' in ctx) {
       try {

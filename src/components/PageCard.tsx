@@ -32,6 +32,8 @@ interface PageCardProps {
   onHover: (isHovering: boolean) => void;
   onClick: () => void;
   onEnlarge: () => void;
+  allowClippedExport?: boolean;
+  onBlockedExport?: (msg: string) => void;
 }
 
 export const PageCard: React.FC<PageCardProps> = ({
@@ -47,6 +49,8 @@ export const PageCard: React.FC<PageCardProps> = ({
   onHover,
   onClick,
   onEnlarge,
+  allowClippedExport = false,
+  onBlockedExport,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [copied, setCopied] = useState(false);
@@ -78,6 +82,10 @@ export const PageCard: React.FC<PageCardProps> = ({
 
   const handleDownload = async (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (page.isOverflowing && !allowClippedExport) {
+      onBlockedExport?.(`Export blocked: Page ${page.pageIndex + 1} contains clipped text.`);
+      return;
+    }
     setIsDownloading(true);
     try {
       await exportSinglePage(page, {
@@ -97,107 +105,74 @@ export const PageCard: React.FC<PageCardProps> = ({
 
   return (
     <div
-      className={`flex flex-col transition-all group ${
-        isHovered ? 'ring-2 ring-zinc-500 rounded-sm' : ''
+      className={`group relative flex flex-col bg-[#000000] border transition-all cursor-pointer select-none rounded-md shadow-2xl shadow-black/80 ${
+        isHovered
+          ? 'border-zinc-400 shadow-zinc-950 ring-1 ring-zinc-500/30'
+          : hasOverflow
+          ? 'border-red-800 shadow-red-950/20'
+          : 'border-[#222226] hover:border-zinc-600'
       }`}
       onMouseEnter={() => onHover(true)}
       onMouseLeave={() => onHover(false)}
       onClick={onClick}
     >
-      {/* Outside Header */}
-      <div className="flex items-center justify-between py-1.5 px-0.5 text-xs select-none">
-        <div className="flex items-center gap-2">
-          <span className="font-semibold text-zinc-300">
-            Page {page.pageIndex + 1}{' '}
-            <span className="text-zinc-500 font-normal">/ {totalPages}</span>
-          </span>
-
-          <span
-            className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
-              hasOverflow
-                ? 'bg-red-950/80 text-red-300 border border-red-800'
-                : 'bg-zinc-850 text-zinc-400 border border-zinc-750'
-            }`}
-            title={`Utilization: ${page.utilization}%`}
-          >
-            {page.utilization}% full
-          </span>
-
-          {hasOverflow && (
-            <span
-              className="flex items-center gap-1 text-[10px] text-red-400 bg-red-950/90 border border-red-800 px-1.5 py-0.5 rounded font-mono"
-              title={`Overflows by ~${Math.round(page.overflowPx)}px`}
-            >
-              <AlertTriangle className="w-2.5 h-2.5" />
-              <span>+{Math.round(page.overflowPx)}px</span>
-            </span>
-          )}
-        </div>
-
-        {/* Quick action buttons */}
-        <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
-          <button
-            type="button"
-            onClick={handleCopyText}
-            className="p-1 rounded text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 transition-colors"
-            title="Copy page text"
-          >
-            {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-          </button>
-
-          <button
-            type="button"
-            onClick={handleDownload}
-            disabled={isDownloading}
-            className="p-1 rounded text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 transition-colors"
-            title="Download this page image"
-          >
-            <Download className="w-3.5 h-3.5" />
-          </button>
-
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onEnlarge();
-            }}
-            className="p-1 rounded text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 transition-colors"
-            title="Click to enlarge"
-          >
-            <Maximize2 className="w-3.5 h-3.5" />
-          </button>
-        </div>
+      {/* Floating hover micro-actions in top-right */}
+      <div className="absolute top-2 right-2 flex items-center gap-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 backdrop-blur-xs p-1 rounded-md border border-[#27272a]">
+        <button
+          type="button"
+          onClick={handleCopyText}
+          className="p-1 text-zinc-400 hover:text-white rounded transition-colors"
+          title="Copy text for this page"
+        >
+          {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+        </button>
+        <button
+          type="button"
+          onClick={handleDownload}
+          disabled={isDownloading}
+          className="p-1 text-zinc-400 hover:text-white rounded transition-colors"
+          title="Download this page image"
+        >
+          <Download className={`w-3.5 h-3.5 ${isDownloading ? 'animate-bounce text-zinc-200' : ''}`} />
+        </button>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onEnlarge();
+          }}
+          className="p-1 text-zinc-400 hover:text-white rounded transition-colors"
+          title="Enlarge preview"
+        >
+          <Maximize2 className="w-3.5 h-3.5" />
+        </button>
       </div>
 
-      {/* Canvas Wrapper */}
+      {/* Overflow Warning Badge */}
+      {hasOverflow && (
+        <div className="absolute top-2 left-2 z-10 flex items-center gap-1 text-[10px] bg-red-950/90 text-red-300 border border-red-800 px-1.5 py-0.5 rounded font-mono">
+          <AlertTriangle className="w-3 h-3" />
+          <span>Overflow ~{Math.round(page.overflowPx)}px</span>
+        </div>
+      )}
+
+      {/* Canvas Container */}
       <div
-        className={`relative rounded overflow-hidden shadow-xl border bg-black transition-all ${
-          hasOverflow
-            ? 'border-red-600/80 ring-1 ring-red-600/50'
-            : 'border-zinc-800 hover:border-zinc-700'
-        }`}
-        style={{
-          aspectRatio: `${canvas.width} / ${canvas.height}`,
-        }}
+        className="w-full relative overflow-hidden flex items-center justify-center p-2"
+        style={{ aspectRatio: `${canvas.width} / ${canvas.height}` }}
       >
         <canvas
           ref={canvasRef}
-          className="w-full h-full block"
-          style={{ imageRendering: 'crisp-edges' }}
+          className="w-full h-full object-contain block pointer-events-none"
         />
+      </div>
 
-        {/* Overflow banner overlay at bottom of canvas if overflowing */}
-        {hasOverflow && (
-          <div className="absolute bottom-0 inset-x-0 bg-red-950/90 backdrop-blur-xs border-t border-red-800 px-3 py-1.5 flex items-center justify-between text-[11px] text-red-200">
-            <span className="flex items-center gap-1">
-              <AlertTriangle className="w-3 h-3 text-red-400" />
-              Page overflows by ~{Math.round(page.overflowPx)}px
-            </span>
-            <span className="text-[10px] text-red-300 underline cursor-pointer">
-              Enable Auto-fit or add page
-            </span>
-          </div>
-        )}
+      {/* Discrete Centered Page Number */}
+      <div
+        className="text-center py-2 text-zinc-500 font-mono text-xs select-none"
+        title={`Page ${page.pageIndex + 1} of ${totalPages}`}
+      >
+        {page.pageIndex + 1}
       </div>
     </div>
   );

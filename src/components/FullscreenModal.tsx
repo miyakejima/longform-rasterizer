@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   X,
   ChevronLeft,
@@ -33,6 +34,8 @@ interface FullscreenModalProps {
   exportFormat: ExportFormat;
   exportScale: ExportScale;
   projectName: string;
+  allowClippedExport?: boolean;
+  onBlockedExport?: (msg: string) => void;
 }
 
 export const FullscreenModal: React.FC<FullscreenModalProps> = ({
@@ -46,15 +49,18 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
   exportFormat,
   exportScale,
   projectName,
+  allowClippedExport = false,
+  onBlockedExport,
 }) => {
   const [currentPageIndex, setCurrentPageIndex] = useState(initialPageIndex);
+  const [prevInitialPageIndex, setPrevInitialPageIndex] = useState(initialPageIndex);
+  if (initialPageIndex !== prevInitialPageIndex) {
+    setPrevInitialPageIndex(initialPageIndex);
+    setCurrentPageIndex(initialPageIndex);
+  }
   const [copied, setCopied] = useState(false);
   const [zoomLevel, setZoomLevel] = useState<'fit' | '100%'>('fit');
   const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    setCurrentPageIndex(initialPageIndex);
-  }, [initialPageIndex]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -73,6 +79,15 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, pages.length, onClose]);
 
+  useEffect(() => {
+    if (!isOpen || typeof document === 'undefined') return;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isOpen]);
+
   const activePage = pages[currentPageIndex] || pages[0];
 
   useEffect(() => {
@@ -87,7 +102,7 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
     }
   }, [isOpen, activePage, canvas, typography, spacing]);
 
-  if (!isOpen || !activePage) return null;
+  if (!isOpen || !activePage || typeof document === 'undefined') return null;
 
   const handleCopyText = async () => {
     try {
@@ -100,6 +115,10 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
   };
 
   const handleDownloadCurrent = async () => {
+    if (activePage.isOverflowing && !allowClippedExport) {
+      onBlockedExport?.(`Export blocked: Page ${activePage.pageIndex + 1} contains clipped text.`);
+      return;
+    }
     await exportSinglePage(activePage, {
       canvas,
       typography,
@@ -110,18 +129,18 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
     });
   };
 
-  return (
-    <div className="fixed inset-0 z-50 bg-zinc-950/95 backdrop-blur-md flex flex-col select-none">
+  return createPortal(
+    <div className="fixed inset-0 z-50 bg-[#08080a]/98 backdrop-blur-md flex flex-col select-none">
       {/* Top bar */}
-      <div className="h-14 px-6 border-b border-zinc-800/80 flex items-center justify-between text-zinc-300">
+      <div className="h-12 px-6 border-b border-[#1f1f23] bg-[#0c0c0e] flex items-center justify-between text-zinc-300">
         <div className="flex items-center gap-3">
-          <span className="font-semibold text-sm text-white">
-            Page {currentPageIndex + 1} of {pages.length}
+          <span className="font-semibold text-sm text-white font-mono">
+            Page {String(currentPageIndex + 1).padStart(2, '0')} / {String(pages.length).padStart(2, '0')}
           </span>
           <span className="text-xs text-zinc-500 font-mono">
             {canvas.width} × {canvas.height} px
           </span>
-          <span className="text-xs bg-zinc-900 border border-zinc-800 text-zinc-400 px-2 py-0.5 rounded font-mono">
+          <span className="text-xs bg-[#141417] border border-[#27272a] text-zinc-400 px-2 py-0.5 rounded font-mono">
             Util: {activePage.utilization}%
           </span>
         </div>
@@ -131,7 +150,7 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
           <button
             type="button"
             onClick={() => setZoomLevel((prev) => (prev === 'fit' ? '100%' : 'fit'))}
-            className="flex items-center gap-1 text-xs bg-zinc-900 border border-zinc-800 hover:border-zinc-700 px-2.5 py-1.5 rounded transition-colors text-zinc-300"
+            className="flex items-center gap-1 text-xs bg-[#141417] border border-[#27272a] hover:border-zinc-600 px-2.5 py-1.5 rounded-lg transition-colors text-zinc-300"
           >
             {zoomLevel === 'fit' ? <ZoomIn className="w-3.5 h-3.5" /> : <ZoomOut className="w-3.5 h-3.5" />}
             <span>{zoomLevel === 'fit' ? 'Fit View' : '100%'}</span>
@@ -141,7 +160,7 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
           <button
             type="button"
             onClick={handleCopyText}
-            className="flex items-center gap-1 text-xs bg-zinc-900 border border-zinc-800 hover:border-zinc-700 px-2.5 py-1.5 rounded transition-colors text-zinc-300"
+            className="flex items-center gap-1 text-xs bg-[#141417] border border-[#27272a] hover:border-zinc-600 px-2.5 py-1.5 rounded-lg transition-colors text-zinc-300"
           >
             {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
             <span>{copied ? 'Copied' : 'Copy Text'}</span>
@@ -151,7 +170,7 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
           <button
             type="button"
             onClick={handleDownloadCurrent}
-            className="flex items-center gap-1 text-xs bg-white text-black font-medium hover:bg-zinc-200 px-3 py-1.5 rounded transition-colors"
+            className="flex items-center gap-1 text-xs bg-white text-black font-semibold hover:bg-zinc-200 px-3 py-1.5 rounded-lg transition-colors"
           >
             <Download className="w-3.5 h-3.5" />
             <span>Download</span>
@@ -161,7 +180,7 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 text-zinc-400 hover:text-white rounded bg-zinc-900 border border-zinc-800 hover:border-zinc-700 ml-2 transition-colors"
+            className="p-1.5 text-zinc-400 hover:text-white rounded-lg bg-[#141417] border border-[#27272a] hover:border-zinc-600 ml-2 transition-colors"
             title="Close (Esc)"
           >
             <X className="w-4 h-4" />
@@ -232,6 +251,7 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
           ))}
         </div>
       )}
-    </div>
+    </div>,
+    document.body
   );
 };

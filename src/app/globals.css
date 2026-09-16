@@ -1,10 +1,10 @@
 @import "tailwindcss";
 
 :root {
-  --background: #111113;
+  --background: #09090b;
   --foreground: #ededed;
-  --panel-bg: #18181b;
-  --panel-border: #27272a;
+  --panel-bg: #0c0c0e;
+  --panel-border: #1f1f23;
 }
 
 body {
@@ -14,18 +14,34 @@ body {
   overflow-x: hidden;
 }
 
-/* Sleek minimalist scrollbars */
+/* Modern cross-browser sleek scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #222228 transparent;
+}
+
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #3f3f46;
+  background: #222228;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #52525b;
+  background: #33333a;
+}
+
+/* Completely hidden scrollbar for distraction-free editorial writing */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

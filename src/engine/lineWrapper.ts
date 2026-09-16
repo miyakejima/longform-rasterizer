@@ -1,7 +1,7 @@
 // Line wrapping engine with exact character slice tracking and boundary detection
 
 import { WrappedLine, TypographySettings } from '../types';
-import { ParsedParagraph, parseDocumentParagraphs, isSentenceBoundary } from './documentParser';
+import { ParsedParagraph, parseDocumentParagraphs } from './documentParser';
 import { measureTextWidth } from './textMeasurement';
 
 export interface WrapOptions {
@@ -35,7 +35,14 @@ export function wrapParagraph(
     ];
   }
 
-  const rawLines: { text: string; rawText: string; width: number; startIndex: number; endIndex: number }[] = [];
+  const rawLines: {
+    text: string;
+    rawText: string;
+    width: number;
+    startIndex: number;
+    endIndex: number;
+    isHardBreak: boolean;
+  }[] = [];
 
   // Split content by explicit single newlines first
   const explicitLinesRegex = /([^\r\n]*)(\r?\n|$)/g;
@@ -61,10 +68,16 @@ export function wrapParagraph(
         width: 0,
         startIndex: chunkStart,
         endIndex: chunkEnd,
+        isHardBreak: newline.length > 0,
       });
       if (match.index + match[0].length >= para.content.length) break;
       continue;
     }
+
+    // Detect leading whitespace to preserve indentation exactly
+    const leadingWhitespaceMatch = lineText.match(/^[\t ]+/);
+    const leadingWhitespace = leadingWhitespaceMatch ? leadingWhitespaceMatch[0] : '';
+    const trimmedLineStart = lineText.slice(leadingWhitespace.length);
 
     // Tokenize into words and following whitespace
     // Matches non-space characters followed by optional spaces/tabs
@@ -72,14 +85,21 @@ export function wrapParagraph(
     let tokenMatch: RegExpExecArray | null;
     const tokens: { word: string; space: string; raw: string; start: number; end: number }[] = [];
 
-    while ((tokenMatch = tokenRegex.exec(lineText)) !== null) {
+    while ((tokenMatch = tokenRegex.exec(trimmedLineStart)) !== null) {
       tokens.push({
         word: tokenMatch[1],
         space: tokenMatch[2],
         raw: tokenMatch[0],
-        start: chunkStart + tokenMatch.index,
-        end: chunkStart + tokenMatch.index + tokenMatch[0].length,
+        start: chunkStart + leadingWhitespace.length + tokenMatch.index,
+        end: chunkStart + leadingWhitespace.length + tokenMatch.index + tokenMatch[0].length,
       });
+    }
+
+    // Attach leading whitespace to the first token if present
+    if (tokens.length > 0 && leadingWhitespace.length > 0) {
+      tokens[0].word = leadingWhitespace + tokens[0].word;
+      tokens[0].raw = leadingWhitespace + tokens[0].raw;
+      tokens[0].start = chunkStart;
     }
 
     if (tokens.length === 0) {
@@ -89,6 +109,7 @@ export function wrapParagraph(
         width: measureTextWidth(lineText, fontFamily, fontSize, fontWeight, letterSpacing),
         startIndex: chunkStart,
         endIndex: chunkEnd,
+        isHardBreak: newline.length > 0,
       });
       if (match.index + match[0].length >= para.content.length) break;
       continue;
@@ -121,6 +142,7 @@ export function wrapParagraph(
           width: subW,
           startIndex: tokens[lineStartTokenIdx].start,
           endIndex: tokens[lineStartTokenIdx].start + charBreakIdx,
+          isHardBreak: false,
         });
 
         // Update token start for remaining part
@@ -165,6 +187,7 @@ export function wrapParagraph(
         width: currentLineWidth,
         startIndex: startIdx,
         endIndex: endIdx,
+        isHardBreak: isLastChunkOfLine && newline.length > 0,
       });
 
       lineStartTokenIdx = lineEndTokenIdx + 1;
@@ -178,15 +201,14 @@ export function wrapParagraph(
     const lastLine = rawLines[rawLines.length - 1];
     lastLine.rawText += para.trailingNewlines;
     lastLine.endIndex = para.endIndex;
+    lastLine.isHardBreak = true;
   }
 
   // Construct final WrappedLine list with paragraph and sentence metadata
   const total = rawLines.length;
   return rawLines.map((line, idx) => {
     const trimmed = line.text.trimEnd();
-    const lastChar = trimmed.slice(-1);
-    const isPunct = /[.?!…]/.test(lastChar) || 
-      (trimmed.length >= 2 && /["'”’]/.test(lastChar) && /[.?!…]/.test(trimmed.slice(-2, -1)));
+    const isPunct = /[.?!…][)\]}"'”’]*$/.test(trimmed);
 
     return {
       text: line.text,
@@ -197,6 +219,7 @@ export function wrapParagraph(
       isParagraphStart: idx === 0,
       isParagraphEnd: idx === total - 1,
       isSentenceEnd: isPunct || idx === total - 1,
+      isHardBreak: line.isHardBreak || idx === total - 1,
       paragraphIndex: para.index,
       lineInParagraph: idx,
       totalLinesInParagraph: total,

@@ -9,6 +9,8 @@ export type PreviewMode = 'grid' | 'single' | 'carousel';
 export type MarginPreset = 'compact' | 'balanced' | 'generous' | 'custom';
 export type CanvasPreset = 'twitter' | 'square' | 'portrait' | 'story' | 'landscape' | 'custom';
 
+export type VerticalAlignment = 'top' | 'center';
+
 export interface CanvasSettings {
   width: number;
   height: number;
@@ -25,6 +27,7 @@ export interface TypographySettings {
   letterSpacing: number; // in px, e.g. -2 to 5
   textColor: string;     // Hex string e.g. '#FFFFFF'
   alignment: TextAlignment;
+  verticalAlignment?: VerticalAlignment;
 }
 
 export interface SpacingSettings {
@@ -35,7 +38,8 @@ export interface SpacingSettings {
   linked: boolean;
   preset: MarginPreset;
   paragraphSpacing: number; // in px
-  minBottomSpace: number;   // in px, e.g. 48, 72, 96
+  minBottomSpace: number;   // in px, e.g. 0, 48, 72, 96
+  verticalAlignment?: VerticalAlignment;
 }
 
 export interface AdvancedSettings {
@@ -76,6 +80,7 @@ export interface WrappedLine {
   isParagraphStart: boolean;
   isParagraphEnd: boolean;
   isSentenceEnd: boolean;
+  isHardBreak?: boolean;  // True if line was ended by explicit newline or paragraph break
   paragraphIndex: number;
   lineInParagraph: number;
   totalLinesInParagraph: number;
@@ -102,3 +107,18 @@ export interface PaginationResult {
   autoFitWarning?: string;
   overallScore: number;
 }
+
+export interface SavedProject {
+  id: string;
+  name: string;
+  updatedAt: number;
+  document: DocumentState;
+  canvas: CanvasSettings;
+  typography: TypographySettings;
+  spacing: SpacingSettings;
+  advanced: AdvancedSettings;
+  exportScale: ExportScale;
+  exportFormat: ExportFormat;
+  selectedPresetId: string;
+}
+

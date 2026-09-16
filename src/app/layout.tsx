@@ -9,8 +9,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'TypePost — Typographic Image Studio',
-  description: 'Deterministic text-to-image studio for high-readability posts on X, Threads, and Instagram.',
+  title: 'Longform Rasterizer',
+  description: 'Deterministic long-form text rasterizer and multi-page typographic image studio.',
 };
 
 export default function RootLayout({
@@ -23,12 +23,13 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
         <link
           href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Open+Sans:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&family=Source+Sans+3:wght@300;400;600;700&display=swap"
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-full flex flex-col bg-[#111113] text-[#ededed] antialiased selection:bg-zinc-700 selection:text-white">
+      <body className="min-h-full flex flex-col bg-[#09090b] text-[#ededed] antialiased selection:bg-zinc-700 selection:text-white">
         {children}
       </body>
     </html>

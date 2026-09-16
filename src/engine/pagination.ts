@@ -1,5 +1,3 @@
-// Optimal Pagination Engine using Dynamic Programming
-
 import {
   CanvasSettings,
   DocumentState,
@@ -12,6 +10,7 @@ import {
 } from '../types';
 import { wrapDocument } from './lineWrapper';
 import { computeBalanceScore, VisualBalanceOptions } from './visualBalance';
+import { parseDocumentSentences } from './documentParser';
 
 export interface PaginationOptions {
   canvas: CanvasSettings;
@@ -139,6 +138,14 @@ export function paginateDocument(
       });
     }
 
+    if (pages.length > 0) {
+      const last = pages[pages.length - 1];
+      if (last.endIndex < originalText.length) {
+        last.endIndex = originalText.length;
+        last.text = originalText.slice(last.startIndex, originalText.length);
+      }
+    }
+
     return {
       pages,
       totalAvailableHeight: availableHeight * pages.length,
@@ -211,6 +218,14 @@ export function paginateDocument(
         });
       }
     }
+
+    if (pages.length > 0) {
+      const last = pages[pages.length - 1];
+      if (last.endIndex < originalText.length) {
+        last.endIndex = originalText.length;
+        last.text = originalText.slice(last.startIndex, originalText.length);
+      }
+    }
     return {
       pages,
       totalAvailableHeight: availableHeight * pageCount,
@@ -223,13 +238,16 @@ export function paginateDocument(
   // BALANCED & PARAGRAPH-PRESERVING: Dynamic Programming
   const totalDocHeight = computePageRenderedHeight(allLines, lineHeightPx, spacing.paragraphSpacing);
 
-  let targetHeight = totalDocHeight / pageCount;
-  if (advanced.densityTarget === 'airy') {
-    targetHeight = Math.min(targetHeight, availableHeight * 0.72);
-  } else if (advanced.densityTarget === 'dense') {
-    targetHeight = Math.min(targetHeight, availableHeight * 0.95);
-  } else {
-    targetHeight = Math.min(targetHeight, availableHeight * 0.84);
+  const avgHeight = totalDocHeight / pageCount;
+  let targetHeight = avgHeight;
+  if (avgHeight < availableHeight) {
+    if (advanced.densityTarget === 'airy') {
+      targetHeight = Math.min(avgHeight, availableHeight * 0.72);
+    } else if (advanced.densityTarget === 'dense') {
+      targetHeight = Math.max(avgHeight, Math.min(availableHeight * 0.95, totalDocHeight));
+    } else {
+      targetHeight = avgHeight;
+    }
   }
 
   const balanceOpts: VisualBalanceOptions = {
@@ -240,6 +258,110 @@ export function paginateDocument(
     preventOrphanLines: advanced.preventOrphanLines,
     mode: doc.distributionMode === 'paragraph-preserving' ? 'paragraph-preserving' : 'balanced',
   };
+
+  // SENTENCE-LEVEL PARTITIONING:
+  // Whenever there are enough sentences to distribute across requested pages,
+  // partition strictly at sentence or paragraph boundaries so no sentence is cut in half across pages!
+  const sentenceChunks = parseDocumentSentences(originalText);
+  if (sentenceChunks.length >= pageCount) {
+    const S = sentenceChunks.length;
+    const dpS: number[][] = Array.from({ length: pageCount + 1 }, () => new Array(S + 1).fill(Infinity));
+    const parentS: number[][] = Array.from({ length: pageCount + 1 }, () => new Array(S + 1).fill(0));
+    dpS[0][0] = 0;
+
+    const chunkSpanCache = new Map<number, number>();
+    function getChunkSpanHeight(k: number, j: number): number {
+      const key = k * 10000 + j;
+      const cached = chunkSpanCache.get(key);
+      if (cached !== undefined) return cached;
+      const startChar = sentenceChunks[k].startIndex;
+      const endChar = sentenceChunks[j - 1].endIndex;
+      const spanText = originalText.slice(startChar, endChar);
+      const spanLines = wrapDocument(spanText, { availableWidth, typography });
+      const h = computePageRenderedHeight(spanLines, lineHeightPx, spacing.paragraphSpacing);
+      chunkSpanCache.set(key, h);
+      return h;
+    }
+
+    for (let p = 1; p <= pageCount; p++) {
+      for (let j = p; j <= S; j++) {
+        const lastChunk = sentenceChunks[j - 1];
+        const isParaEnd = lastChunk.isParagraphEnd;
+        const minK = p - 1;
+        const maxK = j - 1;
+
+        for (let k = minK; k <= maxK; k++) {
+          if (dpS[p - 1][k] === Infinity) continue;
+          const spanH = getChunkSpanHeight(k, j);
+          const cost = computeBalanceScore(spanH, balanceOpts, isParaEnd, true, false, false);
+          const total = dpS[p - 1][k] + cost;
+          if (total < dpS[p][j]) {
+            dpS[p][j] = total;
+            parentS[p][j] = k;
+          }
+        }
+      }
+    }
+
+    if (dpS[pageCount][S] < 50_000_000) {
+      const splitChunks: number[] = new Array(pageCount + 1);
+      splitChunks[pageCount] = S;
+      let curr = S;
+      for (let p = pageCount; p >= 1; p--) {
+        curr = parentS[p][curr];
+        splitChunks[p - 1] = curr;
+      }
+
+      if (splitChunks[0] === 0 && splitChunks[pageCount] === S) {
+        const pages: PageData[] = [];
+        let prevEnd = 0;
+        for (let p = 0; p < pageCount; p++) {
+          const endC = splitChunks[p + 1];
+          const startChar = prevEnd;
+          const endChar = endC === S ? originalText.length : sentenceChunks[endC - 1].endIndex;
+          const pageText = originalText.slice(startChar, endChar);
+          prevEnd = endChar;
+
+          const pageLines = wrapDocument(pageText, { availableWidth, typography }).map((l) => ({
+            ...l,
+            startIndex: l.startIndex + startChar,
+            endIndex: l.endIndex + startChar,
+          }));
+          const renderedH = computePageRenderedHeight(pageLines, lineHeightPx, spacing.paragraphSpacing);
+          const overflow = Math.max(0, renderedH - availableHeight);
+
+          pages.push({
+            pageIndex: p,
+            text: pageText,
+            startIndex: startChar,
+            endIndex: endChar,
+            lines: pageLines,
+            renderedHeight: renderedH,
+            availableHeight,
+            utilization: Math.min(100, Math.round((renderedH / availableHeight) * 100)),
+            overflowPx: overflow,
+            isOverflowing: overflow > 0,
+          });
+        }
+
+        if (pages.length > 0) {
+          const lastPage = pages[pages.length - 1];
+          if (lastPage.endIndex < originalText.length) {
+            lastPage.endIndex = originalText.length;
+            lastPage.text = originalText.slice(lastPage.startIndex, originalText.length);
+          }
+        }
+
+        return {
+          pages,
+          totalAvailableHeight: availableHeight * pageCount,
+          effectiveFontSize: typography.fontSize,
+          isAutoFitFailed: false,
+          overallScore: dpS[pageCount][S],
+        };
+      }
+    }
+  }
 
   // Precompute heights for lines i..j-1
   // To keep memory small, compute on the fly or with prefix sums
@@ -271,8 +393,8 @@ export function paginateDocument(
       const lastLine = allLines[j - 1];
       const isParaEnd = lastLine.isParagraphEnd;
       const isSentenceEnd = lastLine.isSentenceEnd;
+      // An orphan at the bottom of the page occurs if the page ends on line 0 of a multi-line paragraph
       const isOrphan = lastLine.lineInParagraph === 0 && lastLine.totalLinesInParagraph > 1;
-      const isWidow = j < M && allLines[j].lineInParagraph === allLines[j].totalLinesInParagraph - 1 && allLines[j].totalLinesInParagraph > 1;
 
       // Search previous boundary k
       const minK = p - 1;
@@ -280,6 +402,10 @@ export function paginateDocument(
 
       for (let k = minK; k <= maxK; k++) {
         if (dp[p - 1][k] === Infinity) continue;
+
+        // A widow at the top of page p occurs if page p starts on the lonely last line of a multi-line paragraph
+        const firstLine = allLines[k];
+        const isWidow = firstLine.lineInParagraph === firstLine.totalLinesInParagraph - 1 && firstLine.totalLinesInParagraph > 1;
 
         const spanH = getSpanHeight(k, j);
         const cost = computeBalanceScore(spanH, balanceOpts, isParaEnd, isSentenceEnd, isOrphan, isWidow);

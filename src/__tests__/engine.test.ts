@@ -6,12 +6,11 @@ import {
   TypographySettings,
   AdvancedSettings,
 } from '../types';
-import { paginateDocument, PaginationOptions } from '../engine/pagination';
+import { paginateDocument, PaginationOptions, computePageAvailableHeight } from '../engine/pagination';
 import { autoFitFontSize } from '../engine/autoFit';
-import { parseDocumentParagraphs } from '../engine/documentParser';
-import { wrapDocument } from '../engine/lineWrapper';
 import { measureTextWidth } from '../engine/textMeasurement';
 import { sanitizeFileName } from '../engine/exportEngine';
+import { renderPageToCanvas } from '../engine/canvasRenderer';
 
 const defaultCanvas: CanvasSettings = {
   width: 1080,
@@ -517,5 +516,199 @@ describe('Typography Pagination and Layout Engine', () => {
   it('measures text with custom font family name', () => {
     const width = measureTextWidth('Custom font text sample', 'MyCustomFont', 32, 400, 1);
     expect(width).toBeGreaterThan(0);
+  });
+
+  // Test 26: Vertical alignment 'top' vs 'center' in canvas rendering
+  it('correctly shifts text downwards when verticalAlignment is center', () => {
+    const doc: DocumentState = {
+      text: 'Short line of text.',
+      projectName: 'valign-test',
+      pageCount: 1,
+      distributionMode: 'balanced',
+      manualBreaks: [],
+      layoutLocked: false,
+    };
+
+    const options = createOptions();
+    const pagination = paginateDocument(doc, options);
+    const page = pagination.pages[0];
+
+    const topCalls: { text: string; x: number; y: number }[] = [];
+    const centerCalls: { text: string; x: number; y: number }[] = [];
+
+    const createMockCanvas = (calls: { text: string; x: number; y: number }[]) =>
+      ({
+        getContext: () => ({
+          save: () => {},
+          restore: () => {},
+          scale: () => {},
+          clearRect: () => {},
+          fillRect: () => {},
+          fillText: (text: string, x: number, y: number) => {
+            calls.push({ text, x, y });
+          },
+        }),
+        width: 0,
+        height: 0,
+      } as unknown as HTMLCanvasElement);
+
+    // Render with top alignment
+    renderPageToCanvas(createMockCanvas(topCalls), {
+      page,
+      canvas: options.canvas,
+      typography: { ...options.typography, verticalAlignment: 'top' },
+      spacing: options.spacing,
+    });
+
+    // Render with center alignment
+    renderPageToCanvas(createMockCanvas(centerCalls), {
+      page,
+      canvas: options.canvas,
+      typography: { ...options.typography, verticalAlignment: 'center' },
+      spacing: options.spacing,
+    });
+
+    expect(topCalls.length).toBe(1);
+    expect(centerCalls.length).toBe(1);
+
+    const expectedOffset = Math.max(0, (page.availableHeight - page.renderedHeight) / 2);
+    expect(expectedOffset).toBeGreaterThan(0);
+    expect(centerCalls[0].y - topCalls[0].y).toBeCloseTo(expectedOffset, 1);
+  });
+
+  // Test 27: minBottomSpace = 0 allows exact equal top and bottom margins when centered
+  it('achieves exactly equal top and bottom visual margins when centered with minBottomSpace = 0', () => {
+    const doc: DocumentState = {
+      text: 'Solo una pequeña estrofa.',
+      projectName: 'equal-margin-test',
+      pageCount: 1,
+      distributionMode: 'balanced',
+      manualBreaks: [],
+      layoutLocked: false,
+    };
+
+    const options = createOptions({
+      canvas: { width: 1080, height: 1000 },
+      spacing: {
+        paddingTop: 100,
+        paddingBottom: 100,
+        paddingLeft: 100,
+        paddingRight: 100,
+        minBottomSpace: 0,
+      },
+      typography: { verticalAlignment: 'center' },
+    });
+
+    const pagination = paginateDocument(doc, options);
+    const page = pagination.pages[0];
+
+    // availableHeight should be 1000 - 100 - 100 - 0 = 800
+    expect(page.availableHeight).toBe(800);
+
+    const centerCalls: { text: string; x: number; y: number }[] = [];
+    const mockCanvas = {
+      getContext: () => ({
+        save: () => {},
+        restore: () => {},
+        scale: () => {},
+        clearRect: () => {},
+        fillRect: () => {},
+        fillText: (text: string, x: number, y: number) => {
+          centerCalls.push({ text, x, y });
+        },
+      }),
+      width: 0,
+      height: 0,
+    } as unknown as HTMLCanvasElement;
+
+    renderPageToCanvas(mockCanvas, {
+      page,
+      canvas: options.canvas,
+      typography: options.typography,
+      spacing: options.spacing,
+    });
+
+    const expectedY = 100 + (800 - page.renderedHeight) / 2;
+    const lineBoxHeight = options.typography.fontSize * options.typography.lineHeight;
+    expect(centerCalls[0].y).toBeCloseTo(expectedY + lineBoxHeight / 2, 1);
+
+    // Top margin space
+    const topMargin = expectedY;
+    // Bottom margin space = canvas height - (topMargin + renderedHeight)
+    const bottomMargin = options.canvas.height - (expectedY + page.renderedHeight);
+    expect(topMargin).toBeCloseTo(bottomMargin, 1);
+  });
+
+  // Test 28: computePageAvailableHeight with minBottomSpace = 0
+  it('correctly calculates computePageAvailableHeight when minBottomSpace is 0', () => {
+    const canvas: CanvasSettings = { ...defaultCanvas, height: 1200 };
+    const spacing: SpacingSettings = {
+      ...defaultSpacing,
+      paddingTop: 80,
+      paddingBottom: 80,
+      minBottomSpace: 0,
+    };
+
+    const avail = computePageAvailableHeight(canvas, spacing);
+    expect(avail).toBe(1200 - 80 - 80);
+  });
+
+  // Test 29: Multi-paragraph vertical centering margin equality
+  it('achieves equal top and bottom margins for multi-paragraph text with verticalAlignment = center and minBottomSpace = 0', () => {
+    const doc: DocumentState = {
+      text: 'Primer párrafo de prueba.\n\nSegundo párrafo de prueba un poco más largo para validar la distribución vertical.',
+      projectName: 'multi-para-center-test',
+      pageCount: 1,
+      distributionMode: 'balanced',
+      manualBreaks: [],
+      layoutLocked: false,
+    };
+
+    const options = createOptions({
+      canvas: { width: 1080, height: 1350 },
+      spacing: {
+        paddingTop: 120,
+        paddingBottom: 120,
+        paddingLeft: 80,
+        paddingRight: 80,
+        minBottomSpace: 0,
+        paragraphSpacing: 40,
+      },
+      typography: { fontSize: 32, lineHeight: 1.5, verticalAlignment: 'center' },
+    });
+
+    const pagination = paginateDocument(doc, options);
+    const page = pagination.pages[0];
+
+    const centerCalls: { text: string; x: number; y: number }[] = [];
+    const mockCanvas = {
+      getContext: () => ({
+        save: () => {},
+        restore: () => {},
+        scale: () => {},
+        clearRect: () => {},
+        fillRect: () => {},
+        fillText: (text: string, x: number, y: number) => {
+          centerCalls.push({ text, x, y });
+        },
+      }),
+      width: 0,
+      height: 0,
+    } as unknown as HTMLCanvasElement;
+
+    renderPageToCanvas(mockCanvas, {
+      page,
+      canvas: options.canvas,
+      typography: options.typography,
+      spacing: options.spacing,
+    });
+
+    const expectedY = 120 + (page.availableHeight - page.renderedHeight) / 2;
+    const lineBoxHeight = options.typography.fontSize * options.typography.lineHeight;
+    expect(centerCalls[0].y).toBeCloseTo(expectedY + lineBoxHeight / 2, 1);
+
+    const topMargin = expectedY;
+    const bottomMargin = options.canvas.height - (expectedY + page.renderedHeight);
+    expect(topMargin).toBeCloseTo(bottomMargin, 1);
   });
 });

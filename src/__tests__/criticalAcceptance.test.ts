@@ -1,5 +1,4 @@
 import { describe, it, expect } from 'vitest';
-import { paginateDocument } from '../engine/pagination';
 import { autoFitFontSize } from '../engine/autoFit';
 import {
   DEFAULT_CANVAS,

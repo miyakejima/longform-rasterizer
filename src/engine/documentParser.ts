@@ -72,3 +72,76 @@ export function isSentenceBoundary(text: string, pos: number): boolean {
   // Next char must be whitespace or end
   return /\s/.test(charAt);
 }
+
+export interface SentenceChunk {
+  text: string;
+  startIndex: number;
+  endIndex: number;
+  isParagraphEnd: boolean;
+}
+
+export function parseDocumentSentences(text: string): SentenceChunk[] {
+  if (text.length === 0) return [];
+
+  const paragraphs = parseDocumentParagraphs(text);
+  const chunks: SentenceChunk[] = [];
+
+  for (let pIdx = 0; pIdx < paragraphs.length; pIdx++) {
+    const para = paragraphs[pIdx];
+    const content = para.content;
+    const baseOffset = para.startIndex;
+
+    // Sentence regex: sentence punctuation [.?!…] followed by optional quotes/brackets/parentheses, followed by whitespace or end
+    const sentenceRegex = /([.?!…][)\]}"'”’]*)(\s+|$)/g;
+    let lastSentEnd = 0;
+    let match: RegExpExecArray | null;
+
+    const sentenceSlices: { start: number; end: number }[] = [];
+
+    while ((match = sentenceRegex.exec(content)) !== null) {
+      const matchEnd = match.index + match[0].length;
+      if (matchEnd > lastSentEnd) {
+        sentenceSlices.push({
+          start: lastSentEnd,
+          end: matchEnd,
+        });
+        lastSentEnd = matchEnd;
+      }
+    }
+
+    if (lastSentEnd < content.length) {
+      sentenceSlices.push({
+        start: lastSentEnd,
+        end: content.length,
+      });
+    }
+
+    if (sentenceSlices.length === 0) {
+      chunks.push({
+        text: para.rawText,
+        startIndex: para.startIndex,
+        endIndex: para.endIndex,
+        isParagraphEnd: true,
+      });
+      continue;
+    }
+
+    for (let sIdx = 0; sIdx < sentenceSlices.length; sIdx++) {
+      const isLastInPara = sIdx === sentenceSlices.length - 1;
+      const s = sentenceSlices[sIdx];
+      const start = baseOffset + s.start;
+      const end = isLastInPara ? para.endIndex : baseOffset + s.end;
+      const chunkText = text.slice(start, end);
+
+      chunks.push({
+        text: chunkText,
+        startIndex: start,
+        endIndex: end,
+        isParagraphEnd: isLastInPara,
+      });
+    }
+  }
+
+  return chunks;
+}
+
