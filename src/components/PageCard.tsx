@@ -120,7 +120,7 @@ export const PageCard: React.FC<PageCardProps> = ({
       }}
     >
       {/* Floating hover micro-actions in top-right */}
-      <div className="absolute top-2 right-2 flex items-center gap-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity bg-[#0e0e12]/90 backdrop-blur-xs p-1 rounded-[6px] border border-[#1b1b22]">
+      <div className="absolute top-2 right-2 flex items-center gap-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity bg-[#0c0c0e]/90 backdrop-blur-xs p-1 rounded-[6px] border border-[#1b1b22]">
         <button
           type="button"
           onClick={handleCopyText}

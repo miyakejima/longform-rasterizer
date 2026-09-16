@@ -122,7 +122,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
           type="button"
           onClick={() => setShowExportMenu((prev) => !prev)}
           disabled={isExporting}
-          className={`h-7 px-3 rounded-[6px] bg-[#0e0e12] hover:bg-[#16161c] border border-[#1b1b22] hover:border-[#2e2e3a] text-xs font-medium text-zinc-300 hover:text-white transition-all shadow-xs flex items-center gap-1.5 ${
+          className={`h-7 px-3 rounded-[6px] bg-[#0c0c0e] hover:bg-[#16161c] border border-[#1b1b22] hover:border-[#2e2e3a] text-xs font-medium text-zinc-300 hover:text-white transition-all shadow-xs flex items-center gap-1.5 ${
             showExportMenu ? 'bg-[#16161c] border-[#2e2e3a] text-white' : ''
           }`}
         >
@@ -132,7 +132,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
 
         {/* Export Options Dropdown */}
         {showExportMenu && (
-          <div className="absolute right-0 top-full mt-2 w-64 bg-[#0e0e12] border border-[#1b1b22] rounded-xl shadow-2xl shadow-black p-3 text-zinc-200 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+          <div className="absolute right-0 top-full mt-2 w-64 bg-[#0c0c0e] border border-[#1b1b22] rounded-xl shadow-2xl shadow-black p-3 text-zinc-200 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
             <span className="text-[10px] font-semibold text-zinc-500 uppercase font-mono tracking-wider block mb-2">
               Export Options
             </span>
@@ -232,7 +232,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
             if (e.target === e.currentTarget) closePresets();
           }}
         >
-          <div className="bg-[#0e0e12] border border-[#1b1b22] text-white rounded-xl max-w-md w-full p-5 shadow-2xl space-y-4 my-auto max-h-[90vh] flex flex-col">
+          <div className="bg-[#0c0c0e] border border-[#1b1b22] text-white rounded-xl max-w-md w-full p-5 shadow-2xl space-y-4 my-auto max-h-[90vh] flex flex-col">
             <div className="flex items-center justify-between border-b border-[#18181f] pb-3">
               <h3 className="text-sm font-medium text-zinc-100 flex items-center gap-2">
                 <Bookmark className="w-4 h-4 text-zinc-400" />
@@ -391,7 +391,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
             if (e.target === e.currentTarget) closeShortcuts();
           }}
         >
-          <div className="bg-[#0e0e12] border border-[#1b1b22] text-white rounded-xl max-w-sm w-full p-5 shadow-2xl space-y-4">
+          <div className="bg-[#0c0c0e] border border-[#1b1b22] text-white rounded-xl max-w-sm w-full p-5 shadow-2xl space-y-4">
             <div className="flex items-center justify-between border-b border-[#18181f] pb-3">
               <h3 className="text-sm font-medium text-zinc-100">Keyboard Shortcuts</h3>
               <button

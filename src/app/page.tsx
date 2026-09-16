@@ -565,7 +565,7 @@ function Workspace() {
       </div>
 
       {/* Bottom Shelf: Docked Toolbar + Stats */}
-      <footer className="h-14 border-t border-[#18181f] px-6 flex items-center justify-between bg-[#0b0b0e] shrink-0 select-none z-30">
+      <footer className="h-14 border-t border-[#18181f] px-6 flex items-center justify-between bg-[#0c0c0e] shrink-0 select-none z-30">
         {/* Left: Docked Minimalist Toolbar (4 pages | Inter ⌵ | 48 ⌵ | ···) */}
         <DockedToolbar
           pageCount={doc.pageCount}

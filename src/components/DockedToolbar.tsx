@@ -181,7 +181,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
           <button
             type="button"
             onClick={() => togglePopover('pages')}
-            className={`h-7 px-2.5 flex items-center gap-1.5 bg-[#0e0e12] border border-[#1b1b22] rounded-[6px] text-xs transition-colors ${
+            className={`h-7 px-2.5 flex items-center gap-1.5 bg-[#0c0c0e] border border-[#1b1b22] rounded-[6px] text-xs transition-colors ${
               activePopover === 'pages'
                 ? 'bg-[#16161c] text-white border-[#2e2e3a]'
                 : 'text-zinc-300 hover:bg-[#16161c] hover:text-white'
@@ -193,7 +193,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
           </button>
 
           {activePopover === 'pages' && (
-            <div className="absolute bottom-full left-0 mb-3 w-68 bg-[#0e0e12] border border-[#1b1b22] rounded-xl shadow-2xl shadow-black p-4 text-zinc-200 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
+            <div className="absolute bottom-full left-0 mb-3 w-68 bg-[#0c0c0e] border border-[#1b1b22] rounded-xl shadow-2xl shadow-black p-4 text-zinc-200 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[10px] font-semibold text-zinc-500 uppercase font-mono tracking-wider">Number of Pages</span>
                 <span className="text-xs font-mono text-zinc-400">{pageCount} {pageCount === 1 ? 'page' : 'pages'}</span>
@@ -267,7 +267,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
         {/* ========================================================= */}
         {/* GROUP 2: TYPOGRAPHY (Font · Size · Auto-fit · Fill) */}
         {/* ========================================================= */}
-        <div className="h-7 flex items-center bg-[#0e0e12] border border-[#1b1b22] rounded-[6px] p-0.5 gap-0.5">
+        <div className="h-7 flex items-center bg-[#0c0c0e] border border-[#1b1b22] rounded-[6px] p-0.5 gap-0.5">
           {/* Font Family Trigger */}
           <div className="relative">
             <button
@@ -285,7 +285,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
             </button>
 
             {activePopover === 'font' && (
-              <div className="absolute bottom-full left-0 mb-3 w-64 bg-[#0e0e12] border border-[#1b1b22] rounded-xl shadow-2xl shadow-black p-3 text-zinc-200 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
+              <div className="absolute bottom-full left-0 mb-3 w-64 bg-[#0c0c0e] border border-[#1b1b22] rounded-xl shadow-2xl shadow-black p-3 text-zinc-200 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-[10px] font-semibold text-zinc-500 uppercase font-mono tracking-wider">Typography</span>
                   <button
@@ -363,7 +363,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
             </button>
 
             {activePopover === 'size' && (
-              <div className="absolute bottom-full left-0 mb-3 w-72 bg-[#0e0e12] border border-[#1b1b22] rounded-xl shadow-2xl shadow-black p-4 text-zinc-200 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
+              <div className="absolute bottom-full left-0 mb-3 w-72 bg-[#0c0c0e] border border-[#1b1b22] rounded-xl shadow-2xl shadow-black p-4 text-zinc-200 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-[10px] font-semibold text-zinc-500 uppercase font-mono tracking-wider">Font Size & Spacing</span>
                   <span className="text-xs font-mono text-zinc-400">
@@ -495,7 +495,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
         {/* ========================================================= */}
         {/* GROUP 3: LAYOUT (Format · Alignment · Top/Center) */}
         {/* ========================================================= */}
-        <div className="h-7 flex items-center bg-[#0e0e12] border border-[#1b1b22] rounded-[6px] p-0.5 gap-0.5">
+        <div className="h-7 flex items-center bg-[#0c0c0e] border border-[#1b1b22] rounded-[6px] p-0.5 gap-0.5">
           {/* Canvas Format / Ratio */}
           <div className="relative">
             <button
@@ -513,7 +513,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
             </button>
 
             {activePopover === 'format' && (
-              <div className="absolute bottom-full left-0 mb-3 w-80 bg-[#0e0e12] border border-[#1b1b22] rounded-xl shadow-2xl shadow-black p-4 text-zinc-200 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
+              <div className="absolute bottom-full left-0 mb-3 w-80 bg-[#0c0c0e] border border-[#1b1b22] rounded-xl shadow-2xl shadow-black p-4 text-zinc-200 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
                 <span className="text-[10px] font-semibold text-zinc-500 uppercase font-mono tracking-wider block mb-2">
                   Canvas Format
                 </span>
@@ -656,7 +656,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
         {/* ========================================================= */}
         {/* GROUP 4: SPACING / MORE (Compact · ···) */}
         {/* ========================================================= */}
-        <div className="h-7 flex items-center bg-[#0e0e12] border border-[#1b1b22] rounded-[6px] p-0.5 gap-0.5">
+        <div className="h-7 flex items-center bg-[#0c0c0e] border border-[#1b1b22] rounded-[6px] p-0.5 gap-0.5">
           {/* Margins */}
           <div className="relative">
             <button
@@ -674,7 +674,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
             </button>
 
             {activePopover === 'margins' && (
-              <div className="absolute bottom-full right-0 mb-3 w-72 bg-[#0e0e12] border border-[#1b1b22] rounded-xl shadow-2xl shadow-black p-4 text-zinc-200 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
+              <div className="absolute bottom-full right-0 mb-3 w-72 bg-[#0c0c0e] border border-[#1b1b22] rounded-xl shadow-2xl shadow-black p-4 text-zinc-200 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
                 <span className="text-[10px] font-semibold text-zinc-500 uppercase font-mono tracking-wider block mb-2">
                   Margins & Spacing
                 </span>
@@ -739,7 +739,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
             </button>
 
             {activePopover === 'more' && (
-              <div className="absolute bottom-full right-0 mb-3 w-80 bg-[#0e0e12] border border-[#1b1b22] rounded-xl shadow-2xl shadow-black p-4 text-zinc-200 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
+              <div className="absolute bottom-full right-0 mb-3 w-80 bg-[#0c0c0e] border border-[#1b1b22] rounded-xl shadow-2xl shadow-black p-4 text-zinc-200 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
                 <span className="text-[10px] font-semibold text-zinc-500 uppercase font-mono tracking-wider block mb-2">
                   Colors & Appearance
                 </span>
