@@ -79,17 +79,21 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
 
   // Grid column class matching large card display
   const getGridCols = () => {
-    if (pages.length === 1) return 'grid-cols-1 max-w-xl';
-    return 'grid-cols-1 xl:grid-cols-2 max-w-5xl';
+    if (pages.length === 1) return 'grid-cols-1 max-w-md';
+    return 'grid-cols-1 xl:grid-cols-2 max-w-4xl';
   };
 
   const activeSinglePage = pages[effectiveSingleIndex] ?? pages[0];
 
   return (
-    <div className="flex flex-col h-full w-full bg-[#09090b] overflow-y-auto select-none p-6 md:p-8">
+    <div
+      className={`flex flex-col h-full w-full bg-[#09090b] ${
+        previewMode === 'single' ? 'overflow-hidden p-3 md:p-5' : 'overflow-y-auto p-6 md:p-8'
+      } select-none`}
+    >
       {/* Overflow Warning Banner (if text doesn't fit) */}
       {hasOverflow && (
-        <div className="max-w-4xl mx-auto w-full mb-6 p-3 rounded-lg bg-red-950/40 border border-red-800/80 flex items-center justify-between gap-3 text-xs text-red-200">
+        <div className="max-w-4xl mx-auto w-full mb-4 p-3 rounded-lg bg-red-950/40 border border-red-800/80 flex items-center justify-between gap-3 text-xs text-red-200 shrink-0">
           <div className="flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
             <span>
@@ -107,11 +111,11 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
         </div>
       )}
 
-      {/* Mode 1: Single Focused Page View */}
+      {/* Mode 1: Single Focused Page View (Scales to fit viewport height with zero scrolling) */}
       {previewMode === 'single' && activeSinglePage && (
-        <div className="max-w-xl mx-auto w-full flex flex-col items-center my-auto">
+        <div className="flex-1 min-h-0 w-full flex flex-col items-center justify-center">
           {pages.length > 1 && (
-            <div className="flex items-center justify-between w-full mb-4 px-2 select-none">
+            <div className="flex items-center justify-between w-full max-w-sm mb-3 shrink-0 select-none">
               <button
                 type="button"
                 disabled={effectiveSingleIndex === 0}
@@ -120,14 +124,14 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                   setInternalSingleIndex(nextIdx);
                   onSelectPage(nextIdx);
                 }}
-                className="flex items-center gap-1 text-[11px] font-mono text-zinc-400 hover:text-white bg-[#0c0c0e] hover:bg-[#16161c] px-2.5 py-1 rounded-[6px] border border-[#1b1b22] hover:border-[#2e2e3a] disabled:opacity-20 disabled:pointer-events-none transition-colors"
+                className="flex items-center gap-1 text-[11px] font-mono text-zinc-400 hover:text-white bg-[#0c0c0e] hover:bg-[#16161c] px-2.5 py-1 rounded-[6px] border border-[#1b1b22] hover:border-[#2e2e3a] disabled:opacity-20 disabled:pointer-events-none transition-colors shadow-xs"
                 title="Previous page (Arrow Left)"
               >
                 <ChevronLeft className="w-3.5 h-3.5" />
                 <span>Prev</span>
               </button>
 
-              <span className="text-xs font-mono text-zinc-500 tracking-wide">
+              <span className="text-xs font-mono text-zinc-400 tracking-wide">
                 Page {effectiveSingleIndex + 1} of {pages.length}
               </span>
 
@@ -139,7 +143,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                   setInternalSingleIndex(nextIdx);
                   onSelectPage(nextIdx);
                 }}
-                className="flex items-center gap-1 text-[11px] font-mono text-zinc-400 hover:text-white bg-[#0c0c0e] hover:bg-[#16161c] px-2.5 py-1 rounded-[6px] border border-[#1b1b22] hover:border-[#2e2e3a] disabled:opacity-20 disabled:pointer-events-none transition-colors"
+                className="flex items-center gap-1 text-[11px] font-mono text-zinc-400 hover:text-white bg-[#0c0c0e] hover:bg-[#16161c] px-2.5 py-1 rounded-[6px] border border-[#1b1b22] hover:border-[#2e2e3a] disabled:opacity-20 disabled:pointer-events-none transition-colors shadow-xs"
                 title="Next page (Arrow Right)"
               >
                 <span>Next</span>
@@ -148,23 +152,31 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
             </div>
           )}
 
-          <div className="w-full">
-            <PageCard
-              page={activeSinglePage}
-              totalPages={pages.length}
-              canvas={canvas}
-              typography={typography}
-              spacing={spacing}
-              exportFormat={exportFormat}
-              exportScale={exportScale}
-              projectName={projectName}
-              isHovered={highlightedPageIndex === effectiveSingleIndex}
-              onHover={(isHovering) => onPageHover(isHovering ? effectiveSingleIndex : null)}
-              onClick={() => onSelectPage(effectiveSingleIndex)}
-              onEnlarge={() => onOpenFullscreen(effectiveSingleIndex)}
-              allowClippedExport={allowClippedExport}
-              onBlockedExport={onBlockedExport}
-            />
+          <div className="flex-1 min-h-0 w-full flex items-center justify-center p-2">
+            <div
+              className="max-h-full max-w-full relative flex items-center justify-center"
+              style={{
+                aspectRatio: `${canvas.width} / ${canvas.height}`,
+                height: '100%',
+              }}
+            >
+              <PageCard
+                page={activeSinglePage}
+                totalPages={pages.length}
+                canvas={canvas}
+                typography={typography}
+                spacing={spacing}
+                exportFormat={exportFormat}
+                exportScale={exportScale}
+                projectName={projectName}
+                isHovered={highlightedPageIndex === effectiveSingleIndex}
+                onHover={(isHovering) => onPageHover(isHovering ? effectiveSingleIndex : null)}
+                onClick={() => onSelectPage(effectiveSingleIndex)}
+                onEnlarge={() => onOpenFullscreen(effectiveSingleIndex)}
+                allowClippedExport={allowClippedExport}
+                onBlockedExport={onBlockedExport}
+              />
+            </div>
           </div>
         </div>
       )}
@@ -175,7 +187,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
           {pages.map((page, idx) => (
             <div
               key={`preview-carousel-${page.pageIndex}`}
-              className="w-[340px] sm:w-[380px] md:w-[420px] shrink-0"
+              className="w-[320px] sm:w-[360px] md:w-[400px] shrink-0 flex flex-col items-center gap-2"
             >
               <PageCard
                 page={page}
@@ -193,6 +205,9 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                 allowClippedExport={allowClippedExport}
                 onBlockedExport={onBlockedExport}
               />
+              <span className="text-[11px] font-mono text-zinc-500 select-none">
+                Page {page.pageIndex + 1}
+              </span>
             </div>
           ))}
         </div>
@@ -200,25 +215,29 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
 
       {/* Mode 3: 2x2 or Responsive Grid of Page Cards (Default) */}
       {previewMode === 'grid' && (
-        <div className={`grid ${getGridCols()} gap-5 mx-auto w-full items-start justify-center`}>
+        <div className={`grid ${getGridCols()} gap-6 mx-auto w-full items-start justify-center`}>
           {pages.map((page, idx) => (
-            <PageCard
-              key={`preview-page-${page.pageIndex}`}
-              page={page}
-              totalPages={pages.length}
-              canvas={canvas}
-              typography={typography}
-              spacing={spacing}
-              exportFormat={exportFormat}
-              exportScale={exportScale}
-              projectName={projectName}
-              isHovered={highlightedPageIndex === idx}
-              onHover={(isHovering) => onPageHover(isHovering ? idx : null)}
-              onClick={() => onSelectPage(idx)}
-              onEnlarge={() => onOpenFullscreen(idx)}
-              allowClippedExport={allowClippedExport}
-              onBlockedExport={onBlockedExport}
-            />
+            <div key={`preview-page-${page.pageIndex}`} className="flex flex-col items-center gap-2 w-full">
+              <PageCard
+                page={page}
+                totalPages={pages.length}
+                canvas={canvas}
+                typography={typography}
+                spacing={spacing}
+                exportFormat={exportFormat}
+                exportScale={exportScale}
+                projectName={projectName}
+                isHovered={highlightedPageIndex === idx}
+                onHover={(isHovering) => onPageHover(isHovering ? idx : null)}
+                onClick={() => onSelectPage(idx)}
+                onEnlarge={() => onOpenFullscreen(idx)}
+                allowClippedExport={allowClippedExport}
+                onBlockedExport={onBlockedExport}
+              />
+              <span className="text-[11px] font-mono text-zinc-500 select-none">
+                Page {page.pageIndex + 1}
+              </span>
+            </div>
           ))}
         </div>
       )}

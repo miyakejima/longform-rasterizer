@@ -38,7 +38,6 @@ interface PageCardProps {
 
 export const PageCard: React.FC<PageCardProps> = ({
   page,
-  totalPages,
   canvas,
   typography,
   spacing,
@@ -112,6 +111,7 @@ export const PageCard: React.FC<PageCardProps> = ({
           ? 'border-red-800 shadow-red-950/20'
           : 'border-[#262630] hover:border-zinc-500'
       }`}
+      style={{ aspectRatio: `${canvas.width} / ${canvas.height}` }}
       onMouseEnter={() => onHover(true)}
       onMouseLeave={() => onHover(false)}
       onClick={() => {
@@ -159,24 +159,12 @@ export const PageCard: React.FC<PageCardProps> = ({
         </div>
       )}
 
-      {/* Canvas Container */}
-      <div
-        className="w-full relative overflow-hidden flex items-center justify-center p-2"
-        style={{ aspectRatio: `${canvas.width} / ${canvas.height}` }}
-      >
-        <canvas
-          ref={canvasRef}
-          className="w-full h-full object-contain block pointer-events-none"
-        />
-      </div>
-
-      {/* Discrete Centered Page Number */}
-      <div
-        className="text-center py-2 text-zinc-400 font-mono text-xs select-none"
-        title={`Page ${page.pageIndex + 1} of ${totalPages}`}
-      >
-        {page.pageIndex + 1}
-      </div>
+      {/* Canvas fills the card border 1:1 with exact aspect ratio */}
+      <canvas
+        ref={canvasRef}
+        className="w-full h-full block pointer-events-none rounded-md"
+        style={{ imageRendering: 'crisp-edges' }}
+      />
     </div>
   );
 };

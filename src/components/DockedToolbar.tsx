@@ -16,6 +16,7 @@ import {
   Keyboard,
   Bookmark,
   Maximize2,
+  MoreHorizontal,
 } from 'lucide-react';
 import {
   CanvasSettings,
@@ -654,89 +655,90 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
         <div className="w-px h-3.5 bg-[#18181f]" />
 
         {/* ========================================================= */}
-        {/* GROUP 4: SPACING / MORE (Compact · ···) */}
+        {/* GROUP 4: SPACING (Compact ⌵) */}
         {/* ========================================================= */}
-        <div className="h-7 flex items-center bg-[#0c0c0e] border border-[#1b1b22] rounded-[6px] p-0.5 gap-0.5">
-          {/* Margins */}
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => togglePopover('margins')}
-              className={`h-6 px-2 flex items-center gap-1 text-xs rounded-[4px] transition-colors ${
-                activePopover === 'margins'
-                  ? 'bg-[#16161c] text-white'
-                  : 'text-zinc-300 hover:bg-[#16161c] hover:text-white'
-              }`}
-              title="Change margins & paragraph spacing"
-            >
-              <span>{getMarginLabel()}</span>
-              <ChevronDown className="w-3 h-3 text-zinc-500" />
-            </button>
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => togglePopover('margins')}
+            className={`h-7 px-2.5 flex items-center gap-1.5 bg-[#0c0c0e] border border-[#1b1b22] rounded-[6px] text-xs transition-colors ${
+              activePopover === 'margins'
+                ? 'bg-[#16161c] text-white border-[#2e2e3a]'
+                : 'text-zinc-300 hover:bg-[#16161c] hover:text-white'
+            }`}
+            title="Change margins & paragraph spacing"
+          >
+            <span>{getMarginLabel()}</span>
+            <ChevronDown className="w-3 h-3 text-zinc-500" />
+          </button>
 
-            {activePopover === 'margins' && (
-              <div className="absolute bottom-full right-0 mb-3 w-72 bg-[#0c0c0e] border border-[#1b1b22] rounded-xl shadow-2xl shadow-black p-4 text-zinc-200 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
-                <span className="text-[10px] font-semibold text-zinc-500 uppercase font-mono tracking-wider block mb-2">
-                  Margins & Spacing
-                </span>
-                <div className="grid grid-cols-3 gap-1 mb-3">
-                  {[
-                    { id: 'compact', name: 'Compact', px: '48px' },
-                    { id: 'balanced', name: 'Balanced', px: '96px' },
-                    { id: 'generous', name: 'Generous', px: '144px' },
-                  ].map((m) => (
-                    <button
-                      key={m.id}
-                      type="button"
-                      onClick={() => handleMarginPresetChange(m.id as MarginPreset)}
-                      className={`py-1.5 px-2 rounded-[6px] text-xs flex flex-col items-center gap-0.5 border transition-colors ${
-                        spacing.preset === m.id
-                          ? 'bg-[#1c1c24] text-[#f4f4f6] font-medium border-[#2e2e3a] shadow-xs'
-                          : 'bg-[#09090c] border-[#18181f] text-zinc-400 hover:text-white hover:bg-[#14141a]'
-                      }`}
-                    >
-                      <span>{m.name}</span>
-                      <span className="text-[9px] opacity-70 font-mono">{m.px}</span>
-                    </button>
-                  ))}
-                </div>
-
-                <div className="pt-2 border-t border-[#18181f] space-y-2">
-                  <div className="flex items-center justify-between text-xs text-zinc-400">
-                    <span>Paragraph Spacing</span>
-                    <span className="font-mono">{spacing.paragraphSpacing}px</span>
-                  </div>
-                  <input
-                    type="range"
-                    min={12}
-                    max={64}
-                    step={2}
-                    value={spacing.paragraphSpacing}
-                    onChange={(e) =>
-                      onSpacingChange({ ...spacing, paragraphSpacing: parseInt(e.target.value, 10) })
-                    }
-                    className="w-full accent-zinc-400 h-1 bg-[#18181f] rounded cursor-pointer"
-                  />
-                </div>
+          {activePopover === 'margins' && (
+            <div className="absolute bottom-full right-0 mb-3 w-72 bg-[#0c0c0e] border border-[#1b1b22] rounded-xl shadow-2xl shadow-black p-4 text-zinc-200 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
+              <span className="text-[10px] font-semibold text-zinc-500 uppercase font-mono tracking-wider block mb-2">
+                Margins & Spacing
+              </span>
+              <div className="grid grid-cols-3 gap-1 mb-3">
+                {[
+                  { id: 'compact', name: 'Compact', px: '48px' },
+                  { id: 'balanced', name: 'Balanced', px: '96px' },
+                  { id: 'generous', name: 'Generous', px: '144px' },
+                ].map((m) => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => handleMarginPresetChange(m.id as MarginPreset)}
+                    className={`py-1.5 px-2 rounded-[6px] text-xs flex flex-col items-center gap-0.5 border transition-colors ${
+                      spacing.preset === m.id
+                        ? 'bg-[#1c1c24] text-[#f4f4f6] font-medium border-[#2e2e3a] shadow-xs'
+                        : 'bg-[#09090c] border-[#18181f] text-zinc-400 hover:text-white hover:bg-[#14141a]'
+                    }`}
+                  >
+                    <span>{m.name}</span>
+                    <span className="text-[9px] opacity-70 font-mono">{m.px}</span>
+                  </button>
+                ))}
               </div>
-            )}
-          </div>
 
-          <span className="text-zinc-600 text-[10px] px-0.5 select-none">·</span>
+              <div className="pt-2 border-t border-[#18181f] space-y-2">
+                <div className="flex items-center justify-between text-xs text-zinc-400">
+                  <span>Paragraph Spacing</span>
+                  <span className="font-mono">{spacing.paragraphSpacing}px</span>
+                </div>
+                <input
+                  type="range"
+                  min={12}
+                  max={64}
+                  step={2}
+                  value={spacing.paragraphSpacing}
+                  onChange={(e) =>
+                    onSpacingChange({ ...spacing, paragraphSpacing: parseInt(e.target.value, 10) })
+                  }
+                  className="w-full accent-zinc-400 h-1 bg-[#18181f] rounded cursor-pointer"
+                />
+              </div>
+            </div>
+          )}
+        </div>
 
-          {/* More Options (···) */}
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => togglePopover('more')}
-              className={`h-6 px-2 flex items-center justify-center text-xs tracking-wider rounded-[4px] transition-colors ${
-                activePopover === 'more'
-                  ? 'bg-[#16161c] text-white'
-                  : 'text-zinc-400 hover:text-white hover:bg-[#16161c]'
-              }`}
-              title="More options (colors, presets, lock layout, reset)"
-            >
-              ···
-            </button>
+        {/* Faint Divider between spacing and more */}
+        <div className="w-px h-3.5 bg-[#18181f]" />
+
+        {/* ========================================================= */}
+        {/* GROUP 5: MORE OPTIONS (···) */}
+        {/* ========================================================= */}
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => togglePopover('more')}
+            className={`h-7 w-7 flex items-center justify-center rounded-[6px] bg-[#0c0c0e] border border-[#1b1b22] text-xs transition-colors ${
+              activePopover === 'more'
+                ? 'bg-[#16161c] text-white border-[#2e2e3a]'
+                : 'text-zinc-400 hover:text-white hover:bg-[#16161c]'
+            }`}
+            title="More options (colors, presets, lock layout, reset)"
+          >
+            <MoreHorizontal className="w-3.5 h-3.5" />
+          </button>
 
             {activePopover === 'more' && (
               <div className="absolute bottom-full right-0 mb-3 w-80 bg-[#0c0c0e] border border-[#1b1b22] rounded-xl shadow-2xl shadow-black p-4 text-zinc-200 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
@@ -837,9 +839,8 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
               </div>
             )}
           </div>
-        </div>
 
+        </div>
       </div>
-    </div>
-  );
-};
+    );
+  };

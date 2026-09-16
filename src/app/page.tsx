@@ -450,40 +450,38 @@ function Workspace() {
         >
           {/* Top Header above Previews: Status + View Mode Toggle on Left, Single Export Pill on Right */}
           <div className="h-14 px-8 flex items-center justify-between shrink-0 bg-[#09090b] border-b border-[#18181c]/60 z-20">
-            <div className="flex items-center gap-3 select-none">
+            <div className="flex items-center gap-2 select-none">
               {/* Collapse/Expand Editor (Preview Focus) Toggle */}
               <button
                 type="button"
                 onClick={() => setIsEditorCollapsed((prev) => !prev)}
-                className="p-1.5 text-zinc-400 hover:text-white rounded-md hover:bg-white/[0.06] transition-colors flex items-center justify-center"
+                className={`h-7 w-7 rounded-[6px] bg-[#0c0c0e] border border-[#1b1b22] hover:border-[#2e2e3a] hover:bg-[#16161c] text-zinc-400 hover:text-white transition-all flex items-center justify-center shadow-xs ${
+                  isEditorCollapsed ? 'border-zinc-500/40 text-white' : ''
+                }`}
                 title={isEditorCollapsed ? 'Show editor (Ctrl+B)' : 'Collapse editor / Focus preview (Ctrl+B)'}
                 aria-label={isEditorCollapsed ? 'Show editor' : 'Collapse editor'}
               >
                 {isEditorCollapsed ? (
-                  <PanelLeft className="w-4 h-4" />
+                  <PanelLeft className="w-3.5 h-3.5" />
                 ) : (
-                  <PanelLeftClose className="w-4 h-4" />
+                  <PanelLeftClose className="w-3.5 h-3.5" />
                 )}
               </button>
 
-              <div className="w-px h-3.5 bg-[#18181f]" />
-
               {/* Page Count Indicator */}
-              <span className="text-xs font-mono text-zinc-400 select-none">
-                {doc.pageCount} {doc.pageCount === 1 ? 'page' : 'pages'}
-              </span>
+              <div className="h-7 px-2.5 rounded-[6px] bg-[#0c0c0e] border border-[#1b1b22] text-xs font-mono text-zinc-400 flex items-center shadow-xs">
+                <span>{doc.pageCount} {doc.pageCount === 1 ? 'page' : 'pages'}</span>
+              </div>
 
-              <div className="w-px h-3.5 bg-[#18181f]" />
-
-              {/* Minimalist Bare View Mode Icons (Unboxed, pure studio aesthetic) */}
-              <div className="flex items-center gap-1">
+              {/* Symmetrical Segmented View Mode Switcher */}
+              <div className="h-7 p-0.5 rounded-[6px] bg-[#0c0c0e] border border-[#1b1b22] flex items-center gap-0.5 shadow-xs">
                 <button
                   type="button"
                   onClick={() => setPreviewMode('grid')}
-                  className={`p-1.5 rounded-md transition-all ${
+                  className={`h-6 w-6 rounded-[4px] flex items-center justify-center transition-colors ${
                     previewMode === 'grid'
-                      ? 'text-zinc-100 bg-white/[0.08]'
-                      : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.03]'
+                      ? 'bg-[#1c1c24] text-[#f4f4f6] border border-[#2e2e3a] shadow-xs'
+                      : 'text-zinc-400 hover:text-white hover:bg-[#16161c]'
                   }`}
                   title="Grid view"
                   aria-label="Grid view"
@@ -493,10 +491,10 @@ function Workspace() {
                 <button
                   type="button"
                   onClick={() => setPreviewMode('single')}
-                  className={`p-1.5 rounded-md transition-all ${
+                  className={`h-6 w-6 rounded-[4px] flex items-center justify-center transition-colors ${
                     previewMode === 'single'
-                      ? 'text-zinc-100 bg-white/[0.08]'
-                      : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.03]'
+                      ? 'bg-[#1c1c24] text-[#f4f4f6] border border-[#2e2e3a] shadow-xs'
+                      : 'text-zinc-400 hover:text-white hover:bg-[#16161c]'
                   }`}
                   title="Single page view"
                   aria-label="Single page view"
@@ -506,10 +504,10 @@ function Workspace() {
                 <button
                   type="button"
                   onClick={() => setPreviewMode('carousel')}
-                  className={`p-1.5 rounded-md transition-all ${
+                  className={`h-6 w-6 rounded-[4px] flex items-center justify-center transition-colors ${
                     previewMode === 'carousel'
-                      ? 'text-zinc-100 bg-white/[0.08]'
-                      : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.03]'
+                      ? 'bg-[#1c1c24] text-[#f4f4f6] border border-[#2e2e3a] shadow-xs'
+                      : 'text-zinc-400 hover:text-white hover:bg-[#16161c]'
                   }`}
                   title="Carousel swipe view"
                   aria-label="Carousel view"
