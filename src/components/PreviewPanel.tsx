@@ -1,12 +1,13 @@
 'use client';
 
-import React from 'react';
-import { Sparkles, AlertTriangle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Sparkles, AlertTriangle, ChevronLeft, ChevronRight } from 'lucide-react';
 import {
   CanvasSettings,
   ExportFormat,
   ExportScale,
   PageData,
+  PreviewMode,
   SpacingSettings,
   TypographySettings,
 } from '../types';
@@ -27,6 +28,7 @@ interface PreviewPanelProps {
   onTriggerAutoFit: () => void;
   allowClippedExport?: boolean;
   onBlockedExport?: (msg: string) => void;
+  previewMode?: PreviewMode;
 }
 
 export const PreviewPanel: React.FC<PreviewPanelProps> = ({
@@ -44,15 +46,44 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
   onTriggerAutoFit,
   allowClippedExport = false,
   onBlockedExport,
+  previewMode = 'grid',
 }) => {
   const overflowingPages = pages.filter((p) => p.isOverflowing);
   const hasOverflow = overflowingPages.length > 0;
 
-  // Grid column class matching the reference screenshot with large card display
+  const [internalSingleIndex, setInternalSingleIndex] = useState(0);
+
+  // Compute effective single page index without needing an effect
+  const effectiveSingleIndex =
+    highlightedPageIndex !== null && highlightedPageIndex >= 0 && highlightedPageIndex < pages.length
+      ? highlightedPageIndex
+      : Math.min(Math.max(0, internalSingleIndex), Math.max(0, pages.length - 1));
+
+  // Keyboard navigation for single mode
+  useEffect(() => {
+    if (previewMode !== 'single') return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) return;
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        setInternalSingleIndex((prev) => Math.max(0, prev - 1));
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        setInternalSingleIndex((prev) => Math.min(pages.length - 1, prev + 1));
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [previewMode, pages.length]);
+
+  // Grid column class matching large card display
   const getGridCols = () => {
     if (pages.length === 1) return 'grid-cols-1 max-w-xl';
     return 'grid-cols-1 xl:grid-cols-2 max-w-5xl';
   };
+
+  const activeSinglePage = pages[effectiveSingleIndex] ?? pages[0];
 
   return (
     <div className="flex flex-col h-full w-full bg-[#09090b] overflow-y-auto select-none p-6 md:p-8">
@@ -76,28 +107,121 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
         </div>
       )}
 
-      {/* 2x2 or Responsive Grid of Page Cards */}
-      <div className={`grid ${getGridCols()} gap-5 mx-auto w-full items-start justify-center`}>
-        {pages.map((page, idx) => (
-          <PageCard
-            key={`preview-page-${page.pageIndex}`}
-            page={page}
-            totalPages={pages.length}
-            canvas={canvas}
-            typography={typography}
-            spacing={spacing}
-            exportFormat={exportFormat}
-            exportScale={exportScale}
-            projectName={projectName}
-            isHovered={highlightedPageIndex === idx}
-            onHover={(isHovering) => onPageHover(isHovering ? idx : null)}
-            onClick={() => onSelectPage(idx)}
-            onEnlarge={() => onOpenFullscreen(idx)}
-            allowClippedExport={allowClippedExport}
-            onBlockedExport={onBlockedExport}
-          />
-        ))}
-      </div>
+      {/* Mode 1: Single Focused Page View */}
+      {previewMode === 'single' && activeSinglePage && (
+        <div className="max-w-xl mx-auto w-full flex flex-col items-center my-auto">
+          {pages.length > 1 && (
+            <div className="flex items-center justify-between w-full mb-4 px-2 select-none">
+              <button
+                type="button"
+                disabled={effectiveSingleIndex === 0}
+                onClick={() => {
+                  const nextIdx = Math.max(0, effectiveSingleIndex - 1);
+                  setInternalSingleIndex(nextIdx);
+                  onSelectPage(nextIdx);
+                }}
+                className="flex items-center gap-1 text-[11px] font-mono text-zinc-400 hover:text-white bg-[#141417] hover:bg-[#1e1e24] px-2.5 py-1 rounded border border-[#24242a] disabled:opacity-20 disabled:pointer-events-none transition-colors"
+                title="Previous page (Arrow Left)"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" />
+                <span>Prev</span>
+              </button>
+
+              <span className="text-xs font-mono text-zinc-500 tracking-wide">
+                Page {effectiveSingleIndex + 1} of {pages.length}
+              </span>
+
+              <button
+                type="button"
+                disabled={effectiveSingleIndex >= pages.length - 1}
+                onClick={() => {
+                  const nextIdx = Math.min(pages.length - 1, effectiveSingleIndex + 1);
+                  setInternalSingleIndex(nextIdx);
+                  onSelectPage(nextIdx);
+                }}
+                className="flex items-center gap-1 text-[11px] font-mono text-zinc-400 hover:text-white bg-[#141417] hover:bg-[#1e1e24] px-2.5 py-1 rounded border border-[#24242a] disabled:opacity-20 disabled:pointer-events-none transition-colors"
+                title="Next page (Arrow Right)"
+              >
+                <span>Next</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+
+          <div className="w-full">
+            <PageCard
+              page={activeSinglePage}
+              totalPages={pages.length}
+              canvas={canvas}
+              typography={typography}
+              spacing={spacing}
+              exportFormat={exportFormat}
+              exportScale={exportScale}
+              projectName={projectName}
+              isHovered={highlightedPageIndex === effectiveSingleIndex}
+              onHover={(isHovering) => onPageHover(isHovering ? effectiveSingleIndex : null)}
+              onClick={() => onSelectPage(effectiveSingleIndex)}
+              onEnlarge={() => onOpenFullscreen(effectiveSingleIndex)}
+              allowClippedExport={allowClippedExport}
+              onBlockedExport={onBlockedExport}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Mode 2: Horizontal Carousel Swipe Filmstrip */}
+      {previewMode === 'carousel' && (
+        <div className="flex-1 w-full flex items-center overflow-x-auto no-scrollbar py-6 px-4 gap-6">
+          {pages.map((page, idx) => (
+            <div
+              key={`preview-carousel-${page.pageIndex}`}
+              className="w-[340px] sm:w-[380px] md:w-[420px] shrink-0"
+            >
+              <PageCard
+                page={page}
+                totalPages={pages.length}
+                canvas={canvas}
+                typography={typography}
+                spacing={spacing}
+                exportFormat={exportFormat}
+                exportScale={exportScale}
+                projectName={projectName}
+                isHovered={highlightedPageIndex === idx}
+                onHover={(isHovering) => onPageHover(isHovering ? idx : null)}
+                onClick={() => onSelectPage(idx)}
+                onEnlarge={() => onOpenFullscreen(idx)}
+                allowClippedExport={allowClippedExport}
+                onBlockedExport={onBlockedExport}
+              />
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Mode 3: 2x2 or Responsive Grid of Page Cards (Default) */}
+      {previewMode === 'grid' && (
+        <div className={`grid ${getGridCols()} gap-5 mx-auto w-full items-start justify-center`}>
+          {pages.map((page, idx) => (
+            <PageCard
+              key={`preview-page-${page.pageIndex}`}
+              page={page}
+              totalPages={pages.length}
+              canvas={canvas}
+              typography={typography}
+              spacing={spacing}
+              exportFormat={exportFormat}
+              exportScale={exportScale}
+              projectName={projectName}
+              isHovered={highlightedPageIndex === idx}
+              onHover={(isHovering) => onPageHover(isHovering ? idx : null)}
+              onClick={() => onSelectPage(idx)}
+              onEnlarge={() => onOpenFullscreen(idx)}
+              allowClippedExport={allowClippedExport}
+              onBlockedExport={onBlockedExport}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 };

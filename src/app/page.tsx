@@ -11,6 +11,7 @@ import {
   DocumentState,
   ExportFormat,
   ExportScale,
+  PreviewMode,
   SpacingSettings,
   TypographySettings,
   AdvancedSettings,
@@ -18,6 +19,7 @@ import {
   PaginationResult,
   SavedProject,
 } from '../types';
+import { GridModeIcon, SingleModeIcon, CarouselModeIcon } from '../components/icons/ViewModeIcons';
 import {
   DEFAULT_ADVANCED,
   DEFAULT_CANVAS,
@@ -82,6 +84,7 @@ function Workspace() {
   const [customFonts, setCustomFonts] = useState<string[]>([]);
   const [highlightedPageIndex, setHighlightedPageIndex] = useState<number | null>(null);
   const [fullscreenPageIndex, setFullscreenPageIndex] = useState<number | null>(null);
+  const [previewMode, setPreviewMode] = useState<PreviewMode>('grid');
   const [isExporting, setIsExporting] = useState(false);
   const [exportWarning, setExportWarning] = useState<string | null>(null);
   const [showPresetsModal, setShowPresetsModal] = useState(false);
@@ -501,13 +504,58 @@ function Workspace() {
 
         {/* Right Column: Clean Live Preview Cards Grid + Single Top-Right Export Pill */}
         <div className="w-full md:w-[70%] h-1/2 md:h-full flex flex-col bg-[#09090b] overflow-hidden">
-          {/* Top Header above Previews: Glowing Green Indicator on Left, Single Export Pill on Right */}
+          {/* Top Header above Previews: Status + View Mode Toggle on Left, Single Export Pill on Right */}
           <div className="h-14 px-8 flex items-center justify-between shrink-0 bg-[#09090b] border-b border-[#18181c]/60 z-20">
-            <div className="flex items-center gap-2 select-none" title="Live canvas engine connected">
-              <span className="relative flex h-2 w-2">
+            <div className="flex items-center gap-3 select-none">
+              <span className="relative flex h-2 w-2" title="Live canvas engine connected">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500 shadow-xs shadow-emerald-500/50"></span>
               </span>
+
+              <div className="w-px h-3.5 bg-[#1f1f24]" />
+
+              {/* Minimalist Segmented View Mode Toggle */}
+              <div className="flex items-center bg-[#111114] border border-[#1f1f25] rounded-md p-0.5 gap-0.5">
+                <button
+                  type="button"
+                  onClick={() => setPreviewMode('grid')}
+                  className={`p-1.5 rounded transition-all ${
+                    previewMode === 'grid'
+                      ? 'bg-[#222228] text-white shadow-xs'
+                      : 'text-zinc-500 hover:text-zinc-300'
+                  }`}
+                  title="Grid view"
+                  aria-label="Grid view"
+                >
+                  <GridModeIcon className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPreviewMode('single')}
+                  className={`p-1.5 rounded transition-all ${
+                    previewMode === 'single'
+                      ? 'bg-[#222228] text-white shadow-xs'
+                      : 'text-zinc-500 hover:text-zinc-300'
+                  }`}
+                  title="Single page view"
+                  aria-label="Single page view"
+                >
+                  <SingleModeIcon className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPreviewMode('carousel')}
+                  className={`p-1.5 rounded transition-all ${
+                    previewMode === 'carousel'
+                      ? 'bg-[#222228] text-white shadow-xs'
+                      : 'text-zinc-500 hover:text-zinc-300'
+                  }`}
+                  title="Carousel swipe view"
+                  aria-label="Carousel view"
+                >
+                  <CarouselModeIcon className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
             <HeaderBar
               onExportAll={handleExportAll}
@@ -557,6 +605,7 @@ function Workspace() {
               onTriggerAutoFit={() => setAdvanced((prev) => ({ ...prev, autoFit: true }))}
               allowClippedExport={advanced.allowClippedExport}
               onBlockedExport={(msg) => setExportWarning(msg)}
+              previewMode={previewMode}
             />
           </div>
         </div>
