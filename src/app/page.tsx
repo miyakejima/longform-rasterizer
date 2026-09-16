@@ -565,7 +565,7 @@ function Workspace() {
       </div>
 
       {/* Bottom Shelf: Docked Toolbar + Stats */}
-      <footer className="h-14 border-t border-[#18181c] px-6 flex items-center justify-between bg-[#0e0e12] shrink-0 select-none z-30">
+      <footer className="h-14 border-t border-[#29292E] px-6 flex items-center justify-between bg-[#101013] shrink-0 select-none z-30">
         {/* Left: Docked Minimalist Toolbar (4 pages | Inter ⌵ | 48 ⌵ | ···) */}
         <DockedToolbar
           pageCount={doc.pageCount}
@@ -622,7 +622,7 @@ function Workspace() {
         />
 
         {/* Right: Crisp Doc Stats */}
-        <div className="flex items-center gap-3 text-xs text-zinc-400 font-mono select-none">
+        <div className="flex items-center gap-3 text-xs text-[#77777F] font-mono select-none">
           <span>
             {wordCount} words · {charCount} chars
           </span>
