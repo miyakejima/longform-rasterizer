@@ -37,7 +37,7 @@ export function computeBalanceScore(
   if (balanceStrength === 'low') varianceWeight = 0.35;
   if (balanceStrength === 'high') varianceWeight = 3.2;
 
-  score += (variance / 1000) * varianceWeight;
+  score += (variance / 20) * varianceWeight;
 
   // 3. Boundary split penalties
   if (mode === 'paragraph-preserving') {
@@ -48,14 +48,15 @@ export function computeBalanceScore(
   } else {
     // Balanced mode:
     // Paragraph boundary: 0 penalty
-    // Sentence boundary: 300 penalty
-    // Incomplete sentence (splitting a sentence across pages): 50,000,000 penalty
-    // This strictly prevents cutting sentences in half across pages.
+    // Sentence boundary: 100 penalty
+    // Line boundary (inside sentence): 800 penalty
+    // Strongly prefers sentence boundaries when available, but permits line splits
+    // when keeping a giant paragraph uncut would severely starve or overflow a page.
     if (!isParagraphEnd) {
       if (isSentenceEnd) {
-        score += 300;
+        score += 100;
       } else {
-        score += 50_000_000;
+        score += 800;
       }
     }
   }

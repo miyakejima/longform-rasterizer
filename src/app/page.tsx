@@ -138,17 +138,20 @@ function Workspace() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Save session on changes
+  // Debounced session saving to prevent synchronous disk/localStorage serialization lag during typing and color picking
   useEffect(() => {
-    saveStoredSession({
-      document: doc,
-      canvas,
-      typography,
-      spacing,
-      advanced,
-      exportScale,
-      selectedPresetId,
-    });
+    const timer = setTimeout(() => {
+      saveStoredSession({
+        document: doc,
+        canvas,
+        typography,
+        spacing,
+        advanced,
+        exportScale,
+        selectedPresetId,
+      });
+    }, 500);
+    return () => clearTimeout(timer);
   }, [doc, canvas, typography, spacing, advanced, exportScale, selectedPresetId]);
   const handleUndo = useCallback(() => {
     if (historyIndexRef.current > 0) {
@@ -256,29 +259,141 @@ function Workspace() {
     pushHistory(doc, optimized.canvas, optimized.typography, optimized.spacing, advanced);
   }, [doc, canvas, typography, spacing, advanced, pushHistory]);
 
-  // Run pagination & auto-fit
+  // Layout primitives for zero-overhead color adjustments and strict debounced typing
+  const {
+    pageCount: docPageCount,
+    distributionMode: docDistributionMode,
+    manualBreaks: docManualBreaks,
+    layoutLocked: docLayoutLocked,
+    projectName: docProjectName,
+  } = doc;
+
+  const { width: canvasWidth, height: canvasHeight } = canvas;
+
+  const {
+    fontFamily: typoFamily,
+    fontSize: typoFontSize,
+    fontWeight: typoWeight,
+    lineHeight: typoLineHeight,
+    letterSpacing: typoLetterSpacing,
+    alignment: typoAlign,
+    verticalAlignment: typoVAlign,
+  } = typography;
+
+  const {
+    paddingTop: spaceTop,
+    paddingRight: spaceRight,
+    paddingBottom: spaceBottom,
+    paddingLeft: spaceLeft,
+    paragraphSpacing: spacePara,
+    minBottomSpace: spaceMinBottom,
+    verticalAlignment: spaceVAlign,
+  } = spacing;
+
+  const {
+    autoFit: advAutoFit,
+    minFontSize: advMinFont,
+    maxFontSize: advMaxFont,
+    densityTarget: advDensity,
+    balanceStrength: advBalance,
+    preventOrphanLines: advOrphan,
+  } = advanced;
+
+  // Run pagination & auto-fit strictly when layout-affecting properties or debouncedText change
   const paginationResult: PaginationResult = useMemo(() => {
     const effectiveDoc: DocumentState = {
-      ...doc,
       text: debouncedText,
+      projectName: docProjectName,
+      pageCount: docPageCount,
+      distributionMode: docDistributionMode,
+      manualBreaks: docManualBreaks,
+      layoutLocked: docLayoutLocked,
     };
 
-    if (advanced.autoFit && !doc.layoutLocked) {
+    const layoutCanvas: CanvasSettings = {
+      ...canvas,
+      width: canvasWidth,
+      height: canvasHeight,
+    };
+
+    const layoutTypo: TypographySettings = {
+      ...typography,
+      fontFamily: typoFamily,
+      fontSize: typoFontSize,
+      fontWeight: typoWeight,
+      lineHeight: typoLineHeight,
+      letterSpacing: typoLetterSpacing,
+      alignment: typoAlign,
+      verticalAlignment: typoVAlign,
+    };
+
+    const layoutSpacing: SpacingSettings = {
+      ...spacing,
+      paddingTop: spaceTop,
+      paddingRight: spaceRight,
+      paddingBottom: spaceBottom,
+      paddingLeft: spaceLeft,
+      paragraphSpacing: spacePara,
+      minBottomSpace: spaceMinBottom,
+      verticalAlignment: spaceVAlign,
+    };
+
+    const layoutAdv: AdvancedSettings = {
+      ...advanced,
+      autoFit: advAutoFit,
+      minFontSize: advMinFont,
+      maxFontSize: advMaxFont,
+      densityTarget: advDensity,
+      balanceStrength: advBalance,
+      preventOrphanLines: advOrphan,
+    };
+
+    if (advAutoFit && !docLayoutLocked) {
       return autoFitFontSize(effectiveDoc, {
-        canvas,
-        typography,
-        spacing,
-        advanced,
+        canvas: layoutCanvas,
+        typography: layoutTypo,
+        spacing: layoutSpacing,
+        advanced: layoutAdv,
       });
     }
 
     return paginateDocument(effectiveDoc, {
-      canvas,
-      typography,
-      spacing,
-      advanced,
+      canvas: layoutCanvas,
+      typography: layoutTypo,
+      spacing: layoutSpacing,
+      advanced: layoutAdv,
     });
-  }, [debouncedText, doc, canvas, typography, spacing, advanced]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally decoupling layout primitives from non-layout visual colors (backgroundColor, textColor) to eliminate color picker lag
+  }, [
+    debouncedText,
+    docProjectName,
+    docPageCount,
+    docDistributionMode,
+    docManualBreaks,
+    docLayoutLocked,
+    canvasWidth,
+    canvasHeight,
+    typoFamily,
+    typoFontSize,
+    typoWeight,
+    typoLineHeight,
+    typoLetterSpacing,
+    typoAlign,
+    typoVAlign,
+    spaceTop,
+    spaceRight,
+    spaceBottom,
+    spaceLeft,
+    spacePara,
+    spaceMinBottom,
+    spaceVAlign,
+    advAutoFit,
+    advMinFont,
+    advMaxFont,
+    advDensity,
+    advBalance,
+    advOrphan,
+  ]);
 
   // Derive guaranteed effective typography matching pagination result
   const effectiveTypography = useMemo(

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Sparkles, AlertTriangle, ChevronLeft, ChevronRight } from 'lucide-react';
 import {
   CanvasSettings,
@@ -59,23 +59,70 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
       ? highlightedPageIndex
       : Math.min(Math.max(0, internalSingleIndex), Math.max(0, pages.length - 1));
 
-  // Keyboard navigation for single mode
+  const carouselContainerRef = useRef<HTMLDivElement>(null);
+  const [activeCarouselIndex, setActiveCarouselIndex] = useState(0);
+
+  const scrollCarouselTo = useCallback((index: number) => {
+    const container = carouselContainerRef.current;
+    if (!container) return;
+    const targetChild = container.children[index] as HTMLElement | undefined;
+    if (targetChild) {
+      const containerWidth = container.clientWidth;
+      const childLeft = targetChild.offsetLeft;
+      const childWidth = targetChild.clientWidth;
+      const targetScroll = childLeft - (containerWidth - childWidth) / 2;
+      container.scrollTo({ left: targetScroll, behavior: 'smooth' });
+    }
+    setActiveCarouselIndex(index);
+    onSelectPage(index);
+  }, [onSelectPage]);
+
+  const handleCarouselScroll = () => {
+    const container = carouselContainerRef.current;
+    if (!container || pages.length === 0) return;
+    const center = container.scrollLeft + container.clientWidth / 2;
+    let closestIndex = 0;
+    let minDistance = Infinity;
+
+    for (let i = 0; i < container.children.length; i++) {
+      const child = container.children[i] as HTMLElement;
+      const childCenter = child.offsetLeft + child.clientWidth / 2;
+      const dist = Math.abs(childCenter - center);
+      if (dist < minDistance) {
+        minDistance = dist;
+        closestIndex = i;
+      }
+    }
+    if (closestIndex !== activeCarouselIndex && closestIndex < pages.length) {
+      setActiveCarouselIndex(closestIndex);
+    }
+  };
+
+  // Keyboard navigation for single and carousel modes
   useEffect(() => {
-    if (previewMode !== 'single') return;
+    if (previewMode !== 'single' && previewMode !== 'carousel') return;
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
       if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) return;
       if (e.key === 'ArrowLeft') {
         e.preventDefault();
-        setInternalSingleIndex((prev) => Math.max(0, prev - 1));
+        if (previewMode === 'single') {
+          setInternalSingleIndex((prev) => Math.max(0, prev - 1));
+        } else {
+          scrollCarouselTo(Math.max(0, activeCarouselIndex - 1));
+        }
       } else if (e.key === 'ArrowRight') {
         e.preventDefault();
-        setInternalSingleIndex((prev) => Math.min(pages.length - 1, prev + 1));
+        if (previewMode === 'single') {
+          setInternalSingleIndex((prev) => Math.min(pages.length - 1, prev + 1));
+        } else {
+          scrollCarouselTo(Math.min(pages.length - 1, activeCarouselIndex + 1));
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [previewMode, pages.length]);
+  }, [previewMode, pages.length, activeCarouselIndex, scrollCarouselTo]);
 
   // Grid column class matching large card display
   const getGridCols = () => {
@@ -88,16 +135,22 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
   return (
     <div
       className={`flex flex-col h-full w-full bg-[#09090b] ${
-        previewMode === 'single' ? 'overflow-hidden p-3 md:p-5' : 'overflow-y-auto p-6 md:p-8'
-      } select-none`}
+        previewMode === 'single' || previewMode === 'carousel'
+          ? 'p-4 justify-between items-center overflow-hidden'
+          : 'overflow-y-auto p-8'
+      } relative`}
     >
-      {/* Overflow Warning Banner (if text doesn't fit) */}
+      {/* Text Overflow Warning Banner */}
       {hasOverflow && (
-        <div className="max-w-4xl mx-auto w-full mb-4 p-3 rounded-lg bg-red-950/40 border border-red-800/80 flex items-center justify-between gap-3 text-xs text-red-200 shrink-0">
+        <div className="mb-4 p-3 rounded-lg bg-red-950/40 border border-red-900/60 text-red-200 flex items-center justify-between text-xs max-w-4xl w-full shrink-0 shadow-lg">
           <div className="flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
             <span>
-              Text overflows on {overflowingPages.length} {overflowingPages.length === 1 ? 'page' : 'pages'}.
+              {overflowingPages.length === 1
+                ? `Page ${overflowingPages[0].pageIndex + 1} overflows by ~${Math.round(
+                    overflowingPages[0].overflowPx
+                  )}px.`
+                : `${overflowingPages.length} pages overflow canvas bounds.`}
             </span>
           </div>
           <button
@@ -106,7 +159,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
             className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-red-900/60 hover:bg-red-800 text-white font-medium transition-colors text-xs"
           >
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Auto-fit to fix</span>
+            Auto-fit Text
           </button>
         </div>
       )}
@@ -181,35 +234,103 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
         </div>
       )}
 
-      {/* Mode 2: Horizontal Carousel Swipe Filmstrip */}
+      {/* Mode 2: Gold-Standard Horizontal Carousel with Floating Controls & Scroll Snap */}
       {previewMode === 'carousel' && (
-        <div className="flex-1 w-full flex items-center overflow-x-auto no-scrollbar py-6 px-4 gap-6">
-          {pages.map((page, idx) => (
-            <div
-              key={`preview-carousel-${page.pageIndex}`}
-              className="w-[320px] sm:w-[360px] md:w-[400px] shrink-0 flex flex-col items-center gap-2"
-            >
-              <PageCard
-                page={page}
-                totalPages={pages.length}
-                canvas={canvas}
-                typography={typography}
-                spacing={spacing}
-                exportFormat={exportFormat}
-                exportScale={exportScale}
-                projectName={projectName}
-                isHovered={highlightedPageIndex === idx}
-                onHover={(isHovering) => onPageHover(isHovering ? idx : null)}
-                onClick={() => onSelectPage(idx)}
-                onEnlarge={() => onOpenFullscreen(idx)}
-                allowClippedExport={allowClippedExport}
-                onBlockedExport={onBlockedExport}
-              />
-              <span className="text-[11px] font-mono text-zinc-500 select-none">
-                Page {page.pageIndex + 1}
+        <div className="flex-1 min-h-0 w-full relative flex flex-col items-center justify-center overflow-hidden">
+          {/* Floating Left / Right Navigation Chevrons */}
+          {pages.length > 1 && (
+            <>
+              <button
+                type="button"
+                disabled={activeCarouselIndex === 0}
+                onClick={() => scrollCarouselTo(Math.max(0, activeCarouselIndex - 1))}
+                className="absolute left-4 top-1/2 -translate-y-1/2 z-30 h-10 w-10 rounded-full bg-[#0c0c0e]/90 hover:bg-[#16161c] border border-[#1b1b22] hover:border-[#2e2e3a] text-zinc-300 hover:text-white flex items-center justify-center backdrop-blur-md shadow-2xl transition-all disabled:opacity-0 disabled:pointer-events-none focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-zinc-500"
+                title="Previous image (Arrow Left)"
+                aria-label="Previous slide"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+
+              <button
+                type="button"
+                disabled={activeCarouselIndex >= pages.length - 1}
+                onClick={() => scrollCarouselTo(Math.min(pages.length - 1, activeCarouselIndex + 1))}
+                className="absolute right-4 top-1/2 -translate-y-1/2 z-30 h-10 w-10 rounded-full bg-[#0c0c0e]/90 hover:bg-[#16161c] border border-[#1b1b22] hover:border-[#2e2e3a] text-zinc-300 hover:text-white flex items-center justify-center backdrop-blur-md shadow-2xl transition-all disabled:opacity-0 disabled:pointer-events-none focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-zinc-500"
+                title="Next image (Arrow Right)"
+                aria-label="Next slide"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </>
+          )}
+
+          {/* Carousel Scroll Track: Height-constrained, Aspect-Ratio Preserving */}
+          <div
+            ref={carouselContainerRef}
+            onScroll={handleCarouselScroll}
+            className="flex-1 min-h-0 w-full flex items-center overflow-x-auto snap-x snap-mandatory py-4 px-12 gap-8 scroll-smooth"
+          >
+            {pages.map((page, idx) => (
+              <div
+                key={`preview-carousel-${page.pageIndex}`}
+                className="h-full max-h-[70vh] min-h-[280px] shrink-0 flex flex-col items-center justify-center snap-center"
+                style={{
+                  aspectRatio: `${canvas.width} / ${canvas.height}`,
+                }}
+              >
+                <div className="w-full flex-1 min-h-0 relative flex items-center justify-center">
+                  <PageCard
+                    page={page}
+                    totalPages={pages.length}
+                    canvas={canvas}
+                    typography={typography}
+                    spacing={spacing}
+                    exportFormat={exportFormat}
+                    exportScale={exportScale}
+                    projectName={projectName}
+                    isHovered={highlightedPageIndex === idx}
+                    onHover={(isHovering) => onPageHover(isHovering ? idx : null)}
+                    onClick={() => {
+                      scrollCarouselTo(idx);
+                      onSelectPage(idx);
+                    }}
+                    onEnlarge={() => onOpenFullscreen(idx)}
+                    allowClippedExport={allowClippedExport}
+                    onBlockedExport={onBlockedExport}
+                  />
+                </div>
+                <span className="text-[11px] font-mono text-zinc-500 mt-2 shrink-0 select-none">
+                  Page {page.pageIndex + 1}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* Bottom Interactive Slide Indicators & Page Counter */}
+          {pages.length > 1 && (
+            <div className="flex items-center gap-3 py-1.5 px-3 rounded-full bg-[#0c0c0e]/80 border border-[#1b1b22] backdrop-blur-md shrink-0 shadow-lg mt-2 select-none">
+              <span className="text-[11px] font-mono text-zinc-400">
+                {activeCarouselIndex + 1} / {pages.length}
               </span>
+              <div className="w-px h-3 bg-[#18181f]" />
+              <div className="flex items-center gap-1.5">
+                {pages.map((p, idx) => (
+                  <button
+                    key={`dot-${p.pageIndex}`}
+                    type="button"
+                    onClick={() => scrollCarouselTo(idx)}
+                    className={`h-1.5 rounded-full transition-all focus-visible:outline-hidden ${
+                      activeCarouselIndex === idx
+                        ? 'w-5 bg-zinc-200'
+                        : 'w-1.5 bg-zinc-600 hover:bg-zinc-400'
+                    }`}
+                    title={`Go to page ${idx + 1}`}
+                    aria-label={`Go to page ${idx + 1}`}
+                  />
+                ))}
+              </div>
             </div>
-          ))}
+          )}
         </div>
       )}
 

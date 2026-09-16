@@ -55,17 +55,24 @@ export const PageCard: React.FC<PageCardProps> = ({
   const [copied, setCopied] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
 
-  // Render canvas whenever layout/page changes
+  // Render canvas whenever layout/page changes with rAF throttling for buttery-smooth 60fps updates
   useEffect(() => {
+    let animId: number;
     if (canvasRef.current) {
-      renderPageToCanvas(canvasRef.current, {
-        page,
-        canvas,
-        typography,
-        spacing,
-        scale: 1, // Preview scale
+      const c = canvasRef.current;
+      animId = requestAnimationFrame(() => {
+        renderPageToCanvas(c, {
+          page,
+          canvas,
+          typography,
+          spacing,
+          scale: 1, // Preview scale
+        });
       });
     }
+    return () => {
+      if (animId) cancelAnimationFrame(animId);
+    };
   }, [page, canvas, typography, spacing]);
 
   const handleCopyText = async (e: React.MouseEvent) => {

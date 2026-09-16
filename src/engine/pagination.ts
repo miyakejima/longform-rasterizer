@@ -352,13 +352,20 @@ export function paginateDocument(
           }
         }
 
-        return {
-          pages,
-          totalAvailableHeight: availableHeight * pageCount,
-          effectiveFontSize: typography.fontSize,
-          isAutoFitFailed: false,
-          overallScore: dpS[pageCount][S],
-        };
+        const utils = pages.map((p) => p.utilization);
+        const minUtil = Math.min(...utils);
+        const maxUtil = Math.max(...utils);
+        const isImbalanced = doc.distributionMode !== 'paragraph-preserving' && minUtil < 82 && (maxUtil - minUtil) >= 15;
+
+        if (!isImbalanced) {
+          return {
+            pages,
+            totalAvailableHeight: availableHeight * pageCount,
+            effectiveFontSize: typography.fontSize,
+            isAutoFitFailed: false,
+            overallScore: dpS[pageCount][S],
+          };
+        }
       }
     }
   }
