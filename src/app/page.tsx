@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useRef, useCallback, useSyncExternalStore } from 'react';
+import { PanelLeftClose, PanelLeft } from 'lucide-react';
 import { HeaderBar } from '../components/HeaderBar';
 import { EditorPanel } from '../components/EditorPanel';
 import { DockedToolbar } from '../components/DockedToolbar';
@@ -77,6 +78,7 @@ function Workspace() {
   const [highlightedPageIndex, setHighlightedPageIndex] = useState<number | null>(null);
   const [fullscreenPageIndex, setFullscreenPageIndex] = useState<number | null>(null);
   const [previewMode, setPreviewMode] = useState<PreviewMode>('grid');
+  const [isEditorCollapsed, setIsEditorCollapsed] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [exportWarning, setExportWarning] = useState<string | null>(null);
   const [showPresetsModal, setShowPresetsModal] = useState(false);
@@ -363,6 +365,9 @@ function Workspace() {
       } else if (isCmdOrCtrl && (e.key === 'L' || e.key === 'l')) {
         e.preventDefault();
         setDoc((prev) => ({ ...prev, layoutLocked: !prev.layoutLocked }));
+      } else if (isCmdOrCtrl && (e.key === 'B' || e.key === 'b')) {
+        e.preventDefault();
+        setIsEditorCollapsed((prev) => !prev);
       } else if (isCmdOrCtrl && (e.key === 'Z' || e.key === 'z') && !e.shiftKey) {
         if ((e.target as HTMLElement)?.tagName !== 'TEXTAREA') {
           e.preventDefault();
@@ -399,10 +404,14 @@ function Workspace() {
         </div>
       )}
 
-      {/* Main 2-Column Responsive Workspace: 30% Editor, 70% Previews */}
+      {/* Main 2-Column Responsive Workspace: 30% Editor, 70% Previews (Collapsible) */}
       <div className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0 bg-[#0c0c0e]">
         {/* Left Column: Distraction-Free Editorial Text Editor (Zero navbar!) */}
-        <div className="w-full md:w-[30%] h-1/2 md:h-full flex flex-col bg-[#0c0c0e] overflow-hidden">
+        <div
+          className={`w-full md:w-[30%] h-1/2 md:h-full flex flex-col bg-[#0c0c0e] overflow-hidden ${
+            isEditorCollapsed ? 'hidden' : ''
+          }`}
+        >
           <EditorPanel
             text={doc.text}
             onTextChange={handleTextChange}
@@ -431,16 +440,37 @@ function Workspace() {
         </div>
 
         {/* Center 1px Divider Line */}
-        <div className="w-px bg-[#18181c] hidden md:block shrink-0" />
+        {!isEditorCollapsed && <div className="w-px bg-[#18181c] hidden md:block shrink-0" />}
 
         {/* Right Column: Clean Live Preview Cards Grid + Single Top-Right Export Pill */}
-        <div className="w-full md:w-[70%] h-1/2 md:h-full flex flex-col bg-[#09090b] overflow-hidden">
+        <div
+          className={`w-full ${
+            isEditorCollapsed ? 'w-full h-full' : 'md:w-[70%] h-1/2 md:h-full'
+          } flex flex-col bg-[#09090b] overflow-hidden transition-all duration-200`}
+        >
           {/* Top Header above Previews: Status + View Mode Toggle on Left, Single Export Pill on Right */}
           <div className="h-14 px-8 flex items-center justify-between shrink-0 bg-[#09090b] border-b border-[#18181c]/60 z-20">
             <div className="flex items-center gap-3 select-none">
-              <span className="relative flex h-2 w-2" title="Live canvas engine connected">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500 shadow-xs shadow-emerald-500/50"></span>
+              {/* Collapse/Expand Editor (Preview Focus) Toggle */}
+              <button
+                type="button"
+                onClick={() => setIsEditorCollapsed((prev) => !prev)}
+                className="p-1.5 text-zinc-400 hover:text-white rounded-md hover:bg-white/[0.06] transition-colors flex items-center justify-center"
+                title={isEditorCollapsed ? 'Show editor (Ctrl+B)' : 'Collapse editor / Focus preview (Ctrl+B)'}
+                aria-label={isEditorCollapsed ? 'Show editor' : 'Collapse editor'}
+              >
+                {isEditorCollapsed ? (
+                  <PanelLeft className="w-4 h-4" />
+                ) : (
+                  <PanelLeftClose className="w-4 h-4" />
+                )}
+              </button>
+
+              <div className="w-px h-3.5 bg-[#1f1f24]" />
+
+              {/* Page Count Indicator */}
+              <span className="text-xs font-mono text-zinc-400 select-none">
+                {doc.pageCount} {doc.pageCount === 1 ? 'page' : 'pages'}
               </span>
 
               <div className="w-px h-3.5 bg-[#1f1f24]" />
@@ -591,14 +621,10 @@ function Workspace() {
           onFillCanvas={handleFillCanvas}
         />
 
-        {/* Right: Discreet Doc Info */}
-        <div className="flex items-center gap-3 text-[11px] text-zinc-600 font-mono">
-          <span className="hidden sm:inline">
-            {wordCount} words · {charCount} chars
-          </span>
-          <span className="hidden sm:inline text-zinc-800">·</span>
+        {/* Right: Crisp Doc Stats */}
+        <div className="flex items-center gap-3 text-xs text-zinc-400 font-mono select-none">
           <span>
-            {canvas.width}×{canvas.height}
+            {wordCount} words · {charCount} chars
           </span>
         </div>
       </footer>

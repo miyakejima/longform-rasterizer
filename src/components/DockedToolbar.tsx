@@ -172,7 +172,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
   return (
     <div ref={toolbarRef} className="relative select-none flex items-center">
       {/* Sleek Docked Toolbar Bar */}
-      <div className="flex items-center gap-2.5 text-xs font-normal text-zinc-400 select-none overflow-x-auto py-1">
+      <div className="flex items-center gap-2.5 text-xs font-normal text-zinc-400 select-none py-1">
         
         {/* 1. Page Count */}
         <div className="relative">
@@ -451,14 +451,14 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
         <button
           type="button"
           onClick={() => onAdvancedChange({ ...advanced, autoFit: !advanced.autoFit })}
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium transition-all border ${
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all border ${
             advanced.autoFit
-              ? 'bg-[#24242c] text-[#f4f4f6] border-[#3e3e4c] shadow-xs'
+              ? 'bg-white text-black border-white shadow-xs'
               : 'bg-[#121216] border-[#1e1e24] text-zinc-400 hover:text-zinc-200 hover:border-zinc-500'
           }`}
           title={advanced.autoFit ? 'Auto-fit is active (click to use manual size)' : 'Enable Auto-fit to fill pages'}
         >
-          <Sparkles className="w-3 h-3" />
+          <Sparkles className={`w-3 h-3 ${advanced.autoFit ? 'text-black' : ''}`} />
           <span>Auto-fit</span>
         </button>
 
@@ -578,7 +578,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                 type="button"
                 onClick={() => onTypographyChange({ ...typography, alignment: al.id as TextAlignment })}
                 className={`p-1.5 rounded transition-colors ${
-                  isActive ? 'bg-[#24242c] text-[#f4f4f6] border border-[#3c3c48] shadow-xs' : 'text-zinc-400 hover:text-zinc-200'
+                  isActive ? 'bg-[#272730] text-zinc-100 border border-[#3c3c48]' : 'text-zinc-400 hover:text-zinc-200'
                 }`}
                 title={al.label}
               >
@@ -599,7 +599,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
               onSpacingChange({ ...spacing, verticalAlignment: 'top' });
             }}
             className={`px-2 py-1 text-[11px] rounded transition-colors ${
-              !isVerticallyCentered ? 'bg-[#24242c] text-[#f4f4f6] font-medium border border-[#3c3c48] shadow-xs' : 'text-zinc-400 hover:text-zinc-200'
+              !isVerticallyCentered ? 'bg-[#272730] text-zinc-100 font-medium border border-[#3c3c48]' : 'text-zinc-400 hover:text-zinc-200'
             }`}
             title="Top align text on canvas"
           >
@@ -612,7 +612,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
               onSpacingChange({ ...spacing, verticalAlignment: 'center' });
             }}
             className={`px-2 py-1 text-[11px] rounded transition-colors ${
-              isVerticallyCentered ? 'bg-[#24242c] text-[#f4f4f6] font-medium border border-[#3c3c48] shadow-xs' : 'text-zinc-400 hover:text-zinc-200'
+              isVerticallyCentered ? 'bg-[#272730] text-zinc-100 font-medium border border-[#3c3c48]' : 'text-zinc-400 hover:text-zinc-200'
             }`}
             title="Center text vertically (balances top and bottom empty space)"
           >
@@ -632,7 +632,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
             }`}
             title="Change margins & paragraph spacing"
           >
-            <span>{getMarginLabel()} margins</span>
+            <span>{getMarginLabel()}</span>
             <ChevronDown className="w-3 h-3 text-zinc-500" />
           </button>
 

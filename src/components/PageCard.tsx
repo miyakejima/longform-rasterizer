@@ -110,7 +110,7 @@ export const PageCard: React.FC<PageCardProps> = ({
           ? 'border-zinc-400 shadow-zinc-950 ring-1 ring-zinc-500/30'
           : hasOverflow
           ? 'border-red-800 shadow-red-950/20'
-          : 'border-[#222226] hover:border-zinc-500'
+          : 'border-[#32323c] hover:border-zinc-400'
       }`}
       onMouseEnter={() => onHover(true)}
       onMouseLeave={() => onHover(false)}
@@ -172,7 +172,7 @@ export const PageCard: React.FC<PageCardProps> = ({
 
       {/* Discrete Centered Page Number */}
       <div
-        className="text-center py-2 text-zinc-500 font-mono text-xs select-none"
+        className="text-center py-2 text-zinc-400 font-mono text-xs select-none"
         title={`Page ${page.pageIndex + 1} of ${totalPages}`}
       >
         {page.pageIndex + 1}
