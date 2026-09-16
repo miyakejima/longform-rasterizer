@@ -32,6 +32,15 @@ Paste a thread, essay, quote, or any prose — get cleanly typeset image cards w
 
 ---
 
+## Use Cases
+
+- **Bypassing Character Limits** — The free tier of X (Twitter) limits you to 280 characters, and Threads to 500. Instead of writing messy 15-post threads or linking out to a blog that nobody will click, paste your entire essay and post it natively as a multi-image set.
+- **Single-Image Quote Cards** — Not just for long-form prose. Drop in a 50-word quote, select the 1:1 Square preset, and instantly get a perfectly justified, typography-focused image for Instagram or LinkedIn.
+- **Swipeable Carousels** — Turn an article or newsletter excerpt into a seamless Instagram or LinkedIn carousel. The layout engine guarantees that your paragraphs will never awkwardly split between slides.
+- **Cross-Platform Consistency** — Native text formatting breaks unpredictably across different apps and OS fonts. A rendered image looks exactly the same everywhere.
+
+---
+
 ## Output
 
 ### 4-Page Balanced Cards
