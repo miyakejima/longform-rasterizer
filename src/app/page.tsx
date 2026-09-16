@@ -448,14 +448,14 @@ function Workspace() {
             isEditorCollapsed ? 'w-full h-full' : 'md:w-[70%] h-1/2 md:h-full'
           } flex flex-col bg-[#09090b] overflow-hidden transition-all duration-200`}
         >
-          {/* Top Header above Previews: Status + View Mode Toggle on Left, Single Export Pill on Right */}
-          <div className="h-14 px-8 flex items-center justify-between shrink-0 bg-[#09090b] border-b border-[#18181c]/60 z-20">
-            <div className="flex items-center gap-2 select-none">
-              {/* Collapse/Expand Editor (Preview Focus) Toggle */}
+          {/* Top Header above Previews: Symmetrical 3-Zone Studio Layout */}
+          <div className="h-14 px-4 md:px-8 flex items-center justify-between shrink-0 bg-[#09090b] border-b border-[#18181c]/60 z-20">
+            {/* Left Zone: Sidebar Toggle & Page Breadcrumb */}
+            <div className="flex items-center gap-3 select-none flex-1 min-w-0">
               <button
                 type="button"
                 onClick={() => setIsEditorCollapsed((prev) => !prev)}
-                className={`h-7 w-7 rounded-[6px] bg-[#0c0c0e] border border-[#1b1b22] hover:border-[#2e2e3a] hover:bg-[#16161c] text-zinc-400 hover:text-white transition-all flex items-center justify-center shadow-xs ${
+                className={`h-7 w-7 rounded-[6px] bg-[#0c0c0e] border border-[#1b1b22] hover:border-[#2e2e3a] hover:bg-[#16161c] text-zinc-400 hover:text-white transition-all flex items-center justify-center shadow-xs focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-zinc-500 ${
                   isEditorCollapsed ? 'border-zinc-500/40 text-white' : ''
                 }`}
                 title={isEditorCollapsed ? 'Show editor (Ctrl+B)' : 'Collapse editor / Focus preview (Ctrl+B)'}
@@ -468,75 +468,87 @@ function Workspace() {
                 )}
               </button>
 
-              {/* Page Count Indicator */}
-              <div className="h-7 px-2.5 rounded-[6px] bg-[#0c0c0e] border border-[#1b1b22] text-xs font-mono text-zinc-400 flex items-center shadow-xs">
-                <span>{doc.pageCount} {doc.pageCount === 1 ? 'page' : 'pages'}</span>
-              </div>
+              <span className="text-zinc-700 text-xs select-none">/</span>
 
-              {/* Symmetrical Segmented View Mode Switcher */}
+              {/* Refined Page Count Context (clean editorial status) */}
+              <div className="flex items-center gap-1.5 text-xs font-mono text-zinc-400 select-none">
+                <span className="text-zinc-200 font-semibold">{doc.pageCount}</span>
+                <span className="text-zinc-500">{doc.pageCount === 1 ? 'page' : 'pages'}</span>
+              </div>
+            </div>
+
+            {/* Center Zone: Symmetrical View Mode Segmented Control */}
+            <div className="flex items-center justify-center select-none shrink-0">
               <div className="h-7 p-0.5 rounded-[6px] bg-[#0c0c0e] border border-[#1b1b22] flex items-center gap-0.5 shadow-xs">
                 <button
                   type="button"
                   onClick={() => setPreviewMode('grid')}
-                  className={`h-6 w-6 rounded-[4px] flex items-center justify-center transition-colors ${
+                  className={`h-6 px-2.5 rounded-[4px] flex items-center gap-1.5 text-xs transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-zinc-500 ${
                     previewMode === 'grid'
-                      ? 'bg-[#1c1c24] text-[#f4f4f6] border border-[#2e2e3a] shadow-xs'
+                      ? 'bg-[#1c1c24] text-[#f4f4f6] font-medium border border-[#2e2e3a] shadow-xs'
                       : 'text-zinc-400 hover:text-white hover:bg-[#16161c]'
                   }`}
                   title="Grid view"
                   aria-label="Grid view"
                 >
                   <GridModeIcon className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline text-[11px]">Grid</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setPreviewMode('single')}
-                  className={`h-6 w-6 rounded-[4px] flex items-center justify-center transition-colors ${
+                  className={`h-6 px-2.5 rounded-[4px] flex items-center gap-1.5 text-xs transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-zinc-500 ${
                     previewMode === 'single'
-                      ? 'bg-[#1c1c24] text-[#f4f4f6] border border-[#2e2e3a] shadow-xs'
+                      ? 'bg-[#1c1c24] text-[#f4f4f6] font-medium border border-[#2e2e3a] shadow-xs'
                       : 'text-zinc-400 hover:text-white hover:bg-[#16161c]'
                   }`}
                   title="Single page view"
                   aria-label="Single page view"
                 >
                   <SingleModeIcon className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline text-[11px]">Single</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setPreviewMode('carousel')}
-                  className={`h-6 w-6 rounded-[4px] flex items-center justify-center transition-colors ${
+                  className={`h-6 px-2.5 rounded-[4px] flex items-center gap-1.5 text-xs transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-zinc-500 ${
                     previewMode === 'carousel'
-                      ? 'bg-[#1c1c24] text-[#f4f4f6] border border-[#2e2e3a] shadow-xs'
+                      ? 'bg-[#1c1c24] text-[#f4f4f6] font-medium border border-[#2e2e3a] shadow-xs'
                       : 'text-zinc-400 hover:text-white hover:bg-[#16161c]'
                   }`}
                   title="Carousel swipe view"
                   aria-label="Carousel view"
                 >
                   <CarouselModeIcon className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline text-[11px]">Carousel</span>
                 </button>
               </div>
             </div>
-            <HeaderBar
-              onExportAll={handleExportAll}
-              onExportZip={handleExportZip}
-              exportFormat={exportFormat}
-              onExportFormatChange={setExportFormat}
-              exportScale={exportScale}
-              onExportScaleChange={setExportScale}
-              presets={presets}
-              selectedPresetId={selectedPresetId}
-              onSelectPreset={handleSelectPreset}
-              onSaveCurrentPreset={handleSaveCurrentPreset}
-              onRenamePreset={handleRenamePreset}
-              onDuplicatePreset={handleDuplicatePreset}
-              onDeletePreset={handleDeletePreset}
-              isExporting={isExporting}
-              hasOverflow={hasOverflow}
-              showPresetManagerModal={showPresetsModal}
-              onClosePresetManagerModal={() => setShowPresetsModal(false)}
-              showShortcutsModal={showShortcutsModal}
-              onCloseShortcutsModal={() => setShowShortcutsModal(false)}
-            />
+
+            {/* Right Zone: Primary Action (Export Pill) */}
+            <div className="flex items-center justify-end select-none flex-1 min-w-0">
+              <HeaderBar
+                onExportAll={handleExportAll}
+                onExportZip={handleExportZip}
+                exportFormat={exportFormat}
+                onExportFormatChange={setExportFormat}
+                exportScale={exportScale}
+                onExportScaleChange={setExportScale}
+                presets={presets}
+                selectedPresetId={selectedPresetId}
+                onSelectPreset={handleSelectPreset}
+                onSaveCurrentPreset={handleSaveCurrentPreset}
+                onRenamePreset={handleRenamePreset}
+                onDuplicatePreset={handleDuplicatePreset}
+                onDeletePreset={handleDeletePreset}
+                isExporting={isExporting}
+                hasOverflow={hasOverflow}
+                showPresetManagerModal={showPresetsModal}
+                onClosePresetManagerModal={() => setShowPresetsModal(false)}
+                showShortcutsModal={showShortcutsModal}
+                onCloseShortcutsModal={() => setShowShortcutsModal(false)}
+              />
+            </div>
           </div>
 
           {/* Previews Grid */}
