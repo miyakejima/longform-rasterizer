@@ -35,16 +35,16 @@ export function optimizeCanvasFill(
   const minFont = Math.max(12, advanced.minFontSize || 14);
   const maxFont = Math.max(minFont, 96);
 
-  // Base configuration: eliminate minimum bottom margin & center vertically for balanced symmetry
+  // Base configuration: eliminate minimum bottom margin & justify vertically for balanced symmetry
   const baseSpacing: SpacingSettings = {
     ...spacing,
     minBottomSpace: 0,
-    verticalAlignment: 'center',
+    verticalAlignment: 'justify',
   };
 
   const baseTypography: TypographySettings = {
     ...typography,
-    verticalAlignment: 'center',
+    verticalAlignment: 'justify',
   };
 
   // Phase 1: Binary search to find the maximum font size that fits without overflow
@@ -100,7 +100,7 @@ export function optimizeCanvasFill(
 
   const computeUtilMetrics = (res: PaginationResult) => {
     if (res.pages.length === 0) return { avg: 0, min: 0 };
-    const utils = res.pages.map((p) => p.utilization);
+    const utils = res.pages.map((p) => p.utilization / 100);
     const avg = utils.reduce((a, b) => a + b, 0) / utils.length;
     const min = Math.min(...utils);
     return { avg, min };
@@ -142,7 +142,7 @@ export function optimizeCanvasFill(
         };
 
         const testRes = paginateDocument(doc, testOptions);
-        const hasOverflow = testRes.pages.some((p) => p.isOverflowing || p.utilization > 0.995);
+        const hasOverflow = testRes.pages.some((p) => p.isOverflowing);
 
         if (!hasOverflow) {
           const { avg, min } = computeUtilMetrics(testRes);
@@ -150,7 +150,7 @@ export function optimizeCanvasFill(
           const candidateScore = min * 0.65 + avg * 0.35;
           const bestScore = bestMinUtil * 0.65 + bestAvgUtil * 0.35;
 
-          if (candidateScore > bestScore && avg <= 0.995) {
+          if (candidateScore > bestScore) {
             bestTypography = testTypo;
             bestSpacing = testSpace;
             bestPagination = testRes;

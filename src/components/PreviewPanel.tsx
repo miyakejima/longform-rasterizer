@@ -29,6 +29,7 @@ interface PreviewPanelProps {
   allowClippedExport?: boolean;
   onBlockedExport?: (msg: string) => void;
   previewMode?: PreviewMode;
+  isEditorCollapsed?: boolean;
 }
 
 export const PreviewPanel: React.FC<PreviewPanelProps> = ({
@@ -47,6 +48,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
   allowClippedExport = false,
   onBlockedExport,
   previewMode = 'grid',
+  isEditorCollapsed = false,
 }) => {
   const overflowingPages = pages.filter((p) => p.isOverflowing);
   const hasOverflow = overflowingPages.length > 0;
@@ -124,8 +126,15 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [previewMode, pages.length, activeCarouselIndex, scrollCarouselTo]);
 
-  // Grid column class matching large card display
+  // Grid column class matching large card display (adapts dynamically to collapsed studio space)
   const getGridCols = () => {
+    if (isEditorCollapsed) {
+      if (pages.length === 1) return 'grid-cols-1 max-w-xl';
+      if (pages.length === 2) return 'grid-cols-1 sm:grid-cols-2 max-w-5xl';
+      if (pages.length === 3) return 'grid-cols-1 md:grid-cols-3 max-w-6xl';
+      if (pages.length === 4) return 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 max-w-[1700px]';
+      return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 max-w-[1800px]';
+    }
     if (pages.length === 1) return 'grid-cols-1 max-w-md';
     return 'grid-cols-1 xl:grid-cols-2 max-w-4xl';
   };
@@ -137,7 +146,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
       className={`flex flex-col h-full w-full bg-[#09090b] ${
         previewMode === 'single' || previewMode === 'carousel'
           ? 'p-4 justify-between items-center overflow-hidden'
-          : 'overflow-y-auto p-8'
+          : isEditorCollapsed ? 'overflow-y-auto p-6 md:p-8 lg:p-12' : 'overflow-y-auto p-6 md:p-8'
       } relative`}
     >
       {/* Text Overflow Warning Banner */}

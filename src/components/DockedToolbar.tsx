@@ -27,6 +27,7 @@ import {
   SpacingSettings,
   TextAlignment,
   TypographySettings,
+  VerticalAlignment,
   AdvancedSettings,
 } from '../types';
 
@@ -167,8 +168,6 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
     if (spacing.preset === 'generous') return 'Generous';
     return 'Balanced';
   };
-
-  const isVerticallyCentered = (typography.verticalAlignment ?? spacing.verticalAlignment ?? 'center') === 'center';
 
   return (
     <div ref={toolbarRef} className="relative select-none flex items-center">
@@ -482,10 +481,10 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
           <button
             type="button"
             onClick={onFillCanvas}
-            className="h-6 px-2 flex items-center gap-1 rounded-[4px] text-[11px] text-zinc-400 hover:text-amber-300 hover:bg-[#16161c] transition-colors"
-            title="1-click: Optimize font size, line height, and spacing to maximize page fill"
+            className="h-6 px-2 flex items-center gap-1 rounded-[4px] text-[11px] text-zinc-400 hover:text-white hover:bg-[#16161c] transition-colors"
+            title="1-click: Optimize font size, line height, and vertical justification to maximize page fill"
           >
-            <Maximize2 className="w-3 h-3 text-amber-400/80" />
+            <Maximize2 className="w-3 h-3 text-zinc-400" />
             <span>Fill</span>
           </button>
         </div>
@@ -616,38 +615,32 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
 
           <span className="text-zinc-600 text-[10px] px-0.5 select-none">·</span>
 
-          {/* Vertical Alignment */}
+          {/* Vertical Alignment (Top / Center / Justify) */}
           <div className="flex items-center gap-0.5">
-            <button
-              type="button"
-              onClick={() => {
-                onTypographyChange({ ...typography, verticalAlignment: 'top' });
-                onSpacingChange({ ...spacing, verticalAlignment: 'top' });
-              }}
-              className={`h-6 px-1.5 flex items-center justify-center rounded-[4px] text-[11px] font-medium transition-colors ${
-                !isVerticallyCentered
-                  ? 'bg-[#1c1c24] text-[#f4f4f6] border border-[#2e2e3a]'
-                  : 'text-zinc-400 hover:text-white hover:bg-[#16161c]'
-              }`}
-              title="Top align text on canvas"
-            >
-              Top
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                onTypographyChange({ ...typography, verticalAlignment: 'center' });
-                onSpacingChange({ ...spacing, verticalAlignment: 'center' });
-              }}
-              className={`h-6 px-1.5 flex items-center justify-center rounded-[4px] text-[11px] font-medium transition-colors ${
-                isVerticallyCentered
-                  ? 'bg-[#1c1c24] text-[#f4f4f6] border border-[#2e2e3a]'
-                  : 'text-zinc-400 hover:text-white hover:bg-[#16161c]'
-              }`}
-              title="Center text vertically"
-            >
-              Center
-            </button>
+            {(['top', 'center', 'justify'] as VerticalAlignment[]).map((va) => {
+              const currentVA = typography.verticalAlignment ?? spacing.verticalAlignment ?? 'center';
+              const isActive = currentVA === va;
+              const label = va === 'top' ? 'Top' : va === 'center' ? 'Center' : 'Justify';
+              const tip = va === 'top' ? 'Top align text on canvas' : va === 'center' ? 'Center text vertically' : 'Justify text across canvas height';
+              return (
+                <button
+                  key={va}
+                  type="button"
+                  onClick={() => {
+                    onTypographyChange({ ...typography, verticalAlignment: va });
+                    onSpacingChange({ ...spacing, verticalAlignment: va });
+                  }}
+                  className={`h-6 px-1.5 flex items-center justify-center rounded-[4px] text-[11px] font-medium transition-colors ${
+                    isActive
+                      ? 'bg-[#1c1c24] text-[#f4f4f6] border border-[#2e2e3a]'
+                      : 'text-zinc-400 hover:text-white hover:bg-[#16161c]'
+                  }`}
+                  title={tip}
+                >
+                  {label}
+                </button>
+              );
+            })}
           </div>
         </div>
 

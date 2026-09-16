@@ -48,16 +48,10 @@ export function computeBalanceScore(
   } else {
     // Balanced mode:
     // Paragraph boundary: 0 penalty
-    // Sentence boundary: 100 penalty
-    // Line boundary (inside sentence): 800 penalty
-    // Strongly prefers sentence boundaries when available, but permits line splits
-    // when keeping a giant paragraph uncut would severely starve or overflow a page.
+    // Strict paragraph integrity: splitting inside a paragraph is heavily penalized (50,000,000)
+    // so pages strictly terminate on paragraph boundaries.
     if (!isParagraphEnd) {
-      if (isSentenceEnd) {
-        score += 100;
-      } else {
-        score += 800;
-      }
+      score += isSentenceEnd ? 20_000_000 : 50_000_000;
     }
   }
 

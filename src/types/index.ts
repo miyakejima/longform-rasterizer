@@ -9,7 +9,7 @@ export type PreviewMode = 'grid' | 'single' | 'carousel';
 export type MarginPreset = 'compact' | 'balanced' | 'generous' | 'custom';
 export type CanvasPreset = 'twitter' | 'square' | 'portrait' | 'story' | 'landscape' | 'custom';
 
-export type VerticalAlignment = 'top' | 'center';
+export type VerticalAlignment = 'top' | 'center' | 'justify';
 
 export interface CanvasSettings {
   width: number;

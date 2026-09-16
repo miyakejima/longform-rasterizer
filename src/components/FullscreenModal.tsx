@@ -66,7 +66,8 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
     if (!isOpen) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      if (e.key === 'Escape' || e.key === 'f' || e.key === 'F') {
+        e.preventDefault();
         onClose();
       } else if (e.key === 'ArrowLeft') {
         setCurrentPageIndex((prev) => Math.max(0, prev - 1));

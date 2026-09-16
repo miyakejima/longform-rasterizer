@@ -10,7 +10,7 @@ import {
 } from '../types';
 import { wrapDocument } from './lineWrapper';
 import { computeBalanceScore, VisualBalanceOptions } from './visualBalance';
-import { parseDocumentSentences } from './documentParser';
+import { parseDocumentSentences, parseDocumentParagraphs } from './documentParser';
 
 export interface PaginationOptions {
   canvas: CanvasSettings;
@@ -259,9 +259,120 @@ export function paginateDocument(
     mode: doc.distributionMode === 'paragraph-preserving' ? 'paragraph-preserving' : 'balanced',
   };
 
-  // SENTENCE-LEVEL PARTITIONING:
-  // Whenever there are enough sentences to distribute across requested pages,
-  // partition strictly at sentence or paragraph boundaries so no sentence is cut in half across pages!
+  const isVerticalJustify = typography.verticalAlignment === 'justify' || spacing.verticalAlignment === 'justify';
+
+  // 1. PARAGRAPH-LEVEL PARTITIONING:
+  // Whenever there are at least as many paragraphs as requested pages,
+  // evaluate whole-paragraph partitions first. This strictly prevents splitting paragraphs across pages!
+  const parsedParagraphs = parseDocumentParagraphs(originalText);
+  if (parsedParagraphs.length >= pageCount) {
+    const P = parsedParagraphs.length;
+    const dpP: number[][] = Array.from({ length: pageCount + 1 }, () => new Array(P + 1).fill(Infinity));
+    const parentP: number[][] = Array.from({ length: pageCount + 1 }, () => new Array(P + 1).fill(0));
+    dpP[0][0] = 0;
+
+    const paraSpanCache = new Map<number, { height: number; lines: WrappedLine[] }>();
+    function getParaSpan(k: number, j: number) {
+      const key = k * 10000 + j;
+      const cached = paraSpanCache.get(key);
+      if (cached !== undefined) return cached;
+      const startChar = parsedParagraphs[k].startIndex;
+      const endChar = parsedParagraphs[j - 1].endIndex;
+      const spanText = originalText.slice(startChar, endChar);
+      const spanLines = wrapDocument(spanText, { availableWidth, typography });
+      const h = computePageRenderedHeight(spanLines, lineHeightPx, spacing.paragraphSpacing);
+      const data = { height: h, lines: spanLines };
+      paraSpanCache.set(key, data);
+      return data;
+    }
+
+    for (let p = 1; p <= pageCount; p++) {
+      for (let j = p; j <= P; j++) {
+        const minK = p - 1;
+        const maxK = j - 1;
+
+        for (let k = minK; k <= maxK; k++) {
+          if (dpP[p - 1][k] === Infinity) continue;
+          const spanData = getParaSpan(k, j);
+          // Entire paragraphs: isParagraphEnd is true, isSentenceEnd is true
+          const cost = computeBalanceScore(spanData.height, balanceOpts, true, true, false, false);
+          const total = dpP[p - 1][k] + cost;
+          if (total < dpP[p][j]) {
+            dpP[p][j] = total;
+            parentP[p][j] = k;
+          }
+        }
+      }
+    }
+
+    // If valid whole-paragraph partition exists without individual page overflow:
+    if (dpP[pageCount][P] < 10_000_000) {
+      const splitParas: number[] = new Array(pageCount + 1);
+      splitParas[pageCount] = P;
+      let curr = P;
+      for (let p = pageCount; p >= 1; p--) {
+        curr = parentP[p][curr];
+        splitParas[p - 1] = curr;
+      }
+
+      if (splitParas[0] === 0 && splitParas[pageCount] === P) {
+        const pages: PageData[] = [];
+        let prevEnd = 0;
+        for (let p = 0; p < pageCount; p++) {
+          const startP = splitParas[p];
+          const endP = splitParas[p + 1];
+          const startChar = prevEnd;
+          const endChar = endP === P ? originalText.length : parsedParagraphs[endP - 1].endIndex;
+          const pageText = originalText.slice(startChar, endChar);
+          prevEnd = endChar;
+
+          const spanData = getParaSpan(startP, endP);
+          const pageLines = spanData.lines.map((l) => ({
+            ...l,
+            startIndex: l.startIndex + startChar,
+            endIndex: l.endIndex + startChar,
+          }));
+          const renderedH = spanData.height;
+          const overflow = Math.max(0, renderedH - availableHeight);
+          const util = isVerticalJustify && overflow === 0
+            ? 100
+            : Math.min(100, Math.round((renderedH / availableHeight) * 100));
+
+          pages.push({
+            pageIndex: p,
+            text: pageText,
+            startIndex: startChar,
+            endIndex: endChar,
+            lines: pageLines,
+            renderedHeight: renderedH,
+            availableHeight,
+            utilization: util,
+            overflowPx: overflow,
+            isOverflowing: overflow > 0,
+          });
+        }
+
+        if (pages.length > 0) {
+          const lastPage = pages[pages.length - 1];
+          if (lastPage.endIndex < originalText.length) {
+            lastPage.endIndex = originalText.length;
+            lastPage.text = originalText.slice(lastPage.startIndex, originalText.length);
+          }
+        }
+
+        return {
+          pages,
+          totalAvailableHeight: availableHeight * pageCount,
+          effectiveFontSize: typography.fontSize,
+          isAutoFitFailed: false,
+          overallScore: dpP[pageCount][P],
+        };
+      }
+    }
+  }
+
+  // 2. SENTENCE-LEVEL PARTITIONING:
+  // Fallback when fewer paragraphs than pages or when an individual paragraph overflows page bounds
   const sentenceChunks = parseDocumentSentences(originalText);
   if (sentenceChunks.length >= pageCount) {
     const S = sentenceChunks.length;
@@ -329,6 +440,9 @@ export function paginateDocument(
           }));
           const renderedH = computePageRenderedHeight(pageLines, lineHeightPx, spacing.paragraphSpacing);
           const overflow = Math.max(0, renderedH - availableHeight);
+          const util = isVerticalJustify && overflow === 0
+            ? 100
+            : Math.min(100, Math.round((renderedH / availableHeight) * 100));
 
           pages.push({
             pageIndex: p,
@@ -338,7 +452,7 @@ export function paginateDocument(
             lines: pageLines,
             renderedHeight: renderedH,
             availableHeight,
-            utilization: Math.min(100, Math.round((renderedH / availableHeight) * 100)),
+            utilization: util,
             overflowPx: overflow,
             isOverflowing: overflow > 0,
           });
@@ -352,20 +466,13 @@ export function paginateDocument(
           }
         }
 
-        const utils = pages.map((p) => p.utilization);
-        const minUtil = Math.min(...utils);
-        const maxUtil = Math.max(...utils);
-        const isImbalanced = doc.distributionMode !== 'paragraph-preserving' && minUtil < 82 && (maxUtil - minUtil) >= 15;
-
-        if (!isImbalanced) {
-          return {
-            pages,
-            totalAvailableHeight: availableHeight * pageCount,
-            effectiveFontSize: typography.fontSize,
-            isAutoFitFailed: false,
-            overallScore: dpS[pageCount][S],
-          };
-        }
+        return {
+          pages,
+          totalAvailableHeight: availableHeight * pageCount,
+          effectiveFontSize: typography.fontSize,
+          isAutoFitFailed: false,
+          overallScore: dpS[pageCount][S],
+        };
       }
     }
   }
@@ -466,7 +573,9 @@ export function paginateDocument(
       lines: pageLines,
       renderedHeight: renderedH,
       availableHeight,
-      utilization: Math.min(100, Math.round((renderedH / availableHeight) * 100)),
+      utilization: isVerticalJustify && overflow === 0
+        ? 100
+        : Math.min(100, Math.round((renderedH / availableHeight) * 100)),
       overflowPx: overflow,
       isOverflowing: overflow > 0,
     });

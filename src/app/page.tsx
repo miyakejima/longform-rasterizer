@@ -470,6 +470,19 @@ function Workspace() {
   // Keyboard Shortcuts Listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const isInput = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
+
+      // Single key 'F' or 'f' toggles fullscreen on hovered page (or page 0)
+      if (!isInput && !e.metaKey && !e.ctrlKey && !e.altKey && (e.key === 'f' || e.key === 'F')) {
+        e.preventDefault();
+        setFullscreenPageIndex((prev) => {
+          if (prev !== null) return null;
+          return highlightedPageIndex !== null && highlightedPageIndex >= 0 ? highlightedPageIndex : 0;
+        });
+        return;
+      }
+
       const isCmdOrCtrl = e.metaKey || e.ctrlKey;
       if (isCmdOrCtrl && e.key === 'Enter') {
         e.preventDefault();
@@ -484,12 +497,12 @@ function Workspace() {
         e.preventDefault();
         setIsEditorCollapsed((prev) => !prev);
       } else if (isCmdOrCtrl && (e.key === 'Z' || e.key === 'z') && !e.shiftKey) {
-        if ((e.target as HTMLElement)?.tagName !== 'TEXTAREA') {
+        if (!isInput) {
           e.preventDefault();
           handleUndo();
         }
       } else if (isCmdOrCtrl && (e.shiftKey && (e.key === 'Z' || e.key === 'z') || e.key === 'Y' || e.key === 'y')) {
-        if ((e.target as HTMLElement)?.tagName !== 'TEXTAREA') {
+        if (!isInput) {
           e.preventDefault();
           handleRedo();
         }
@@ -498,7 +511,7 @@ function Workspace() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleUndo, handleRedo, handleExportAll]);
+  }, [handleUndo, handleRedo, handleExportAll, highlightedPageIndex]);
 
   const wordCount = doc.text.trim().length === 0 ? 0 : doc.text.trim().split(/\s+/).filter(Boolean).length;
   const charCount = doc.text.length;
@@ -684,6 +697,7 @@ function Workspace() {
               allowClippedExport={advanced.allowClippedExport}
               onBlockedExport={(msg) => setExportWarning(msg)}
               previewMode={previewMode}
+              isEditorCollapsed={isEditorCollapsed}
             />
           </div>
         </div>

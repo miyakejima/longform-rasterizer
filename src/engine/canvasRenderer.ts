@@ -64,9 +64,31 @@ export function renderPageToCanvas(
   const verticalAlignment = typography.verticalAlignment ?? spacing.verticalAlignment ?? 'center';
   const availableHeight = page.availableHeight ?? (canvas.height - paddingTop - spacing.paddingBottom - (spacing.minBottomSpace || 0));
 
+  // Compute vertical space distribution
+  const remainingSpace = Math.max(0, availableHeight - page.renderedHeight);
+  const internalParagraphEnds = page.lines.reduce((acc, line, idx) => {
+    return idx < page.lines.length - 1 && line.isParagraphEnd ? acc + 1 : acc;
+  }, 0);
+
+  let extraParaSpacing = 0;
+  let extraLineSpacing = 0;
   let currentY = paddingTop;
-  if (verticalAlignment === 'center' && page.renderedHeight < availableHeight) {
-    currentY = paddingTop + Math.max(0, (availableHeight - page.renderedHeight) / 2);
+
+  if (verticalAlignment === 'justify' && remainingSpace > 0) {
+    if (internalParagraphEnds > 0) {
+      extraParaSpacing = remainingSpace / internalParagraphEnds;
+    } else if (page.lines.length > 1) {
+      const perLine = remainingSpace / (page.lines.length - 1);
+      if (perLine <= lineBoxHeight * 0.4) {
+        extraLineSpacing = perLine;
+      } else {
+        currentY = paddingTop + remainingSpace / 2;
+      }
+    } else {
+      currentY = paddingTop + remainingSpace / 2;
+    }
+  } else if (verticalAlignment === 'center' && remainingSpace > 0) {
+    currentY = paddingTop + remainingSpace / 2;
   }
 
   for (let i = 0; i < page.lines.length; i++) {
@@ -74,9 +96,9 @@ export function renderPageToCanvas(
     const lineText = line.text;
 
     if (lineText.length === 0) {
-      currentY += lineBoxHeight;
-      if (line.isParagraphEnd) {
-        currentY += paragraphSpacing;
+      currentY += lineBoxHeight + extraLineSpacing;
+      if (line.isParagraphEnd && i < page.lines.length - 1) {
+        currentY += paragraphSpacing + extraParaSpacing;
       }
       continue;
     }
@@ -125,9 +147,9 @@ export function renderPageToCanvas(
       ctx.fillText(lineText, paddingLeft, baselineY);
     }
 
-    currentY += lineBoxHeight;
-    if (line.isParagraphEnd) {
-      currentY += paragraphSpacing;
+    currentY += lineBoxHeight + extraLineSpacing;
+    if (line.isParagraphEnd && i < page.lines.length - 1) {
+      currentY += paragraphSpacing + extraParaSpacing;
     }
   }
 
