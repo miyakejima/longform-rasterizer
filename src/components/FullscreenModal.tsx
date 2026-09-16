@@ -132,7 +132,7 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
   return createPortal(
     <div className="fixed inset-0 z-50 bg-[#08080a]/98 backdrop-blur-md flex flex-col select-none">
       {/* Top bar */}
-      <div className="h-12 px-6 border-b border-[#1f1f23] bg-[#0c0c0e] flex items-center justify-between text-zinc-300">
+      <div className="h-12 px-6 border-b border-[#18181f] bg-[#0b0b0e] flex items-center justify-between text-zinc-300">
         <div className="flex items-center gap-3">
           <span className="font-semibold text-sm text-white font-mono">
             Page {String(currentPageIndex + 1).padStart(2, '0')} / {String(pages.length).padStart(2, '0')}
@@ -140,7 +140,7 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
           <span className="text-xs text-zinc-500 font-mono">
             {canvas.width} × {canvas.height} px
           </span>
-          <span className="text-xs bg-[#141417] border border-[#27272a] text-zinc-400 px-2 py-0.5 rounded font-mono">
+          <span className="text-xs bg-[#09090c] border border-[#18181f] text-zinc-400 px-2 py-0.5 rounded-[4px] font-mono">
             Util: {activePage.utilization}%
           </span>
         </div>
@@ -150,7 +150,7 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
           <button
             type="button"
             onClick={() => setZoomLevel((prev) => (prev === 'fit' ? '100%' : 'fit'))}
-            className="flex items-center gap-1 text-xs bg-[#141417] border border-[#27272a] hover:border-zinc-600 px-2.5 py-1.5 rounded-lg transition-colors text-zinc-300"
+            className="h-7 px-2.5 flex items-center gap-1.5 text-xs bg-[#0e0e12] border border-[#1b1b22] hover:border-[#2e2e3a] hover:bg-[#16161c] hover:text-white rounded-[6px] transition-colors text-zinc-300"
           >
             {zoomLevel === 'fit' ? <ZoomIn className="w-3.5 h-3.5" /> : <ZoomOut className="w-3.5 h-3.5" />}
             <span>{zoomLevel === 'fit' ? 'Fit View' : '100%'}</span>
@@ -160,7 +160,7 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
           <button
             type="button"
             onClick={handleCopyText}
-            className="flex items-center gap-1 text-xs bg-[#141417] border border-[#27272a] hover:border-zinc-600 px-2.5 py-1.5 rounded-lg transition-colors text-zinc-300"
+            className="h-7 px-2.5 flex items-center gap-1.5 text-xs bg-[#0e0e12] border border-[#1b1b22] hover:border-[#2e2e3a] hover:bg-[#16161c] hover:text-white rounded-[6px] transition-colors text-zinc-300"
           >
             {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
             <span>{copied ? 'Copied' : 'Copy Text'}</span>
@@ -170,7 +170,7 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
           <button
             type="button"
             onClick={handleDownloadCurrent}
-            className="flex items-center gap-1 text-xs bg-white text-black font-semibold hover:bg-zinc-200 px-3 py-1.5 rounded-lg transition-colors"
+            className="h-7 px-3 flex items-center gap-1.5 text-xs bg-[#1c1c24] hover:bg-[#24242e] text-white border border-[#2e2e3a] font-medium rounded-[6px] transition-colors shadow-xs"
           >
             <Download className="w-3.5 h-3.5" />
             <span>Download</span>
@@ -180,7 +180,7 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 text-zinc-400 hover:text-white rounded-lg bg-[#141417] border border-[#27272a] hover:border-zinc-600 ml-2 transition-colors"
+            className="h-7 w-7 flex items-center justify-center text-zinc-400 hover:text-white rounded-[6px] bg-[#0e0e12] border border-[#1b1b22] hover:border-[#2e2e3a] hover:bg-[#16161c] ml-1 transition-colors"
             title="Close (Esc)"
           >
             <X className="w-4 h-4" />
@@ -235,7 +235,7 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
 
       {/* Bottom thumbnails / pagination dots */}
       {pages.length > 1 && (
-        <div className="h-14 border-t border-zinc-800/80 px-4 flex items-center justify-center gap-2">
+        <div className="h-12 border-t border-[#18181f] bg-[#0b0b0e] px-4 flex items-center justify-center gap-2">
           {pages.map((_, idx) => (
             <button
               key={idx}
@@ -243,8 +243,8 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
               onClick={() => setCurrentPageIndex(idx)}
               className={`h-2 rounded-full transition-all ${
                 currentPageIndex === idx
-                  ? 'w-8 bg-white'
-                  : 'w-2 bg-zinc-700 hover:bg-zinc-500'
+                  ? 'w-8 bg-[#f4f4f6]'
+                  : 'w-2 bg-zinc-800 hover:bg-zinc-600'
               }`}
               title={`Jump to Page ${idx + 1}`}
             />

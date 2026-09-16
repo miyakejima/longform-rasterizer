@@ -107,10 +107,10 @@ export const PageCard: React.FC<PageCardProps> = ({
     <div
       className={`group relative flex flex-col bg-[#000000] border transition-all cursor-zoom-in select-none rounded-md shadow-2xl shadow-black/80 ${
         isHovered
-          ? 'border-zinc-400 shadow-zinc-950 ring-1 ring-zinc-500/30'
+          ? 'border-zinc-500 shadow-zinc-950 ring-1 ring-zinc-500/20'
           : hasOverflow
           ? 'border-red-800 shadow-red-950/20'
-          : 'border-[#32323c] hover:border-zinc-400'
+          : 'border-[#262630] hover:border-zinc-500'
       }`}
       onMouseEnter={() => onHover(true)}
       onMouseLeave={() => onHover(false)}
@@ -120,11 +120,11 @@ export const PageCard: React.FC<PageCardProps> = ({
       }}
     >
       {/* Floating hover micro-actions in top-right */}
-      <div className="absolute top-2 right-2 flex items-center gap-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 backdrop-blur-xs p-1 rounded-md border border-[#27272a]">
+      <div className="absolute top-2 right-2 flex items-center gap-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity bg-[#0e0e12]/90 backdrop-blur-xs p-1 rounded-[6px] border border-[#1b1b22]">
         <button
           type="button"
           onClick={handleCopyText}
-          className="p-1 text-zinc-400 hover:text-white rounded transition-colors"
+          className="p-1 text-zinc-400 hover:text-white hover:bg-[#16161c] rounded-[4px] transition-colors"
           title="Copy text for this page"
         >
           {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
@@ -133,7 +133,7 @@ export const PageCard: React.FC<PageCardProps> = ({
           type="button"
           onClick={handleDownload}
           disabled={isDownloading}
-          className="p-1 text-zinc-400 hover:text-white rounded transition-colors"
+          className="p-1 text-zinc-400 hover:text-white hover:bg-[#16161c] rounded-[4px] transition-colors"
           title="Download this page image"
         >
           <Download className={`w-3.5 h-3.5 ${isDownloading ? 'animate-bounce text-zinc-200' : ''}`} />
@@ -144,7 +144,7 @@ export const PageCard: React.FC<PageCardProps> = ({
             e.stopPropagation();
             onEnlarge();
           }}
-          className="p-1 text-zinc-400 hover:text-white rounded transition-colors"
+          className="p-1 text-zinc-400 hover:text-white hover:bg-[#16161c] rounded-[4px] transition-colors"
           title="Enlarge preview"
         >
           <Maximize2 className="w-3.5 h-3.5" />

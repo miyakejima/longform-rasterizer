@@ -466,14 +466,14 @@ function Workspace() {
                 )}
               </button>
 
-              <div className="w-px h-3.5 bg-[#1f1f24]" />
+              <div className="w-px h-3.5 bg-[#18181f]" />
 
               {/* Page Count Indicator */}
               <span className="text-xs font-mono text-zinc-400 select-none">
                 {doc.pageCount} {doc.pageCount === 1 ? 'page' : 'pages'}
               </span>
 
-              <div className="w-px h-3.5 bg-[#1f1f24]" />
+              <div className="w-px h-3.5 bg-[#18181f]" />
 
               {/* Minimalist Bare View Mode Icons (Unboxed, pure studio aesthetic) */}
               <div className="flex items-center gap-1">
@@ -565,7 +565,7 @@ function Workspace() {
       </div>
 
       {/* Bottom Shelf: Docked Toolbar + Stats */}
-      <footer className="h-14 border-t border-[#29292E] px-6 flex items-center justify-between bg-[#101013] shrink-0 select-none z-30">
+      <footer className="h-14 border-t border-[#18181f] px-6 flex items-center justify-between bg-[#0b0b0e] shrink-0 select-none z-30">
         {/* Left: Docked Minimalist Toolbar (4 pages | Inter ⌵ | 48 ⌵ | ···) */}
         <DockedToolbar
           pageCount={doc.pageCount}
@@ -622,7 +622,7 @@ function Workspace() {
         />
 
         {/* Right: Crisp Doc Stats */}
-        <div className="flex items-center gap-3 text-xs text-[#77777F] font-mono select-none">
+        <div className="flex items-center gap-3 text-xs text-zinc-500 font-mono select-none">
           <span>
             {wordCount} words · {charCount} chars
           </span>

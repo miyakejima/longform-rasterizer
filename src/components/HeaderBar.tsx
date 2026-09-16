@@ -122,7 +122,9 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
           type="button"
           onClick={() => setShowExportMenu((prev) => !prev)}
           disabled={isExporting}
-          className="h-8 px-3.5 rounded-lg bg-[#14141a] hover:bg-[#1e1e26] border border-[#262630] hover:border-zinc-400 text-xs font-medium text-zinc-200 hover:text-white transition-all shadow-xs flex items-center gap-1.5"
+          className={`h-7 px-3 rounded-[6px] bg-[#0e0e12] hover:bg-[#16161c] border border-[#1b1b22] hover:border-[#2e2e3a] text-xs font-medium text-zinc-300 hover:text-white transition-all shadow-xs flex items-center gap-1.5 ${
+            showExportMenu ? 'bg-[#16161c] border-[#2e2e3a] text-white' : ''
+          }`}
         >
           <span>{isExporting ? 'Exporting...' : 'Export'}</span>
           <ChevronDown className="w-3 h-3 text-zinc-400" />
@@ -130,7 +132,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
 
         {/* Export Options Dropdown */}
         {showExportMenu && (
-          <div className="absolute right-0 top-full mt-2 w-64 bg-[#101014] border border-[#202026] rounded-xl shadow-2xl shadow-black p-3 text-zinc-200 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+          <div className="absolute right-0 top-full mt-2 w-64 bg-[#0e0e12] border border-[#1b1b22] rounded-xl shadow-2xl shadow-black p-3 text-zinc-200 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
             <span className="text-[10px] font-semibold text-zinc-500 uppercase font-mono tracking-wider block mb-2">
               Export Options
             </span>
@@ -142,14 +144,14 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
               </div>
             )}
 
-            <div className="space-y-1 pb-2 border-b border-[#181820]">
+            <div className="space-y-1 pb-2 border-b border-[#18181f]">
               <button
                 type="button"
                 onClick={() => {
                   setShowExportMenu(false);
                   onExportAll();
                 }}
-                className="w-full px-2.5 py-1.5 text-xs text-left rounded-md flex items-center justify-between bg-[#0b0b0e] border border-[#1a1a20] hover:bg-[#16161e] text-zinc-300 hover:text-white transition-colors"
+                className="w-full px-2.5 py-1.5 text-xs text-left rounded-[6px] flex items-center justify-between bg-[#09090c] border border-[#18181f] hover:bg-[#14141a] text-zinc-300 hover:text-white transition-colors"
               >
                 <span className="flex items-center gap-2">
                   <Download className="w-3.5 h-3.5 text-zinc-400" />
@@ -165,7 +167,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
                     setShowExportMenu(false);
                     onExportZip();
                   }}
-                  className="w-full px-2.5 py-1.5 text-xs text-left rounded-md flex items-center justify-between bg-[#0b0b0e] border border-[#1a1a20] hover:bg-[#16161e] text-zinc-300 hover:text-white transition-colors"
+                  className="w-full px-2.5 py-1.5 text-xs text-left rounded-[6px] flex items-center justify-between bg-[#09090c] border border-[#18181f] hover:bg-[#14141a] text-zinc-300 hover:text-white transition-colors"
                 >
                   <span className="flex items-center gap-2">
                     <FileArchive className="w-3.5 h-3.5 text-zinc-400" />
@@ -180,15 +182,15 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
             <div className="pt-2 space-y-2">
               <div className="flex items-center justify-between text-xs text-zinc-400">
                 <span className="text-[11px]">Format</span>
-                <div className="flex gap-1 bg-[#0b0b0e] p-0.5 rounded border border-[#1a1a20]">
+                <div className="flex gap-1 bg-[#09090c] p-0.5 rounded-[6px] border border-[#18181f]">
                   {(['png', 'jpeg', 'webp'] as ExportFormat[]).map((fmt) => (
                     <button
                       key={fmt}
                       type="button"
                       onClick={() => onExportFormatChange(fmt)}
-                      className={`px-2 py-0.5 text-[10px] rounded uppercase font-mono transition-colors ${
+                      className={`px-2 py-0.5 text-[10px] rounded-[4px] uppercase font-mono transition-colors ${
                         exportFormat === fmt
-                          ? 'bg-[#24242c] text-[#f4f4f6] font-medium border border-[#3e3e4c]'
+                          ? 'bg-[#1c1c24] text-[#f4f4f6] font-medium border border-[#2e2e3a]'
                           : 'text-zinc-400 hover:text-zinc-200'
                       }`}
                     >
@@ -200,15 +202,15 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
 
               <div className="flex items-center justify-between text-xs text-zinc-400">
                 <span className="text-[11px]">Resolution Scale</span>
-                <div className="flex gap-1 bg-[#0b0b0e] p-0.5 rounded border border-[#1a1a20]">
+                <div className="flex gap-1 bg-[#09090c] p-0.5 rounded-[6px] border border-[#18181f]">
                   {([1, 2, 3] as ExportScale[]).map((sc) => (
                     <button
                       key={sc}
                       type="button"
                       onClick={() => onExportScaleChange(sc)}
-                      className={`px-2 py-0.5 text-[10px] rounded font-mono transition-colors ${
+                      className={`px-2 py-0.5 text-[10px] rounded-[4px] font-mono transition-colors ${
                         exportScale === sc
-                          ? 'bg-[#24242c] text-[#f4f4f6] font-medium border border-[#3e3e4c]'
+                          ? 'bg-[#1c1c24] text-[#f4f4f6] font-medium border border-[#2e2e3a]'
                           : 'text-zinc-400 hover:text-zinc-200'
                       }`}
                     >
@@ -230,8 +232,8 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
             if (e.target === e.currentTarget) closePresets();
           }}
         >
-          <div className="bg-[#101014] border border-[#202026] text-white rounded-xl max-w-md w-full p-5 shadow-2xl space-y-4 my-auto max-h-[90vh] flex flex-col">
-            <div className="flex items-center justify-between border-b border-[#181820] pb-3">
+          <div className="bg-[#0e0e12] border border-[#1b1b22] text-white rounded-xl max-w-md w-full p-5 shadow-2xl space-y-4 my-auto max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between border-b border-[#18181f] pb-3">
               <h3 className="text-sm font-medium text-zinc-100 flex items-center gap-2">
                 <Bookmark className="w-4 h-4 text-zinc-400" />
                 Visual Presets
@@ -239,7 +241,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
               <button
                 type="button"
                 onClick={closePresets}
-                className="text-zinc-400 hover:text-zinc-100 p-1 rounded hover:bg-[#16161e] transition-colors"
+                className="text-zinc-400 hover:text-zinc-100 p-1 rounded hover:bg-[#16161c] transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -247,7 +249,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
 
             {/* Save current preset */}
             {isSavingPreset ? (
-              <div className="flex items-center gap-2 bg-[#0b0b0e] p-2 rounded border border-[#1f1f26]">
+              <div className="flex items-center gap-2 bg-[#09090c] p-2 rounded-[6px] border border-[#18181f]">
                 <input
                   type="text"
                   value={newPresetName}
@@ -263,7 +265,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
                 <button
                   type="button"
                   onClick={handleSavePreset}
-                  className="px-2 py-1 bg-white text-black text-xs rounded hover:bg-zinc-200 transition-colors"
+                  className="px-2.5 py-1 bg-[#1c1c24] text-[#f4f4f6] border border-[#2e2e3a] text-xs rounded-[4px] hover:bg-[#24242e] transition-colors"
                 >
                   Save
                 </button>
@@ -279,7 +281,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
               <button
                 type="button"
                 onClick={() => setIsSavingPreset(true)}
-                className="w-full py-1.5 border border-dashed border-[#2b2b36] hover:border-zinc-500 rounded-lg text-xs text-zinc-400 hover:text-white flex items-center justify-center gap-1.5 transition-colors"
+                className="w-full py-1.5 border border-dashed border-[#1f1f26] hover:border-[#2e2e3a] hover:bg-[#14141a] rounded-lg text-xs text-zinc-400 hover:text-white flex items-center justify-center gap-1.5 transition-colors"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Save Current Layout as Preset</span>
@@ -298,8 +300,8 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
                     key={p.id}
                     className={`flex items-center justify-between p-2 rounded-lg border text-xs transition-colors ${
                       isSelected
-                        ? 'bg-[#181820] border-[#383846] text-white'
-                        : 'bg-[#0b0b0e] border-[#181820] text-zinc-400 hover:text-zinc-200 hover:bg-[#14141a]'
+                        ? 'bg-[#1c1c24] border-[#2e2e3a] text-white font-medium'
+                        : 'bg-[#09090c] border-[#18181f] text-zinc-400 hover:text-zinc-200 hover:bg-[#14141a]'
                     }`}
                   >
                     {isEditing ? (
@@ -308,7 +310,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
                           type="text"
                           value={editingPresetName}
                           onChange={(e) => setEditingPresetName(e.target.value)}
-                          className="bg-[#181820] border border-zinc-600 rounded px-1.5 py-0.5 text-xs text-white flex-1"
+                          className="bg-[#14141a] border border-[#2e2e3a] rounded px-1.5 py-0.5 text-xs text-white flex-1 focus:outline-hidden"
                           autoFocus
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') handleSaveRename(p.id);
@@ -347,7 +349,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
                             setEditingPresetId(p.id);
                             setEditingPresetName(p.name);
                           }}
-                          className="p-1 text-zinc-400 hover:text-zinc-100 rounded hover:bg-[#16161e]"
+                          className="p-1 text-zinc-400 hover:text-zinc-100 rounded hover:bg-[#16161c]"
                           title="Rename"
                         >
                           <Edit2 className="w-3 h-3" />
@@ -356,7 +358,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
                       <button
                         type="button"
                         onClick={() => onDuplicatePreset(p.id)}
-                        className="p-1 text-zinc-400 hover:text-zinc-100 rounded hover:bg-[#16161e]"
+                        className="p-1 text-zinc-400 hover:text-zinc-100 rounded hover:bg-[#16161c]"
                         title="Duplicate"
                       >
                         <Copy className="w-3 h-3" />
@@ -365,7 +367,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
                         <button
                           type="button"
                           onClick={() => onDeletePreset(p.id)}
-                          className="p-1 text-zinc-500 hover:text-red-400 rounded hover:bg-[#16161e]"
+                          className="p-1 text-zinc-500 hover:text-red-400 rounded hover:bg-[#16161c]"
                           title="Delete"
                         >
                           <Trash2 className="w-3 h-3" />
@@ -389,37 +391,37 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
             if (e.target === e.currentTarget) closeShortcuts();
           }}
         >
-          <div className="bg-[#101014] border border-[#202026] text-white rounded-xl max-w-sm w-full p-5 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-[#181820] pb-3">
+          <div className="bg-[#0e0e12] border border-[#1b1b22] text-white rounded-xl max-w-sm w-full p-5 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-[#18181f] pb-3">
               <h3 className="text-sm font-medium text-zinc-100">Keyboard Shortcuts</h3>
               <button
                 type="button"
                 onClick={closeShortcuts}
-                className="text-zinc-400 hover:text-zinc-100 p-1 rounded hover:bg-[#16161e] transition-colors"
+                className="text-zinc-400 hover:text-zinc-100 p-1 rounded hover:bg-[#16161c] transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
             <div className="space-y-2 text-xs">
-              <div className="flex items-center justify-between py-1 border-b border-[#181820]">
+              <div className="flex items-center justify-between py-1 border-b border-[#18181f]">
                 <span className="text-zinc-300">Export All</span>
-                <kbd className="px-2 py-0.5 bg-[#0b0b0e] border border-[#202026] rounded font-mono text-[11px]">⌘/Ctrl + Enter</kbd>
+                <kbd className="px-2 py-0.5 bg-[#09090c] border border-[#18181f] rounded font-mono text-[11px] text-zinc-300">⌘/Ctrl + Enter</kbd>
               </div>
-              <div className="flex items-center justify-between py-1 border-b border-[#181820]">
+              <div className="flex items-center justify-between py-1 border-b border-[#18181f]">
                 <span className="text-zinc-300">Undo</span>
-                <kbd className="px-2 py-0.5 bg-[#0b0b0e] border border-[#202026] rounded font-mono text-[11px]">⌘/Ctrl + Z</kbd>
+                <kbd className="px-2 py-0.5 bg-[#09090c] border border-[#18181f] rounded font-mono text-[11px] text-zinc-300">⌘/Ctrl + Z</kbd>
               </div>
-              <div className="flex items-center justify-between py-1 border-b border-[#181820]">
+              <div className="flex items-center justify-between py-1 border-b border-[#18181f]">
                 <span className="text-zinc-300">Redo</span>
-                <kbd className="px-2 py-0.5 bg-[#0b0b0e] border border-[#202026] rounded font-mono text-[11px]">⌘/Ctrl + Shift + Z</kbd>
+                <kbd className="px-2 py-0.5 bg-[#09090c] border border-[#18181f] rounded font-mono text-[11px] text-zinc-300">⌘/Ctrl + Shift + Z</kbd>
               </div>
-              <div className="flex items-center justify-between py-1 border-b border-[#181820]">
+              <div className="flex items-center justify-between py-1 border-b border-[#18181f]">
                 <span className="text-zinc-300">Toggle Layout Lock</span>
-                <kbd className="px-2 py-0.5 bg-[#0b0b0e] border border-[#202026] rounded font-mono text-[11px]">⌘/Ctrl + L</kbd>
+                <kbd className="px-2 py-0.5 bg-[#09090c] border border-[#18181f] rounded font-mono text-[11px] text-zinc-300">⌘/Ctrl + L</kbd>
               </div>
               <div className="flex items-center justify-between py-1">
                 <span className="text-zinc-300">Fullscreen Preview</span>
-                <kbd className="px-2 py-0.5 bg-[#0b0b0e] border border-[#202026] rounded font-mono text-[11px]">⌘/Ctrl + Shift + P</kbd>
+                <kbd className="px-2 py-0.5 bg-[#09090c] border border-[#18181f] rounded font-mono text-[11px] text-zinc-300">⌘/Ctrl + Shift + P</kbd>
               </div>
             </div>
           </div>

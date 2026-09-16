@@ -120,7 +120,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                   setInternalSingleIndex(nextIdx);
                   onSelectPage(nextIdx);
                 }}
-                className="flex items-center gap-1 text-[11px] font-mono text-zinc-400 hover:text-white bg-[#141417] hover:bg-[#1e1e24] px-2.5 py-1 rounded border border-[#24242a] disabled:opacity-20 disabled:pointer-events-none transition-colors"
+                className="flex items-center gap-1 text-[11px] font-mono text-zinc-400 hover:text-white bg-[#0e0e12] hover:bg-[#16161c] px-2.5 py-1 rounded-[6px] border border-[#1b1b22] hover:border-[#2e2e3a] disabled:opacity-20 disabled:pointer-events-none transition-colors"
                 title="Previous page (Arrow Left)"
               >
                 <ChevronLeft className="w-3.5 h-3.5" />
@@ -139,7 +139,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                   setInternalSingleIndex(nextIdx);
                   onSelectPage(nextIdx);
                 }}
-                className="flex items-center gap-1 text-[11px] font-mono text-zinc-400 hover:text-white bg-[#141417] hover:bg-[#1e1e24] px-2.5 py-1 rounded border border-[#24242a] disabled:opacity-20 disabled:pointer-events-none transition-colors"
+                className="flex items-center gap-1 text-[11px] font-mono text-zinc-400 hover:text-white bg-[#0e0e12] hover:bg-[#16161c] px-2.5 py-1 rounded-[6px] border border-[#1b1b22] hover:border-[#2e2e3a] disabled:opacity-20 disabled:pointer-events-none transition-colors"
                 title="Next page (Arrow Right)"
               >
                 <span>Next</span>

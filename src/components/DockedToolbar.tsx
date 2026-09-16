@@ -171,7 +171,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
 
   return (
     <div ref={toolbarRef} className="relative select-none flex items-center">
-      {/* 4 Calm Control Groups on Lifted Dark Surface */}
+      {/* 4 Calm Control Groups on Dark Obsidian Surface */}
       <div className="flex items-center gap-4 text-xs select-none py-1">
 
         {/* ========================================================= */}
@@ -181,22 +181,22 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
           <button
             type="button"
             onClick={() => togglePopover('pages')}
-            className={`h-7 px-2.5 flex items-center gap-1.5 bg-[#18181C] border border-[#29292E] rounded-[6px] text-xs transition-colors ${
+            className={`h-7 px-2.5 flex items-center gap-1.5 bg-[#0e0e12] border border-[#1b1b22] rounded-[6px] text-xs transition-colors ${
               activePopover === 'pages'
-                ? 'bg-[#222227] text-[#E8E8EA] border-[#4A4A50]'
-                : 'text-[#B5B5BA] hover:bg-[#222227] hover:text-[#E8E8EA]'
+                ? 'bg-[#16161c] text-white border-[#2e2e3a]'
+                : 'text-zinc-300 hover:bg-[#16161c] hover:text-white'
             }`}
             title="Number of pages and distribution"
           >
             <span>{pageCount} {pageCount === 1 ? 'page' : 'pages'}</span>
-            <ChevronDown className="w-3 h-3 text-[#77777F]" />
+            <ChevronDown className="w-3 h-3 text-zinc-500" />
           </button>
 
           {activePopover === 'pages' && (
-            <div className="absolute bottom-full left-0 mb-3 w-68 bg-[#121216] border border-[#29292E] rounded-xl shadow-2xl shadow-black p-4 text-[#E8E8EA] z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
+            <div className="absolute bottom-full left-0 mb-3 w-68 bg-[#0e0e12] border border-[#1b1b22] rounded-xl shadow-2xl shadow-black p-4 text-zinc-200 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-[10px] font-semibold text-[#77777F] uppercase font-mono tracking-wider">Number of Pages</span>
-                <span className="text-xs font-mono text-[#9A9AA2]">{pageCount} {pageCount === 1 ? 'page' : 'pages'}</span>
+                <span className="text-[10px] font-semibold text-zinc-500 uppercase font-mono tracking-wider">Number of Pages</span>
+                <span className="text-xs font-mono text-zinc-400">{pageCount} {pageCount === 1 ? 'page' : 'pages'}</span>
               </div>
 
               {/* Quick Page Picker */}
@@ -208,8 +208,8 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                     onClick={() => onPageCountChange(n)}
                     className={`h-7 rounded-[6px] text-xs font-mono transition-all border ${
                       pageCount === n
-                        ? 'bg-[#303036] text-[#F0F0F0] font-semibold border-[#4A4A50] shadow-xs'
-                        : 'bg-[#18181C] border-[#29292E] text-[#B5B5BA] hover:text-[#E8E8EA] hover:bg-[#222227]'
+                        ? 'bg-[#1c1c24] text-[#f4f4f6] font-semibold border-[#2e2e3a] shadow-xs'
+                        : 'bg-[#09090c] border-[#18181f] text-zinc-400 hover:text-white hover:bg-[#14141a]'
                     }`}
                   >
                     {n}
@@ -218,8 +218,8 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
               </div>
 
               {/* Custom count input */}
-              <div className="flex items-center gap-2 mb-3 pt-2 border-t border-[#222227]">
-                <span className="text-xs text-[#9A9AA2]">Custom count:</span>
+              <div className="flex items-center gap-2 mb-3 pt-2 border-t border-[#18181f]">
+                <span className="text-xs text-zinc-400">Custom count:</span>
                 <input
                   type="number"
                   min={1}
@@ -231,16 +231,16 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                       onPageCountChange(val);
                     }
                   }}
-                  className="w-16 px-2 py-1 text-xs bg-[#18181C] border border-[#29292E] rounded-[6px] text-[#E8E8EA] text-center font-mono focus:outline-hidden focus:border-[#4A4A50]"
+                  className="w-16 px-2 py-1 text-xs bg-[#09090c] border border-[#18181f] rounded-[6px] text-white text-center font-mono focus:outline-hidden focus:border-[#2e2e3a]"
                 />
               </div>
 
               {/* Distribution Mode */}
-              <div className="pt-2 border-t border-[#222227]">
-                <span className="text-[10px] font-semibold text-[#77777F] uppercase font-mono tracking-wider block mb-2">
+              <div className="pt-2 border-t border-[#18181f]">
+                <span className="text-[10px] font-semibold text-zinc-500 uppercase font-mono tracking-wider block mb-2">
                   Distribution Mode
                 </span>
-                <div className="grid grid-cols-3 gap-1 bg-[#18181C] p-1 rounded-[6px] border border-[#29292E]">
+                <div className="grid grid-cols-3 gap-1 bg-[#09090c] p-1 rounded-[6px] border border-[#18181f]">
                   {(['balanced', 'paragraph-preserving', 'manual'] as DistributionMode[]).map((mode) => (
                     <button
                       key={mode}
@@ -248,8 +248,8 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                       onClick={() => onDistributionModeChange(mode)}
                       className={`py-1 text-[10px] rounded-[4px] transition-colors ${
                         distributionMode === mode
-                          ? 'bg-[#303036] text-[#F0F0F0] font-medium border border-[#4A4A50]'
-                          : 'text-[#77777F] hover:text-[#E8E8EA]'
+                          ? 'bg-[#1c1c24] text-[#f4f4f6] font-medium border border-[#2e2e3a]'
+                          : 'text-zinc-400 hover:text-white'
                       }`}
                     >
                       {mode === 'balanced' ? 'Balanced' : mode === 'paragraph-preserving' ? 'Paragraph' : 'Manual'}
@@ -262,12 +262,12 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
         </div>
 
         {/* Faint Divider between major groups */}
-        <div className="w-px h-3.5 bg-[#242429]" />
+        <div className="w-px h-3.5 bg-[#18181f]" />
 
         {/* ========================================================= */}
         {/* GROUP 2: TYPOGRAPHY (Font · Size · Auto-fit · Fill) */}
         {/* ========================================================= */}
-        <div className="h-7 flex items-center bg-[#18181C] border border-[#29292E] rounded-[6px] p-0.5 gap-0.5">
+        <div className="h-7 flex items-center bg-[#0e0e12] border border-[#1b1b22] rounded-[6px] p-0.5 gap-0.5">
           {/* Font Family Trigger */}
           <div className="relative">
             <button
@@ -275,23 +275,23 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
               onClick={() => togglePopover('font')}
               className={`h-6 px-2 flex items-center gap-1 text-xs rounded-[4px] transition-colors ${
                 activePopover === 'font'
-                  ? 'bg-[#222227] text-[#E8E8EA]'
-                  : 'text-[#B5B5BA] hover:bg-[#222227] hover:text-[#E8E8EA]'
+                  ? 'bg-[#16161c] text-white'
+                  : 'text-zinc-300 hover:bg-[#16161c] hover:text-white'
               }`}
               title="Choose typography font"
             >
               <span className="max-w-[100px] truncate">{typography.fontFamily}</span>
-              <ChevronDown className="w-3 h-3 text-[#77777F]" />
+              <ChevronDown className="w-3 h-3 text-zinc-500" />
             </button>
 
             {activePopover === 'font' && (
-              <div className="absolute bottom-full left-0 mb-3 w-64 bg-[#121216] border border-[#29292E] rounded-xl shadow-2xl shadow-black p-3 text-[#E8E8EA] z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
+              <div className="absolute bottom-full left-0 mb-3 w-64 bg-[#0e0e12] border border-[#1b1b22] rounded-xl shadow-2xl shadow-black p-3 text-zinc-200 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-semibold text-[#77777F] uppercase font-mono tracking-wider">Typography</span>
+                  <span className="text-[10px] font-semibold text-zinc-500 uppercase font-mono tracking-wider">Typography</span>
                   <button
                     type="button"
                     onClick={() => fontFileInputRef.current?.click()}
-                    className="text-[11px] text-[#9A9AA2] hover:text-white flex items-center gap-1 hover:underline"
+                    className="text-[11px] text-zinc-400 hover:text-white flex items-center gap-1 hover:underline"
                     title="Upload .ttf, .otf, .woff, .woff2"
                   >
                     <Upload className="w-3 h-3" />
@@ -316,7 +316,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                   placeholder="Search fonts..."
                   value={fontSearch}
                   onChange={(e) => setFontSearch(e.target.value)}
-                  className="w-full px-2.5 py-1.5 text-xs bg-[#18181C] border border-[#29292E] rounded-[6px] text-[#E8E8EA] mb-2 placeholder-[#77777F] focus:outline-hidden focus:border-[#4A4A50]"
+                  className="w-full px-2.5 py-1.5 text-xs bg-[#09090c] border border-[#18181f] rounded-[6px] text-white mb-2 placeholder-zinc-600 focus:outline-hidden focus:border-[#2e2e3a]"
                 />
 
                 <div className="max-h-48 overflow-y-auto space-y-0.5 pr-1">
@@ -330,8 +330,8 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                       }}
                       className={`w-full px-2.5 py-1.5 rounded-[4px] text-xs text-left flex items-center justify-between transition-colors ${
                         typography.fontFamily === font
-                          ? 'bg-[#303036] text-[#F0F0F0] font-medium border border-[#4A4A50]'
-                          : 'text-[#B5B5BA] hover:text-[#E8E8EA] hover:bg-[#222227]'
+                          ? 'bg-[#1c1c24] text-[#f4f4f6] font-medium border border-[#2e2e3a]'
+                          : 'text-zinc-400 hover:text-white hover:bg-[#14141a]'
                       }`}
                       style={{ fontFamily: font }}
                     >
@@ -344,7 +344,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
             )}
           </div>
 
-          <span className="text-[#77777F] text-[10px] px-0.5 select-none">·</span>
+          <span className="text-zinc-600 text-[10px] px-0.5 select-none">·</span>
 
           {/* Font Size Trigger */}
           <div className="relative">
@@ -353,43 +353,43 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
               onClick={() => togglePopover('size')}
               className={`h-6 px-2 flex items-center gap-1 text-xs rounded-[4px] transition-colors ${
                 activePopover === 'size'
-                  ? 'bg-[#222227] text-[#E8E8EA]'
-                  : 'text-[#B5B5BA] hover:bg-[#222227] hover:text-[#E8E8EA]'
+                  ? 'bg-[#16161c] text-white'
+                  : 'text-zinc-300 hover:bg-[#16161c] hover:text-white'
               }`}
               title="Adjust font size, weight and line height"
             >
               <span>{effectiveFontSize}px</span>
-              <ChevronDown className="w-3 h-3 text-[#77777F]" />
+              <ChevronDown className="w-3 h-3 text-zinc-500" />
             </button>
 
             {activePopover === 'size' && (
-              <div className="absolute bottom-full left-0 mb-3 w-72 bg-[#121216] border border-[#29292E] rounded-xl shadow-2xl shadow-black p-4 text-[#E8E8EA] z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
+              <div className="absolute bottom-full left-0 mb-3 w-72 bg-[#0e0e12] border border-[#1b1b22] rounded-xl shadow-2xl shadow-black p-4 text-zinc-200 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-[10px] font-semibold text-[#77777F] uppercase font-mono tracking-wider">Font Size & Spacing</span>
-                  <span className="text-xs font-mono text-[#9A9AA2]">
+                  <span className="text-[10px] font-semibold text-zinc-500 uppercase font-mono tracking-wider">Font Size & Spacing</span>
+                  <span className="text-xs font-mono text-zinc-400">
                     {advanced.autoFit ? `Auto (${effectiveFontSize}px)` : `${typography.fontSize}px`}
                   </span>
                 </div>
 
                 {/* Auto-fit toggle inside size menu */}
-                <div className="flex items-center justify-between p-2 rounded-[6px] bg-[#18181C] border border-[#29292E] mb-3">
+                <div className="flex items-center justify-between p-2 rounded-[6px] bg-[#09090c] border border-[#18181f] mb-3">
                   <div className="flex items-center gap-2">
-                    <Sparkles className="w-3.5 h-3.5 text-[#9A9AA2]" />
+                    <Sparkles className="w-3.5 h-3.5 text-zinc-400" />
                     <div className="flex flex-col">
-                      <span className="text-xs font-medium text-[#E8E8EA]">Auto-fit font size</span>
-                      <span className="text-[10px] text-[#77777F]">Scale text to fill pages</span>
+                      <span className="text-xs font-medium text-zinc-200">Auto-fit font size</span>
+                      <span className="text-[10px] text-zinc-500">Scale text to fill pages</span>
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={() => onAdvancedChange({ ...advanced, autoFit: !advanced.autoFit })}
                     className={`w-9 h-5 rounded-full p-0.5 transition-colors ${
-                      advanced.autoFit ? 'bg-[#D6D6D6]' : 'bg-[#222227]'
+                      advanced.autoFit ? 'bg-[#24242e] border border-[#3e3e4c]' : 'bg-[#18181f]'
                     }`}
                   >
                     <div
                       className={`w-4 h-4 rounded-full transition-transform ${
-                        advanced.autoFit ? 'translate-x-4 bg-[#111111]' : 'translate-x-0 bg-[#77777F]'
+                        advanced.autoFit ? 'translate-x-4 bg-zinc-200' : 'translate-x-0 bg-zinc-600'
                       }`}
                     />
                   </button>
@@ -397,7 +397,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
 
                 {/* Font size slider */}
                 <div className="mb-3">
-                  <div className="flex items-center justify-between text-xs text-[#9A9AA2] mb-1.5">
+                  <div className="flex items-center justify-between text-xs text-zinc-400 mb-1.5">
                     <span>Font Size</span>
                     <span className="font-mono">{typography.fontSize}px</span>
                   </div>
@@ -413,14 +413,14 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                         onAdvancedChange({ ...advanced, autoFit: false });
                       }
                     }}
-                    className="w-full accent-[#D6D6D6] h-1 bg-[#222227] rounded cursor-pointer"
+                    className="w-full accent-zinc-400 h-1 bg-[#18181f] rounded cursor-pointer"
                   />
                 </div>
 
                 {/* Font Weight */}
                 <div className="mb-3">
-                  <span className="text-[10px] text-[#77777F] font-mono uppercase block mb-1.5">Font Weight</span>
-                  <div className="grid grid-cols-5 gap-1 bg-[#18181C] p-1 rounded-[6px] border border-[#29292E]">
+                  <span className="text-[10px] text-zinc-500 font-mono uppercase block mb-1.5">Font Weight</span>
+                  <div className="grid grid-cols-5 gap-1 bg-[#09090c] p-1 rounded-[6px] border border-[#18181f]">
                     {([300, 400, 500, 600, 700] as FontWeight[]).map((w) => (
                       <button
                         key={w}
@@ -428,8 +428,8 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                         onClick={() => onTypographyChange({ ...typography, fontWeight: w })}
                         className={`py-1 text-[10px] rounded-[4px] font-mono transition-colors ${
                           typography.fontWeight === w
-                            ? 'bg-[#303036] text-[#F0F0F0] font-medium border border-[#4A4A50]'
-                            : 'text-[#77777F] hover:text-[#E8E8EA]'
+                            ? 'bg-[#1c1c24] text-[#f4f4f6] font-medium border border-[#2e2e3a]'
+                            : 'text-zinc-400 hover:text-white'
                         }`}
                       >
                         {w}
@@ -440,7 +440,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
 
                 {/* Line Height */}
                 <div>
-                  <div className="flex items-center justify-between text-xs text-[#9A9AA2] mb-1.5">
+                  <div className="flex items-center justify-between text-xs text-zinc-400 mb-1.5">
                     <span>Line Height</span>
                     <span className="font-mono">{typography.lineHeight.toFixed(2)}</span>
                   </div>
@@ -453,27 +453,27 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                     onChange={(e) =>
                       onTypographyChange({ ...typography, lineHeight: parseFloat(e.target.value) })
                     }
-                    className="w-full accent-[#D6D6D6] h-1 bg-[#222227] rounded cursor-pointer"
+                    className="w-full accent-zinc-400 h-1 bg-[#18181f] rounded cursor-pointer"
                   />
                 </div>
               </div>
             )}
           </div>
 
-          <span className="text-[#77777F] text-[10px] px-0.5 select-none">·</span>
+          <span className="text-zinc-600 text-[10px] px-0.5 select-none">·</span>
 
-          {/* Auto-fit Toggle (Soft Neutral Active State #D6D6D6) */}
+          {/* Auto-fit Toggle (Tasteful Obsidian Active State) */}
           <button
             type="button"
             onClick={() => onAdvancedChange({ ...advanced, autoFit: !advanced.autoFit })}
             className={`h-6 px-2 flex items-center gap-1 rounded-[4px] text-[11px] font-medium transition-colors ${
               advanced.autoFit
-                ? 'bg-[#D6D6D6] text-[#111111]'
-                : 'text-[#77777F] hover:text-[#B5B5BA] hover:bg-[#222227]'
+                ? 'bg-[#24242e] text-white border border-[#3e3e4c] shadow-xs'
+                : 'text-zinc-400 hover:text-zinc-200 hover:bg-[#16161c]'
             }`}
             title={advanced.autoFit ? 'Auto-fit is active (click to use manual size)' : 'Enable Auto-fit to fill pages'}
           >
-            <Sparkles className={`w-3 h-3 ${advanced.autoFit ? 'text-[#111111]' : 'text-[#77777F]'}`} />
+            <Sparkles className={`w-3 h-3 ${advanced.autoFit ? 'text-zinc-200' : 'text-zinc-500'}`} />
             <span>Auto-fit</span>
           </button>
 
@@ -481,7 +481,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
           <button
             type="button"
             onClick={onFillCanvas}
-            className="h-6 px-2 flex items-center gap-1 rounded-[4px] text-[11px] text-[#77777F] hover:text-amber-300 hover:bg-[#222227] transition-colors"
+            className="h-6 px-2 flex items-center gap-1 rounded-[4px] text-[11px] text-zinc-400 hover:text-amber-300 hover:bg-[#16161c] transition-colors"
             title="1-click: Optimize font size, line height, and spacing to maximize page fill"
           >
             <Maximize2 className="w-3 h-3 text-amber-400/80" />
@@ -490,12 +490,12 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
         </div>
 
         {/* Faint Divider between major groups */}
-        <div className="w-px h-3.5 bg-[#242429]" />
+        <div className="w-px h-3.5 bg-[#18181f]" />
 
         {/* ========================================================= */}
         {/* GROUP 3: LAYOUT (Format · Alignment · Top/Center) */}
         {/* ========================================================= */}
-        <div className="h-7 flex items-center bg-[#18181C] border border-[#29292E] rounded-[6px] p-0.5 gap-0.5">
+        <div className="h-7 flex items-center bg-[#0e0e12] border border-[#1b1b22] rounded-[6px] p-0.5 gap-0.5">
           {/* Canvas Format / Ratio */}
           <div className="relative">
             <button
@@ -503,18 +503,18 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
               onClick={() => togglePopover('format')}
               className={`h-6 px-2 flex items-center gap-1 text-xs rounded-[4px] transition-colors ${
                 activePopover === 'format'
-                  ? 'bg-[#222227] text-[#E8E8EA]'
-                  : 'text-[#B5B5BA] hover:bg-[#222227] hover:text-[#E8E8EA]'
+                  ? 'bg-[#16161c] text-white'
+                  : 'text-zinc-300 hover:bg-[#16161c] hover:text-white'
               }`}
               title="Change canvas aspect ratio & dimensions"
             >
               <span>{getFormatLabel()}</span>
-              <ChevronDown className="w-3 h-3 text-[#77777F]" />
+              <ChevronDown className="w-3 h-3 text-zinc-500" />
             </button>
 
             {activePopover === 'format' && (
-              <div className="absolute bottom-full left-0 mb-3 w-80 bg-[#121216] border border-[#29292E] rounded-xl shadow-2xl shadow-black p-4 text-[#E8E8EA] z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
-                <span className="text-[10px] font-semibold text-[#77777F] uppercase font-mono tracking-wider block mb-2">
+              <div className="absolute bottom-full left-0 mb-3 w-80 bg-[#0e0e12] border border-[#1b1b22] rounded-xl shadow-2xl shadow-black p-4 text-zinc-200 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
+                <span className="text-[10px] font-semibold text-zinc-500 uppercase font-mono tracking-wider block mb-2">
                   Canvas Format
                 </span>
                 <div className="space-y-1.5 mb-3">
@@ -534,21 +534,21 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                       }}
                       className={`w-full px-2.5 py-2 rounded-[6px] text-xs text-left flex items-center justify-between transition-colors border ${
                         canvas.preset === p.id
-                          ? 'bg-[#303036] border-[#4A4A50] text-[#F0F0F0] font-medium'
-                          : 'bg-[#18181C] border-[#29292E] text-[#B5B5BA] hover:text-[#E8E8EA] hover:bg-[#222227]'
+                          ? 'bg-[#1c1c24] border-[#2e2e3a] text-white font-medium'
+                          : 'bg-[#09090c] border-[#18181f] text-zinc-400 hover:text-white hover:bg-[#14141a]'
                       }`}
                     >
                       <span>{p.name}</span>
-                      <span className="text-[10px] text-[#77777F] font-mono">{p.dim}</span>
+                      <span className="text-[10px] text-zinc-500 font-mono">{p.dim}</span>
                     </button>
                   ))}
                 </div>
 
-                <div className="pt-2 border-t border-[#222227]">
-                  <span className="text-[10px] text-[#77777F] font-mono uppercase block mb-1.5">Custom Dimensions</span>
+                <div className="pt-2 border-t border-[#18181f]">
+                  <span className="text-[10px] text-zinc-500 font-mono uppercase block mb-1.5">Custom Dimensions</span>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="text-[10px] text-[#77777F] font-mono block mb-1">Width</label>
+                      <label className="text-[10px] text-zinc-500 font-mono block mb-1">Width</label>
                       <input
                         type="number"
                         value={canvas.width}
@@ -559,11 +559,11 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                             preset: 'custom',
                           })
                         }
-                        className="w-full px-2 py-1 text-xs bg-[#18181C] border border-[#29292E] rounded-[6px] text-[#E8E8EA] font-mono focus:outline-hidden focus:border-[#4A4A50]"
+                        className="w-full px-2 py-1 text-xs bg-[#09090c] border border-[#18181f] rounded-[6px] text-white font-mono focus:outline-hidden focus:border-[#2e2e3a]"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] text-[#77777F] font-mono block mb-1">Height</label>
+                      <label className="text-[10px] text-zinc-500 font-mono block mb-1">Height</label>
                       <input
                         type="number"
                         value={canvas.height}
@@ -574,7 +574,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                             preset: 'custom',
                           })
                         }
-                        className="w-full px-2 py-1 text-xs bg-[#18181C] border border-[#29292E] rounded-[6px] text-[#E8E8EA] font-mono focus:outline-hidden focus:border-[#4A4A50]"
+                        className="w-full px-2 py-1 text-xs bg-[#09090c] border border-[#18181f] rounded-[6px] text-white font-mono focus:outline-hidden focus:border-[#2e2e3a]"
                       />
                     </div>
                   </div>
@@ -583,7 +583,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
             )}
           </div>
 
-          <span className="text-[#77777F] text-[10px] px-0.5 select-none">·</span>
+          <span className="text-zinc-600 text-[10px] px-0.5 select-none">·</span>
 
           {/* Horizontal Alignment */}
           <div className="flex items-center gap-0.5">
@@ -602,8 +602,8 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                   onClick={() => onTypographyChange({ ...typography, alignment: al.id as TextAlignment })}
                   className={`h-6 w-6 flex items-center justify-center rounded-[4px] transition-colors ${
                     isActive
-                      ? 'bg-[#303036] text-[#F0F0F0] border border-[#4A4A50]'
-                      : 'text-[#77777F] hover:text-[#B5B5BA] hover:bg-[#222227]'
+                      ? 'bg-[#1c1c24] text-[#f4f4f6] border border-[#2e2e3a]'
+                      : 'text-zinc-400 hover:text-white hover:bg-[#16161c]'
                   }`}
                   title={al.label}
                 >
@@ -613,7 +613,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
             })}
           </div>
 
-          <span className="text-[#77777F] text-[10px] px-0.5 select-none">·</span>
+          <span className="text-zinc-600 text-[10px] px-0.5 select-none">·</span>
 
           {/* Vertical Alignment */}
           <div className="flex items-center gap-0.5">
@@ -625,8 +625,8 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
               }}
               className={`h-6 px-1.5 flex items-center justify-center rounded-[4px] text-[11px] font-medium transition-colors ${
                 !isVerticallyCentered
-                  ? 'bg-[#303036] text-[#F0F0F0] border border-[#4A4A50]'
-                  : 'text-[#77777F] hover:text-[#B5B5BA] hover:bg-[#222227]'
+                  ? 'bg-[#1c1c24] text-[#f4f4f6] border border-[#2e2e3a]'
+                  : 'text-zinc-400 hover:text-white hover:bg-[#16161c]'
               }`}
               title="Top align text on canvas"
             >
@@ -640,8 +640,8 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
               }}
               className={`h-6 px-1.5 flex items-center justify-center rounded-[4px] text-[11px] font-medium transition-colors ${
                 isVerticallyCentered
-                  ? 'bg-[#303036] text-[#F0F0F0] border border-[#4A4A50]'
-                  : 'text-[#77777F] hover:text-[#B5B5BA] hover:bg-[#222227]'
+                  ? 'bg-[#1c1c24] text-[#f4f4f6] border border-[#2e2e3a]'
+                  : 'text-zinc-400 hover:text-white hover:bg-[#16161c]'
               }`}
               title="Center text vertically"
             >
@@ -651,12 +651,12 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
         </div>
 
         {/* Faint Divider between major groups */}
-        <div className="w-px h-3.5 bg-[#242429]" />
+        <div className="w-px h-3.5 bg-[#18181f]" />
 
         {/* ========================================================= */}
         {/* GROUP 4: SPACING / MORE (Compact · ···) */}
         {/* ========================================================= */}
-        <div className="h-7 flex items-center bg-[#18181C] border border-[#29292E] rounded-[6px] p-0.5 gap-0.5">
+        <div className="h-7 flex items-center bg-[#0e0e12] border border-[#1b1b22] rounded-[6px] p-0.5 gap-0.5">
           {/* Margins */}
           <div className="relative">
             <button
@@ -664,18 +664,18 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
               onClick={() => togglePopover('margins')}
               className={`h-6 px-2 flex items-center gap-1 text-xs rounded-[4px] transition-colors ${
                 activePopover === 'margins'
-                  ? 'bg-[#222227] text-[#E8E8EA]'
-                  : 'text-[#B5B5BA] hover:bg-[#222227] hover:text-[#E8E8EA]'
+                  ? 'bg-[#16161c] text-white'
+                  : 'text-zinc-300 hover:bg-[#16161c] hover:text-white'
               }`}
               title="Change margins & paragraph spacing"
             >
               <span>{getMarginLabel()}</span>
-              <ChevronDown className="w-3 h-3 text-[#77777F]" />
+              <ChevronDown className="w-3 h-3 text-zinc-500" />
             </button>
 
             {activePopover === 'margins' && (
-              <div className="absolute bottom-full right-0 mb-3 w-72 bg-[#121216] border border-[#29292E] rounded-xl shadow-2xl shadow-black p-4 text-[#E8E8EA] z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
-                <span className="text-[10px] font-semibold text-[#77777F] uppercase font-mono tracking-wider block mb-2">
+              <div className="absolute bottom-full right-0 mb-3 w-72 bg-[#0e0e12] border border-[#1b1b22] rounded-xl shadow-2xl shadow-black p-4 text-zinc-200 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
+                <span className="text-[10px] font-semibold text-zinc-500 uppercase font-mono tracking-wider block mb-2">
                   Margins & Spacing
                 </span>
                 <div className="grid grid-cols-3 gap-1 mb-3">
@@ -690,8 +690,8 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                       onClick={() => handleMarginPresetChange(m.id as MarginPreset)}
                       className={`py-1.5 px-2 rounded-[6px] text-xs flex flex-col items-center gap-0.5 border transition-colors ${
                         spacing.preset === m.id
-                          ? 'bg-[#303036] text-[#F0F0F0] font-medium border-[#4A4A50] shadow-xs'
-                          : 'bg-[#18181C] border-[#29292E] text-[#B5B5BA] hover:text-[#E8E8EA] hover:bg-[#222227]'
+                          ? 'bg-[#1c1c24] text-[#f4f4f6] font-medium border-[#2e2e3a] shadow-xs'
+                          : 'bg-[#09090c] border-[#18181f] text-zinc-400 hover:text-white hover:bg-[#14141a]'
                       }`}
                     >
                       <span>{m.name}</span>
@@ -700,8 +700,8 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                   ))}
                 </div>
 
-                <div className="pt-2 border-t border-[#222227] space-y-2">
-                  <div className="flex items-center justify-between text-xs text-[#9A9AA2]">
+                <div className="pt-2 border-t border-[#18181f] space-y-2">
+                  <div className="flex items-center justify-between text-xs text-zinc-400">
                     <span>Paragraph Spacing</span>
                     <span className="font-mono">{spacing.paragraphSpacing}px</span>
                   </div>
@@ -714,14 +714,14 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                     onChange={(e) =>
                       onSpacingChange({ ...spacing, paragraphSpacing: parseInt(e.target.value, 10) })
                     }
-                    className="w-full accent-[#D6D6D6] h-1 bg-[#222227] rounded cursor-pointer"
+                    className="w-full accent-zinc-400 h-1 bg-[#18181f] rounded cursor-pointer"
                   />
                 </div>
               </div>
             )}
           </div>
 
-          <span className="text-[#77777F] text-[10px] px-0.5 select-none">·</span>
+          <span className="text-zinc-600 text-[10px] px-0.5 select-none">·</span>
 
           {/* More Options (···) */}
           <div className="relative">
@@ -730,8 +730,8 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
               onClick={() => togglePopover('more')}
               className={`h-6 px-2 flex items-center justify-center text-xs tracking-wider rounded-[4px] transition-colors ${
                 activePopover === 'more'
-                  ? 'bg-[#222227] text-[#E8E8EA]'
-                  : 'text-[#77777F] hover:text-[#E8E8EA] hover:bg-[#222227]'
+                  ? 'bg-[#16161c] text-white'
+                  : 'text-zinc-400 hover:text-white hover:bg-[#16161c]'
               }`}
               title="More options (colors, presets, lock layout, reset)"
             >
@@ -739,60 +739,60 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
             </button>
 
             {activePopover === 'more' && (
-              <div className="absolute bottom-full right-0 mb-3 w-80 bg-[#121216] border border-[#29292E] rounded-xl shadow-2xl shadow-black p-4 text-[#E8E8EA] z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
-                <span className="text-[10px] font-semibold text-[#77777F] uppercase font-mono tracking-wider block mb-2">
+              <div className="absolute bottom-full right-0 mb-3 w-80 bg-[#0e0e12] border border-[#1b1b22] rounded-xl shadow-2xl shadow-black p-4 text-zinc-200 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
+                <span className="text-[10px] font-semibold text-zinc-500 uppercase font-mono tracking-wider block mb-2">
                   Colors & Appearance
                 </span>
-                <div className="space-y-2 mb-3 bg-[#18181C] p-2.5 rounded-[6px] border border-[#29292E]">
+                <div className="space-y-2 mb-3 bg-[#09090c] p-2.5 rounded-[6px] border border-[#18181f]">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-[#B5B5BA]">Background</span>
+                    <span className="text-xs text-zinc-300">Background</span>
                     <div className="flex items-center gap-2">
                       <input
                         type="color"
                         value={canvas.backgroundColor}
                         onChange={(e) => onCanvasChange({ ...canvas, backgroundColor: e.target.value })}
-                        className="w-6 h-6 rounded cursor-pointer border border-[#29292E] bg-transparent"
+                        className="w-6 h-6 rounded cursor-pointer border border-[#18181f] bg-transparent"
                       />
-                      <span className="text-xs font-mono text-[#9A9AA2]">{canvas.backgroundColor}</span>
+                      <span className="text-xs font-mono text-zinc-400">{canvas.backgroundColor}</span>
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-[#B5B5BA]">Text Color</span>
+                    <span className="text-xs text-zinc-300">Text Color</span>
                     <div className="flex items-center gap-2">
                       <input
                         type="color"
                         value={typography.textColor}
                         onChange={(e) => onTypographyChange({ ...typography, textColor: e.target.value })}
-                        className="w-6 h-6 rounded cursor-pointer border border-[#29292E] bg-transparent"
+                        className="w-6 h-6 rounded cursor-pointer border border-[#18181f] bg-transparent"
                       />
-                      <span className="text-xs font-mono text-[#9A9AA2]">{typography.textColor}</span>
+                      <span className="text-xs font-mono text-zinc-400">{typography.textColor}</span>
                     </div>
                   </div>
 
-                  <div className="pt-2 border-t border-[#222227] flex items-center justify-between">
-                    <span className="text-xs text-[#B5B5BA]">Transparent Background</span>
+                  <div className="pt-2 border-t border-[#18181f] flex items-center justify-between">
+                    <span className="text-xs text-zinc-300">Transparent Background</span>
                     <input
                       type="checkbox"
                       checked={canvas.transparentBackground}
                       onChange={(e) =>
                         onCanvasChange({ ...canvas, transparentBackground: e.target.checked })
                       }
-                      className="rounded border-[#29292E] text-zinc-300 focus:ring-0"
+                      className="rounded border-[#18181f] text-zinc-300 focus:ring-0"
                     />
                   </div>
                 </div>
 
-                <div className="space-y-1.5 pt-2 border-t border-[#222227]">
+                <div className="space-y-1.5 pt-2 border-t border-[#18181f]">
                   <button
                     type="button"
                     onClick={() => {
                       onToggleLayoutLock();
                       setActivePopover(null);
                     }}
-                    className="w-full px-2.5 py-1.5 rounded-[6px] text-xs text-left flex items-center gap-2 bg-[#18181C] border border-[#29292E] text-[#B5B5BA] hover:text-[#E8E8EA] hover:bg-[#222227] transition-colors"
+                    className="w-full px-2.5 py-1.5 rounded-[6px] text-xs text-left flex items-center gap-2 bg-[#09090c] border border-[#18181f] text-zinc-300 hover:text-white hover:bg-[#14141a] transition-colors"
                   >
-                    {layoutLocked ? <Lock className="w-3.5 h-3.5 text-amber-400" /> : <Unlock className="w-3.5 h-3.5 text-[#77777F]" />}
+                    {layoutLocked ? <Lock className="w-3.5 h-3.5 text-amber-400" /> : <Unlock className="w-3.5 h-3.5 text-zinc-500" />}
                     <span>{layoutLocked ? 'Layout Locked (Click to Unlock)' : 'Lock Layout'}</span>
                   </button>
 
@@ -802,9 +802,9 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                       onOpenPresetsModal();
                       setActivePopover(null);
                     }}
-                    className="w-full px-2.5 py-1.5 rounded-[6px] text-xs text-left flex items-center gap-2 bg-[#18181C] border border-[#29292E] text-[#B5B5BA] hover:text-[#E8E8EA] hover:bg-[#222227] transition-colors"
+                    className="w-full px-2.5 py-1.5 rounded-[6px] text-xs text-left flex items-center gap-2 bg-[#09090c] border border-[#18181f] text-zinc-300 hover:text-white hover:bg-[#14141a] transition-colors"
                   >
-                    <Bookmark className="w-3.5 h-3.5 text-[#77777F]" />
+                    <Bookmark className="w-3.5 h-3.5 text-zinc-500" />
                     <span>Visual Presets</span>
                   </button>
 
@@ -814,9 +814,9 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                       onOpenShortcutsModal();
                       setActivePopover(null);
                     }}
-                    className="w-full px-2.5 py-1.5 rounded-[6px] text-xs text-left flex items-center gap-2 bg-[#18181C] border border-[#29292E] text-[#B5B5BA] hover:text-[#E8E8EA] hover:bg-[#222227] transition-colors"
+                    className="w-full px-2.5 py-1.5 rounded-[6px] text-xs text-left flex items-center gap-2 bg-[#09090c] border border-[#18181f] text-zinc-300 hover:text-white hover:bg-[#14141a] transition-colors"
                   >
-                    <Keyboard className="w-3.5 h-3.5 text-[#77777F]" />
+                    <Keyboard className="w-3.5 h-3.5 text-zinc-500" />
                     <span>Keyboard Shortcuts</span>
                   </button>
 
@@ -828,7 +828,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                         setActivePopover(null);
                       }
                     }}
-                    className="w-full px-2.5 py-1.5 rounded-[6px] text-xs text-left flex items-center gap-2 bg-[#18181C] border border-[#29292E] text-red-400 hover:text-red-300 hover:bg-red-950/20 transition-colors"
+                    className="w-full px-2.5 py-1.5 rounded-[6px] text-xs text-left flex items-center gap-2 bg-[#09090c] border border-[#18181f] text-red-400 hover:text-red-300 hover:bg-red-950/20 transition-colors"
                   >
                     <RotateCcw className="w-3.5 h-3.5 text-red-400" />
                     <span>Reset All to Defaults</span>
