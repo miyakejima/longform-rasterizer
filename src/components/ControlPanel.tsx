@@ -95,6 +95,34 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   const fontFileInputRef = useRef<HTMLInputElement>(null);
   const [fontLoadingError, setFontLoadingError] = useState<string | null>(null);
 
+  // Buffered custom pixel dimensions to prevent freezing during typing
+  const [prevCanvas, setPrevCanvas] = useState({ width: canvas.width, height: canvas.height });
+  const [customWidth, setCustomWidth] = useState<string>(canvas.width.toString());
+  const [customHeight, setCustomHeight] = useState<string>(canvas.height.toString());
+
+  if (prevCanvas.width !== canvas.width || prevCanvas.height !== canvas.height) {
+    setPrevCanvas({ width: canvas.width, height: canvas.height });
+    setCustomWidth(canvas.width.toString());
+    setCustomHeight(canvas.height.toString());
+  }
+
+  const commitCustomDimensions = (newWStr?: string, newHStr?: string) => {
+    const rawW = parseInt(newWStr ?? customWidth, 10);
+    const rawH = parseInt(newHStr ?? customHeight, 10);
+    const w = isNaN(rawW) ? canvas.width : Math.max(200, Math.min(10000, rawW));
+    const h = isNaN(rawH) ? canvas.height : Math.max(200, Math.min(10000, rawH));
+    setCustomWidth(w.toString());
+    setCustomHeight(h.toString());
+    if (w !== canvas.width || h !== canvas.height || canvas.preset !== 'custom') {
+      onCanvasChange({
+        ...canvas,
+        preset: 'custom',
+        width: w,
+        height: h,
+      });
+    }
+  };
+
   // Collapsible secondary sections - default collapsed for clean, restrained interface
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     spacing: false,
@@ -786,36 +814,58 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
             </div>
 
             {/* Custom Pixel Dimensions */}
-            <div className="grid grid-cols-2 gap-2 pt-1 border-t border-[#1f1f23]">
-              <div>
-                <label className="text-zinc-500 block mb-1 text-[10px]">Width (px)</label>
-                <input
-                  type="number"
-                  value={canvas.width}
-                  onChange={(e) =>
-                    onCanvasChange({
-                      ...canvas,
-                      preset: 'custom',
-                      width: Math.max(200, parseInt(e.target.value) || 1080),
-                    })
-                  }
-                  className="w-full bg-[#141417] border border-[#1f1f23] rounded px-2 py-1 font-mono text-zinc-200 outline-none focus:border-zinc-600 text-xs"
-                />
+            <div className="pt-2 border-t border-[#1f1f23]">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-zinc-500 text-[10px] uppercase font-mono tracking-wider">Custom Dimensions</span>
+                <span className="text-zinc-600 text-[10px] font-mono">200–10000 px</span>
               </div>
-              <div>
-                <label className="text-zinc-500 block mb-1 text-[10px]">Height (px)</label>
-                <input
-                  type="number"
-                  value={canvas.height}
-                  onChange={(e) =>
-                    onCanvasChange({
-                      ...canvas,
-                      preset: 'custom',
-                      height: Math.max(200, parseInt(e.target.value) || 1350),
-                    })
-                  }
-                  className="w-full bg-[#141417] border border-[#1f1f23] rounded px-2 py-1 font-mono text-zinc-200 outline-none focus:border-zinc-600 text-xs"
-                />
+              <div className="grid grid-cols-2 gap-2">
+                <div className="flex items-center bg-[#141417] border border-[#1f1f23] focus-within:border-zinc-500 rounded px-2 py-1 transition-colors">
+                  <span className="text-[10px] font-mono text-zinc-500 select-none mr-1.5 font-medium">W</span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={customWidth}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^0-9]/g, '');
+                      setCustomWidth(val);
+                    }}
+                    onBlur={() => commitCustomDimensions()}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        commitCustomDimensions();
+                        (e.target as HTMLInputElement).blur();
+                      }
+                    }}
+                    placeholder="1080"
+                    className="w-full bg-transparent text-xs text-zinc-200 font-mono focus:outline-hidden [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  />
+                  <span className="text-[10px] font-mono text-zinc-600 select-none ml-1">px</span>
+                </div>
+                <div className="flex items-center bg-[#141417] border border-[#1f1f23] focus-within:border-zinc-500 rounded px-2 py-1 transition-colors">
+                  <span className="text-[10px] font-mono text-zinc-500 select-none mr-1.5 font-medium">H</span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={customHeight}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^0-9]/g, '');
+                      setCustomHeight(val);
+                    }}
+                    onBlur={() => commitCustomDimensions()}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        commitCustomDimensions();
+                        (e.target as HTMLInputElement).blur();
+                      }
+                    }}
+                    placeholder="1350"
+                    className="w-full bg-transparent text-xs text-zinc-200 font-mono focus:outline-hidden [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  />
+                  <span className="text-[10px] font-mono text-zinc-600 select-none ml-1">px</span>
+                </div>
               </div>
             </div>
           </div>

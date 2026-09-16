@@ -93,8 +93,54 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
 }) => {
   const [activePopover, setActivePopover] = useState<'pages' | 'font' | 'size' | 'format' | 'margins' | 'more' | null>(null);
   const [fontSearch, setFontSearch] = useState('');
+  const [prevCanvas, setPrevCanvas] = useState({ width: canvas.width, height: canvas.height });
+  const [customWidth, setCustomWidth] = useState(String(canvas.width));
+  const [customHeight, setCustomHeight] = useState(String(canvas.height));
   const toolbarRef = useRef<HTMLDivElement>(null);
   const fontFileInputRef = useRef<HTMLInputElement>(null);
+
+  // Synchronize local input state when canvas dimensions change externally
+  if (prevCanvas.width !== canvas.width || prevCanvas.height !== canvas.height) {
+    setPrevCanvas({ width: canvas.width, height: canvas.height });
+    setCustomWidth(String(canvas.width));
+    setCustomHeight(String(canvas.height));
+  }
+
+  const commitCustomDimensions = (wStr = customWidth, hStr = customHeight) => {
+    const w = parseInt(wStr, 10);
+    const h = parseInt(hStr, 10);
+    const validW = !isNaN(w) && w >= 200 && w <= 10000 ? w : canvas.width;
+    const validH = !isNaN(h) && h >= 200 && h <= 10000 ? h : canvas.height;
+    setCustomWidth(String(validW));
+    setCustomHeight(String(validH));
+    if (validW !== canvas.width || validH !== canvas.height || canvas.preset !== 'custom') {
+      onCanvasChange({
+        ...canvas,
+        preset: 'custom',
+        width: validW,
+        height: validH,
+      });
+    }
+  };
+
+  // Safe debounced commit: only commits if user paused typing for 500ms AND both numbers are valid full dimensions
+  useEffect(() => {
+    const w = parseInt(customWidth, 10);
+    const h = parseInt(customHeight, 10);
+    if (!isNaN(w) && w >= 200 && w <= 10000 && !isNaN(h) && h >= 200 && h <= 10000) {
+      if (w !== canvas.width || h !== canvas.height || canvas.preset !== 'custom') {
+        const timer = setTimeout(() => {
+          onCanvasChange({
+            ...canvas,
+            preset: 'custom',
+            width: w,
+            height: h,
+          });
+        }, 500);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [customWidth, customHeight, canvas, onCanvasChange]);
 
   // Close popover on outside click
   useEffect(() => {
@@ -549,38 +595,62 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                   ))}
                 </div>
 
-                <div className="pt-2 border-t border-[#18181f]">
-                  <span className="text-[10px] text-zinc-500 font-mono uppercase block mb-1.5">Custom Dimensions</span>
+                <div className="pt-2.5 border-t border-[#18181f]">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-semibold text-zinc-500 uppercase font-mono tracking-wider">
+                      Custom Dimensions
+                    </span>
+                    <span className="text-[10px] text-zinc-600 font-mono">200–10000 px</span>
+                  </div>
                   <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="text-[10px] text-zinc-500 font-mono block mb-1">Width</label>
+                    {/* Width Input */}
+                    <div className="flex items-center bg-[#09090c] border border-[#18181f] focus-within:border-[#3e3e4c] focus-within:ring-1 focus-within:ring-[#3e3e4c]/40 rounded-[6px] px-2.5 py-1.5 transition-all">
+                      <span className="text-[11px] font-mono text-zinc-500 select-none mr-1.5 font-medium">W</span>
                       <input
-                        type="number"
-                        value={canvas.width}
-                        onChange={(e) =>
-                          onCanvasChange({
-                            ...canvas,
-                            width: parseInt(e.target.value, 10) || 1080,
-                            preset: 'custom',
-                          })
-                        }
-                        className="w-full px-2 py-1 text-xs bg-[#09090c] border border-[#18181f] rounded-[6px] text-white font-mono focus:outline-hidden focus:border-[#2e2e3a]"
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        value={customWidth}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/[^0-9]/g, '');
+                          setCustomWidth(val);
+                        }}
+                        onBlur={() => commitCustomDimensions()}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            commitCustomDimensions();
+                            (e.target as HTMLInputElement).blur();
+                          }
+                        }}
+                        placeholder="1080"
+                        className="w-full bg-transparent text-xs text-zinc-200 font-mono focus:outline-hidden [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       />
+                      <span className="text-[10px] font-mono text-zinc-600 select-none ml-1">px</span>
                     </div>
-                    <div>
-                      <label className="text-[10px] text-zinc-500 font-mono block mb-1">Height</label>
+
+                    {/* Height Input */}
+                    <div className="flex items-center bg-[#09090c] border border-[#18181f] focus-within:border-[#3e3e4c] focus-within:ring-1 focus-within:ring-[#3e3e4c]/40 rounded-[6px] px-2.5 py-1.5 transition-all">
+                      <span className="text-[11px] font-mono text-zinc-500 select-none mr-1.5 font-medium">H</span>
                       <input
-                        type="number"
-                        value={canvas.height}
-                        onChange={(e) =>
-                          onCanvasChange({
-                            ...canvas,
-                            height: parseInt(e.target.value, 10) || 1350,
-                            preset: 'custom',
-                          })
-                        }
-                        className="w-full px-2 py-1 text-xs bg-[#09090c] border border-[#18181f] rounded-[6px] text-white font-mono focus:outline-hidden focus:border-[#2e2e3a]"
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        value={customHeight}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/[^0-9]/g, '');
+                          setCustomHeight(val);
+                        }}
+                        onBlur={() => commitCustomDimensions()}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            commitCustomDimensions();
+                            (e.target as HTMLInputElement).blur();
+                          }
+                        }}
+                        placeholder="1350"
+                        className="w-full bg-transparent text-xs text-zinc-200 font-mono focus:outline-hidden [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       />
+                      <span className="text-[10px] font-mono text-zinc-600 select-none ml-1">px</span>
                     </div>
                   </div>
                 </div>
