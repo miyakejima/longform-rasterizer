@@ -4,8 +4,11 @@
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)](https://www.typescriptlang.org)
 [![Tests](https://img.shields.io/badge/tests-63%20passing-brightgreen)](src/__tests__)
+[![Live Demo](https://img.shields.io/badge/demo-live%20site-2ea44f?logo=github)](https://miyakejima.github.io/longform-rasterizer/)
 
 **Turn any text into beautifully balanced, export-ready image cards.**
+
+**Live Demo:** [miyakejima.github.io/longform-rasterizer](https://miyakejima.github.io/longform-rasterizer/)
 
 Paste your text—whether it's a single quote or a 2,000-word essay—and get publication-grade images instantly. The engine automatically solves for the perfect font size, line height, and page distribution entirely in your browser. No AI rewrites, no server uploads, and no need to open a design tool.
 
