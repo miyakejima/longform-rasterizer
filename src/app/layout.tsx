@@ -9,7 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'Longform Rasterizer',
+  title: 'longform rasterizer',
   description: 'Deterministic long-form text rasterizer and multi-page typographic image studio.',
 };
 

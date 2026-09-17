@@ -56,6 +56,14 @@ function useIsMounted() {
   );
 }
 
+function getBasePath() {
+  if (process.env.NEXT_PUBLIC_BASE_PATH) return process.env.NEXT_PUBLIC_BASE_PATH;
+  if (typeof window !== 'undefined' && window.location.pathname.startsWith('/longform-rasterizer')) {
+    return '/longform-rasterizer';
+  }
+  return '';
+}
+
 function Workspace() {
   // Initial session from localStorage (restored lazily)
   const [initialSession] = useState<SessionState | null>(() =>
@@ -580,8 +588,19 @@ function Workspace() {
         >
           {/* Top Header above Previews: Symmetrical 3-Zone Studio Layout */}
           <div className="h-14 px-4 md:px-8 flex items-center justify-between shrink-0 bg-[#09090b] border-b border-[#18181c]/60 z-20">
-            {/* Left Zone: Editor Panel State Toggle */}
-            <div className="flex items-center gap-2 select-none flex-1 min-w-0">
+            {/* Left Zone: Brand & Editor Panel State Toggle */}
+            <div className="flex items-center gap-3 select-none flex-1 min-w-0">
+              <div className="flex items-center gap-2 pr-3 border-r border-[#18181c] shrink-0">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={`${getBasePath()}/icon.png`}
+                  alt="logo"
+                  className="w-5 h-5 rounded-[4px] object-cover shadow-xs"
+                />
+                <span className="text-xs font-mono font-medium tracking-tight text-zinc-300 lowercase hidden sm:inline">
+                  longform rasterizer
+                </span>
+              </div>
               <button
                 type="button"
                 onClick={() => setIsEditorCollapsed((prev) => !prev)}
@@ -791,11 +810,14 @@ export default function Home() {
   if (!isMounted) {
     return (
       <div className="flex h-screen w-screen items-center justify-center bg-[#09090b] text-zinc-500 font-mono text-xs select-none">
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 bg-white text-black font-bold flex items-center justify-center rounded-xs text-[10px]">
-            T
-          </div>
-          <span>Loading workspace...</span>
+        <div className="flex items-center gap-2.5">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={`${getBasePath()}/icon.png`}
+            alt="icon"
+            className="w-5 h-5 rounded-[4px] object-cover"
+          />
+          <span className="lowercase">loading workspace...</span>
         </div>
       </div>
     );
