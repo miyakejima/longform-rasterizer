@@ -7,7 +7,7 @@
 <h1 align="center">longform-rasterizer</h1>
 
 <p align="center">
-  <strong>Dynamic Long-Form Text to Image Engine</strong><br>
+  <strong>Dynamic Long-Form Text Typesetting Engine</strong><br>
   Turn essays, quotes, and threads into balanced, high-resolution image cards.
 </p>
 
