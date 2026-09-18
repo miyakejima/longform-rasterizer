@@ -27,14 +27,6 @@
 
 ---
 
-<p align="center">
-  <a href="https://miyakejima.github.io/longform-rasterizer/">
-    <img src="docs/rasterizer-demo.gif" alt="longform-rasterizer demo" width="100%" style="border-radius: 12px; box-shadow: 0 12px 36px rgba(0,0,0,0.25);">
-  </a>
-</p>
-
----
-
 ## Why this exists
 
 Posting long-form writing on visual social platforms (X, Threads, Instagram, LinkedIn) is broken:
