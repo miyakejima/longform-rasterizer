@@ -91,6 +91,48 @@ function Workspace() {
   const [exportWarning, setExportWarning] = useState<string | null>(null);
   const [showPresetsModal, setShowPresetsModal] = useState(false);
   const [showShortcutsModal, setShowShortcutsModal] = useState(false);
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('longform-rasterizer-theme');
+      if (stored === 'light' || stored === 'dark') {
+        setTheme(stored);
+        document.documentElement.setAttribute('data-theme', stored);
+        if (stored === 'light') {
+          document.documentElement.classList.add('light');
+          document.documentElement.classList.remove('dark');
+        } else {
+          document.documentElement.classList.add('dark');
+          document.documentElement.classList.remove('light');
+        }
+      }
+    } catch {
+      // Ignore
+    }
+  }, []);
+
+  const toggleTheme = useCallback(() => {
+    setTheme((prev) => {
+      const next = prev === 'light' ? 'dark' : 'light';
+      if (typeof document !== 'undefined') {
+        document.documentElement.setAttribute('data-theme', next);
+        if (next === 'light') {
+          document.documentElement.classList.add('light');
+          document.documentElement.classList.remove('dark');
+        } else {
+          document.documentElement.classList.add('dark');
+          document.documentElement.classList.remove('light');
+        }
+        try {
+          localStorage.setItem('longform-rasterizer-theme', next);
+        } catch {
+          // Ignore
+        }
+      }
+      return next;
+    });
+  }, []);
 
   // Undo / Redo history
   const historyRef = useRef<HistoryItem[]>([]);
@@ -527,7 +569,7 @@ function Workspace() {
   const charCount = doc.text.length;
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-[#0c0c0e] text-[#ededed]">
+    <div className="flex flex-col h-screen overflow-hidden bg-[var(--bg)] text-[var(--text-primary)]">
       {/* Export Blocked Notification Banner */}
       {exportWarning && (
         <div className="bg-red-950/80 border-b border-red-800 p-2.5 px-4 flex items-center justify-between text-xs text-red-200 shrink-0 z-40">
@@ -543,10 +585,10 @@ function Workspace() {
       )}
 
       {/* Main 2-Column Responsive Workspace: 30% Editor, 70% Previews (Collapsible) */}
-      <div className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0 bg-[#0c0c0e]">
+      <div className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0 bg-[var(--bg)]">
         {/* Left Column: Distraction-Free Editorial Text Editor (Zero navbar!) */}
         <div
-          className={`w-full md:w-[30%] h-1/2 md:h-full flex flex-col bg-[#0c0c0e] overflow-hidden ${
+          className={`w-full md:w-[30%] h-1/2 md:h-full flex flex-col bg-[var(--bg-editor)] overflow-hidden ${
             isEditorCollapsed ? 'hidden' : ''
           }`}
         >
@@ -578,16 +620,16 @@ function Workspace() {
         </div>
 
         {/* Center 1px Divider Line */}
-        {!isEditorCollapsed && <div className="w-px bg-[#18181c] hidden md:block shrink-0" />}
+        {!isEditorCollapsed && <div className="w-px bg-[var(--border)] hidden md:block shrink-0" />}
 
         {/* Right Column: Clean Live Preview Cards Grid + Single Top-Right Export Pill */}
         <div
           className={`w-full ${
             isEditorCollapsed ? 'w-full h-full' : 'md:w-[70%] h-1/2 md:h-full'
-          } flex flex-col bg-[#09090b] overflow-hidden transition-all duration-200`}
+          } flex flex-col bg-[var(--bg)] overflow-hidden transition-all duration-200`}
         >
           {/* Top Header above Previews: Symmetrical 3-Zone Studio Layout */}
-          <div className="h-14 px-4 md:px-8 flex items-center justify-between shrink-0 bg-[#09090b] border-b border-[#18181c]/60 z-20">
+          <div className="h-14 px-4 md:px-8 flex items-center justify-between shrink-0 bg-[var(--bg-header)] backdrop-blur-md border-b border-[var(--border)] z-20">
             {/* Left Zone: Editor Panel State Toggle */}
             <div className="flex items-center gap-2 select-none flex-1 min-w-0">
               <button
@@ -656,8 +698,51 @@ function Workspace() {
               </div>
             </div>
 
-            {/* Right Zone: Primary Action (Export Pill) */}
-            <div className="flex items-center justify-end select-none flex-1 min-w-0">
+            {/* Right Zone: Primary Action (Export Pill) & Theme Toggle Button */}
+            <div className="flex items-center justify-end select-none flex-1 min-w-0 gap-2">
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className="theme-toggle-btn"
+                title={theme === 'light' ? 'Switch to Dark Theme' : 'Switch to Light Theme'}
+                aria-label="Toggle theme"
+              >
+                <svg
+                  className="theme-icon sun-icon"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <circle cx="12" cy="12" r="4" />
+                  <path d="M12 2v2" />
+                  <path d="M12 20v2" />
+                  <path d="m4.93 4.93 1.41 1.41" />
+                  <path d="m17.66 17.66 1.41 1.41" />
+                  <path d="M2 12h2" />
+                  <path d="M20 12h2" />
+                  <path d="m6.34 17.66-1.41 1.41" />
+                  <path d="m19.07 4.93-1.41 1.41" />
+                </svg>
+                <svg
+                  className="theme-icon moon-icon"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+                </svg>
+              </button>
+
               <HeaderBar
                 onExportAll={handleExportAll}
                 onExportZip={handleExportZip}
@@ -707,7 +792,7 @@ function Workspace() {
       </div>
 
       {/* Bottom Shelf: Docked Toolbar + Stats */}
-      <footer className="h-14 border-t border-[#18181f] px-6 flex items-center justify-between bg-[#0c0c0e] shrink-0 select-none z-30">
+      <footer className="h-14 border-t border-[var(--border)] px-6 flex items-center justify-between bg-[var(--bg-footer)] backdrop-blur-md shrink-0 select-none z-30">
         {/* Left: Docked Minimalist Toolbar (4 pages | Inter ⌵ | 48 ⌵ | ···) */}
         <DockedToolbar
           pageCount={doc.pageCount}
@@ -798,7 +883,7 @@ export default function Home() {
 
   if (!isMounted) {
     return (
-      <div className="flex h-screen w-screen items-center justify-center bg-[#09090b] text-zinc-500 font-mono text-xs select-none">
+      <div className="flex h-screen w-screen items-center justify-center bg-[var(--bg)] text-[var(--text-dim)] font-mono text-xs select-none">
         <div className="flex items-center gap-2.5">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img

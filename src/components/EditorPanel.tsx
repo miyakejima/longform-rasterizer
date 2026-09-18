@@ -96,7 +96,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
 
   return (
     <div
-      className="relative flex flex-col h-full w-full bg-[#0c0c0e] overflow-hidden select-text"
+      className="relative flex flex-col h-full w-full bg-[var(--bg-editor)] overflow-hidden select-text"
       onDragOver={(e) => {
         e.preventDefault();
         setIsDraggingOver(true);
@@ -139,11 +139,11 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
             letterSpacing: typography?.letterSpacing ? `${typography.letterSpacing}px` : undefined,
             fontWeight: typography?.fontWeight ?? 400,
           }}
-          className="w-full flex-1 bg-transparent text-[#EDEDED] text-[17px] tracking-tight outline-none resize-none placeholder:text-zinc-700 caret-white selection:bg-zinc-800 no-scrollbar overflow-y-auto pb-16"
+          className="w-full flex-1 bg-transparent text-[var(--text-primary)] text-[17px] tracking-tight outline-none resize-none placeholder:text-[var(--text-dim)] caret-[var(--text-primary)] selection:bg-zinc-800 no-scrollbar overflow-y-auto pb-16"
         />
 
         {/* Soft bottom edge gradient fade (signals scroll affordance cleanly without UI clutter) */}
-        <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-14 bg-gradient-to-t from-[#0c0c0e] via-[#0c0c0e]/70 to-transparent z-10" />
+        <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-14 bg-gradient-to-t from-[#0c0c0e] via-[#0c0c0e]/70 to-transparent editor-bottom-fade z-10" />
 
         {/* Drag & drop overlay */}
         {isDraggingOver && (
