@@ -310,15 +310,20 @@ function Workspace() {
 
   // Automated 1-click Canvas Fill Optimizer (Wasted Space Eliminator)
   const handleFillCanvas = useCallback(() => {
-    const optimized = optimizeCanvasFill(doc, canvas, typography, spacing, advanced);
+    const fillCanvas: CanvasSettings = {
+      ...canvas,
+      trimAllPages: true,
+      trimLastPageHeight: true,
+    };
+    const optimized = optimizeCanvasFill(doc, fillCanvas, typography, spacing, advanced);
     setTypography(optimized.typography);
     setSpacing(optimized.spacing);
-    setCanvas(optimized.canvas);
+    setCanvas(fillCanvas);
     setAdvanced((prev) => ({ ...prev, autoFit: true }));
-    pushHistory(doc, optimized.canvas, optimized.typography, optimized.spacing, { ...advanced, autoFit: true });
+    pushHistory(doc, fillCanvas, optimized.typography, optimized.spacing, { ...advanced, autoFit: true });
   }, [doc, canvas, typography, spacing, advanced, pushHistory]);
 
-  // Author-Preferred: 1-click compact margins (48px), clean centering, whole-paragraph preservation & trimmed last card
+  // Author-Preferred: 1-click compact margins (48px), clean centering, whole-paragraph preservation & auto-trimmed cards
   const handleAuthorPreferred = useCallback(() => {
     const authorSpacing: SpacingSettings = {
       ...spacing,
@@ -337,6 +342,7 @@ function Workspace() {
     const authorCanvas: CanvasSettings = {
       ...canvas,
       trimLastPageHeight: true,
+      trimAllPages: true,
     };
     const authorDoc: DocumentState = {
       ...doc,
@@ -346,9 +352,9 @@ function Workspace() {
     setDoc(authorDoc);
     setTypography(optimized.typography);
     setSpacing(optimized.spacing);
-    setCanvas(optimized.canvas);
+    setCanvas(authorCanvas);
     setAdvanced((prev) => ({ ...prev, autoFit: true }));
-    pushHistory(authorDoc, optimized.canvas, optimized.typography, optimized.spacing, { ...advanced, autoFit: true });
+    pushHistory(authorDoc, authorCanvas, optimized.typography, optimized.spacing, { ...advanced, autoFit: true });
   }, [doc, canvas, typography, spacing, advanced, pushHistory]);
 
   // Layout primitives for zero-overhead color adjustments and strict debounced typing
@@ -360,7 +366,12 @@ function Workspace() {
     projectName: docProjectName,
   } = doc;
 
-  const { width: canvasWidth, height: canvasHeight, trimLastPageHeight: canvasTrimLast } = canvas;
+  const {
+    width: canvasWidth,
+    height: canvasHeight,
+    trimLastPageHeight: canvasTrimLast,
+    trimAllPages: canvasTrimAll,
+  } = canvas;
 
   const {
     fontFamily: typoFamily,
@@ -406,6 +417,8 @@ function Workspace() {
       ...canvas,
       width: canvasWidth,
       height: canvasHeight,
+      trimLastPageHeight: canvasTrimLast,
+      trimAllPages: canvasTrimAll,
     };
 
     const layoutTypo: TypographySettings = {
@@ -466,6 +479,7 @@ function Workspace() {
     canvasWidth,
     canvasHeight,
     canvasTrimLast,
+    canvasTrimAll,
     typoFamily,
     typoFontSize,
     typoWeight,

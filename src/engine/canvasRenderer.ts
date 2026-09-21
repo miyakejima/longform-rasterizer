@@ -25,7 +25,11 @@ export function getPageCanvasDimensions(
   canvas: CanvasSettings,
   spacing: SpacingSettings
 ): { width: number; height: number; isTrimmed: boolean } {
-  if (canvas.trimLastPageHeight && totalPages > 1 && pageIndex === totalPages - 1) {
+  const shouldTrim = Boolean(
+    canvas.trimAllPages ||
+    (canvas.trimLastPageHeight && totalPages > 1 && pageIndex === totalPages - 1)
+  );
+  if (shouldTrim) {
     const naturalHeight = Math.round(pageRenderedHeight + spacing.paddingTop + spacing.paddingBottom);
     if (naturalHeight < canvas.height && naturalHeight > 100) {
       return { width: canvas.width, height: naturalHeight, isTrimmed: true };
