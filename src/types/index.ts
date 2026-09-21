@@ -98,6 +98,7 @@ export interface PageData {
   utilization: number;    // 0 to 100 percentage
   overflowPx: number;     // 0 if fits, >0 if overflowing
   isOverflowing: boolean;
+  typography?: TypographySettings;
 }
 
 export interface PaginationResult {

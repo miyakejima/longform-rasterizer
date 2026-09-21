@@ -46,8 +46,54 @@ export function autoFitFontSize(
   }
 
   if (bestResult) {
+    const adaptivePages = bestResult.pages.map((p) => {
+      if ((p.utilization >= 95 && p.renderedHeight >= availableHeight * 0.90) || !p.text.trim()) {
+        return p;
+      }
+
+      const singleDoc: DocumentState = {
+        ...doc,
+        text: p.text,
+        pageCount: 1,
+      };
+
+      let low = bestFontSize;
+      let high = Math.max(bestFontSize, canvasScaleMax);
+      let bestPageRes = p;
+
+      while (low <= high) {
+        const mid = Math.floor((low + high) / 2);
+        const testTypo = { ...options.typography, fontSize: mid };
+        const testOpt: PaginationOptions = {
+          ...options,
+          typography: testTypo,
+        };
+        const singleRes = paginateDocument(singleDoc, testOpt);
+        const singlePage = singleRes.pages[0];
+        const overflows = singlePage ? singlePage.renderedHeight > availableHeight || singlePage.isOverflowing : true;
+
+        if (!overflows && singlePage) {
+          bestPageRes = {
+            ...p,
+            lines: singlePage.lines,
+            renderedHeight: singlePage.renderedHeight,
+            utilization: singlePage.utilization,
+            overflowPx: singlePage.overflowPx,
+            isOverflowing: singlePage.isOverflowing,
+            typography: testTypo,
+          };
+          low = mid + 1;
+        } else {
+          high = mid - 1;
+        }
+      }
+
+      return bestPageRes;
+    });
+
     return {
       ...bestResult,
+      pages: adaptivePages,
       effectiveFontSize: bestFontSize,
       isAutoFitFailed: false,
     };

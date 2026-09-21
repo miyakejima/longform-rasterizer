@@ -190,12 +190,68 @@ export function optimizeCanvasFill(
     }
   }
 
+  // Phase 3: Adaptive Page Font Scaling (Guarantees >= 95% utilization on all cards)
+  // When whole paragraphs are preserved, some cards may receive fewer paragraphs than others (e.g. 1 vs 2).
+  // For any card whose utilization is below 95%, adaptively scale that card's font size to naturally fill >= 95%.
+  const adaptivePages = bestPagination.pages.map((p) => {
+    if ((p.utilization >= 95 && p.renderedHeight >= availableHeight * 0.90) || !p.text.trim()) {
+      return p;
+    }
+
+    const singleDoc: DocumentState = {
+      ...doc,
+      text: p.text,
+      pageCount: 1,
+    };
+
+    let low = bestTypography.fontSize;
+    let high = Math.max(bestTypography.fontSize, canvasScaleMax);
+    let bestPageRes = p;
+
+    while (low <= high) {
+      const mid = Math.floor((low + high) / 2);
+      const testTypo: TypographySettings = { ...bestTypography, fontSize: mid };
+      const testOpt: PaginationOptions = {
+        canvas: baseCanvas,
+        typography: testTypo,
+        spacing: bestSpacing,
+        advanced,
+      };
+      const singleRes = paginateDocument(singleDoc, testOpt);
+      const singlePage = singleRes.pages[0];
+      const overflows = singlePage ? singlePage.renderedHeight > availableHeight || singlePage.isOverflowing : true;
+
+      if (!overflows && singlePage) {
+        bestPageRes = {
+          ...p,
+          lines: singlePage.lines,
+          renderedHeight: singlePage.renderedHeight,
+          utilization: singlePage.utilization,
+          overflowPx: singlePage.overflowPx,
+          isOverflowing: singlePage.isOverflowing,
+          typography: testTypo,
+        };
+        low = mid + 1;
+      } else {
+        high = mid - 1;
+      }
+    }
+
+    return bestPageRes;
+  });
+
+  bestPagination = {
+    ...bestPagination,
+    pages: adaptivePages,
+  };
+  const { avg: finalAvg, min: finalMin } = computeUtilMetrics(bestPagination);
+
   return {
     typography: bestTypography,
     spacing: bestSpacing,
     canvas: baseCanvas,
     paginationResult: bestPagination,
-    averageUtilization: bestAvgUtil,
-    minUtilization: bestMinUtil,
+    averageUtilization: finalAvg,
+    minUtilization: finalMin,
   };
 }

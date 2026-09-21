@@ -314,8 +314,8 @@ function Workspace() {
     setTypography(optimized.typography);
     setSpacing(optimized.spacing);
     setCanvas(optimized.canvas);
-    setAdvanced((prev) => ({ ...prev, autoFit: false }));
-    pushHistory(doc, optimized.canvas, optimized.typography, optimized.spacing, { ...advanced, autoFit: false });
+    setAdvanced((prev) => ({ ...prev, autoFit: true }));
+    pushHistory(doc, optimized.canvas, optimized.typography, optimized.spacing, { ...advanced, autoFit: true });
   }, [doc, canvas, typography, spacing, advanced, pushHistory]);
 
   // Author-Preferred: 1-click compact margins (48px), clean centering, whole-paragraph preservation & trimmed last card
@@ -347,8 +347,8 @@ function Workspace() {
     setTypography(optimized.typography);
     setSpacing(optimized.spacing);
     setCanvas(optimized.canvas);
-    setAdvanced((prev) => ({ ...prev, autoFit: false }));
-    pushHistory(authorDoc, optimized.canvas, optimized.typography, optimized.spacing, { ...advanced, autoFit: false });
+    setAdvanced((prev) => ({ ...prev, autoFit: true }));
+    pushHistory(authorDoc, optimized.canvas, optimized.typography, optimized.spacing, { ...advanced, autoFit: true });
   }, [doc, canvas, typography, spacing, advanced, pushHistory]);
 
   // Layout primitives for zero-overhead color adjustments and strict debounced typing
