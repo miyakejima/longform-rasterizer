@@ -374,7 +374,7 @@ export function paginateDocument(
             (canvas.trimAllPages || (canvas.trimLastPageHeight && pageCount > 1 && p === pageCount - 1)) &&
             renderedH < availableHeight
           );
-          const isFull = (isTrimmedPage || renderedH >= availableHeight) && !isOverflowing;
+          const isFull = (isVerticalJustify || isTrimmedPage || renderedH >= availableHeight) && !isOverflowing;
           const util = isFull
             ? 100
             : Math.min(100, Math.round((renderedH / availableHeight) * 100));
@@ -485,7 +485,7 @@ export function paginateDocument(
             (canvas.trimAllPages || (canvas.trimLastPageHeight && pageCount > 1 && p === pageCount - 1)) &&
             renderedH < availableHeight
           );
-          const isFull = (isTrimmedPage || renderedH >= availableHeight) && !isOverflowing;
+          const isFull = (isVerticalJustify || isTrimmedPage || renderedH >= availableHeight) && !isOverflowing;
           const util = isFull
             ? 100
             : Math.min(100, Math.round((renderedH / availableHeight) * 100));
@@ -614,7 +614,7 @@ export function paginateDocument(
       (canvas.trimAllPages || (canvas.trimLastPageHeight && pageCount > 1 && p === pageCount - 1)) &&
       renderedH < availableHeight
     );
-    const isFull = (isTrimmedPage || renderedH >= availableHeight) && !isOverflowing;
+    const isFull = (isVerticalJustify || isTrimmedPage || renderedH >= availableHeight) && !isOverflowing;
 
     pages.push({
       pageIndex: p,

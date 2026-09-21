@@ -17,7 +17,8 @@ export const DEFAULT_CANVAS: CanvasSettings = {
   preset: 'twitter',
   backgroundColor: '#000000',
   transparentBackground: false,
-  trimLastPageHeight: false,
+  trimLastPageHeight: true,
+  trimAllPages: true,
 };
 
 export const DEFAULT_TYPOGRAPHY: TypographySettings = {
@@ -32,12 +33,12 @@ export const DEFAULT_TYPOGRAPHY: TypographySettings = {
 };
 
 export const DEFAULT_SPACING: SpacingSettings = {
-  paddingTop: 96,
-  paddingRight: 96,
-  paddingBottom: 96,
-  paddingLeft: 96,
+  paddingTop: 48,
+  paddingRight: 48,
+  paddingBottom: 48,
+  paddingLeft: 48,
   linked: true,
-  preset: 'balanced',
+  preset: 'compact',
   paragraphSpacing: 28,
   minBottomSpace: 0,
   verticalAlignment: 'center',
@@ -48,7 +49,7 @@ export const DEFAULT_ADVANCED: AdvancedSettings = {
   balanceStrength: 'medium',
   preventOrphanLines: true,
   allowClippedExport: false,
-  autoFit: false,
+  autoFit: true,
   minFontSize: 18,
   maxFontSize: 64,
 };
@@ -75,7 +76,7 @@ export const DEFAULT_DOCUMENT: DocumentState = {
   text: INITIAL_SAMPLE_TEXT,
   projectName: 'The Meaning of Enough',
   pageCount: 4,
-  distributionMode: 'balanced',
+  distributionMode: 'paragraph-preserving',
   manualBreaks: [],
   layoutLocked: false,
 };

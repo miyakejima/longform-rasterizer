@@ -56,13 +56,14 @@ export const PageCard: React.FC<PageCardProps> = ({
   const [copied, setCopied] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
 
-  // Compute dynamic dimensions (supports auto-trimming last page height to content)
+  const effectiveTypo = page.typography ?? typography;
   const pageDims = getPageCanvasDimensions(
     page.pageIndex,
     totalPages,
     page.renderedHeight,
     canvas,
-    spacing
+    spacing,
+    effectiveTypo
   );
 
   // Render canvas whenever layout/page changes with rAF throttling for buttery-smooth 60fps updates

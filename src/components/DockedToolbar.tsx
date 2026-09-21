@@ -540,26 +540,15 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
             <span>Auto-fit</span>
           </button>
 
-          {/* Fill Canvas Optimizer */}
+          {/* 1-Click Auto-Balance / Optimize */}
           <button
             type="button"
-            onClick={onFillCanvas}
-            className="h-7 px-2.5 flex items-center gap-1 rounded-[6px] text-[11px] text-zinc-400 hover:text-white hover:bg-[#16161c] transition-colors"
-            title="1-click: Optimize font size, line height, and vertical justification to maximize page fill"
-          >
-            <Maximize2 className="w-3 h-3 text-zinc-400" />
-            <span>Fill</span>
-          </button>
-
-          {/* Author-Preferred Mode */}
-          <button
-            type="button"
-            onClick={onAuthorPreferred}
+            onClick={onAuthorPreferred ?? onFillCanvas}
             className="h-7 px-2.5 flex items-center gap-1.5 rounded-[6px] text-[11px] font-medium text-amber-300/90 hover:text-amber-200 hover:bg-amber-500/10 border border-amber-500/20 bg-amber-500/5 transition-all shadow-xs"
-            title="Author Preferred: 1-click compact 48px margins, vertical justification (100% util), whole-paragraph preservation & trimmed last card"
+            title="Auto-Balance: 1-click snap to optimal density, compact margins, and 100% vertical fill"
           >
             <Wand2 className="w-3 h-3 text-amber-400" />
-            <span>Author Fit</span>
+            <span>Auto-Balance</span>
           </button>
         </div>
 
@@ -675,54 +664,46 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                   </div>
                 </div>
 
-                <div className="pt-2.5 mt-2.5 border-t border-[#18181f] flex flex-col gap-2.5">
-                  <div className="flex items-center justify-between">
-                    <div className="flex flex-col pr-2">
-                      <span className="text-xs font-medium text-zinc-200">Trim all pages to content</span>
-                      <span className="text-[10px] text-zinc-500">Auto-fit every card height (100% util, no empty space)</span>
-                    </div>
+                <div className="pt-2.5 mt-2.5 border-t border-[#18181f] flex flex-col gap-1.5">
+                  <span className="text-[10px] font-semibold text-zinc-500 uppercase font-mono tracking-wider">
+                    Card Height Mode
+                  </span>
+                  <div className="grid grid-cols-3 gap-1 bg-[#09090c] p-1 rounded-[6px] border border-[#18181f]">
                     <button
                       type="button"
-                      onClick={() =>
-                        onCanvasChange({
-                          ...canvas,
-                          trimAllPages: !canvas.trimAllPages,
-                        })
-                      }
-                      className={`w-9 h-5 rounded-full p-0.5 transition-colors shrink-0 ${
-                        canvas.trimAllPages ? 'bg-[#24242e] border border-[#3e3e4c]' : 'bg-[#18181f]'
+                      onClick={() => onCanvasChange({ ...canvas, trimAllPages: true, trimLastPageHeight: true })}
+                      className={`px-2 py-1 rounded-[4px] text-[11px] font-medium transition-colors ${
+                        canvas.trimAllPages
+                          ? 'bg-[#24242e] text-white border border-[#3e3e4c]'
+                          : 'text-zinc-400 hover:text-zinc-200'
                       }`}
+                      title="Auto-fit every card height to content (100% util, no empty space)"
                     >
-                      <div
-                        className={`w-4 h-4 rounded-full transition-transform ${
-                          canvas.trimAllPages ? 'translate-x-4 bg-zinc-200' : 'translate-x-0 bg-zinc-600'
-                        }`}
-                      />
+                      Trim All
                     </button>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex flex-col pr-2">
-                      <span className="text-xs font-medium text-zinc-200">Trim last page height</span>
-                      <span className="text-[10px] text-zinc-500">Fit final image height to content</span>
-                    </div>
                     <button
                       type="button"
-                      onClick={() =>
-                        onCanvasChange({
-                          ...canvas,
-                          trimLastPageHeight: !canvas.trimLastPageHeight,
-                        })
-                      }
-                      className={`w-9 h-5 rounded-full p-0.5 transition-colors shrink-0 ${
-                        canvas.trimLastPageHeight ? 'bg-[#24242e] border border-[#3e3e4c]' : 'bg-[#18181f]'
+                      onClick={() => onCanvasChange({ ...canvas, trimAllPages: false, trimLastPageHeight: true })}
+                      className={`px-2 py-1 rounded-[4px] text-[11px] font-medium transition-colors ${
+                        !canvas.trimAllPages && canvas.trimLastPageHeight
+                          ? 'bg-[#24242e] text-white border border-[#3e3e4c]'
+                          : 'text-zinc-400 hover:text-zinc-200'
                       }`}
+                      title="Cards 1-(N-1) stay uniform 4:5 for carousels; only last card trims"
                     >
-                      <div
-                        className={`w-4 h-4 rounded-full transition-transform ${
-                          canvas.trimLastPageHeight ? 'translate-x-4 bg-zinc-200' : 'translate-x-0 bg-zinc-600'
-                        }`}
-                      />
+                      Trim Last
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onCanvasChange({ ...canvas, trimAllPages: false, trimLastPageHeight: false })}
+                      className={`px-2 py-1 rounded-[4px] text-[11px] font-medium transition-colors ${
+                        !canvas.trimAllPages && !canvas.trimLastPageHeight
+                          ? 'bg-[#24242e] text-white border border-[#3e3e4c]'
+                          : 'text-zinc-400 hover:text-zinc-200'
+                      }`}
+                      title="Strict fixed canvas dimensions for all cards"
+                    >
+                      Fixed
                     </button>
                   </div>
                 </div>

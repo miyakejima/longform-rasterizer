@@ -363,6 +363,7 @@ describe('Release Showcase E2E Verification Suite (4-Tier Framework)', () => {
         ...DEFAULT_CANVAS,
         width: 1080,
         height: 1350,
+        trimAllPages: false,
         trimLastPageHeight: true,
       };
 

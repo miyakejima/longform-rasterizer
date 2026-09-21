@@ -23,13 +23,17 @@ export function getPageCanvasDimensions(
   totalPages: number,
   pageRenderedHeight: number,
   canvas: CanvasSettings,
-  spacing: SpacingSettings
+  spacing: SpacingSettings,
+  typography?: TypographySettings
 ): { width: number; height: number; isTrimmed: boolean } {
+  const vAlign = typography?.verticalAlignment ?? spacing.verticalAlignment ?? 'center';
+  const isJustify = vAlign === 'justify';
+
   const shouldTrim = Boolean(
     canvas.trimAllPages ||
     (canvas.trimLastPageHeight && totalPages > 1 && pageIndex === totalPages - 1)
   );
-  if (shouldTrim) {
+  if (shouldTrim && !isJustify) {
     const naturalHeight = Math.round(pageRenderedHeight + spacing.paddingTop + spacing.paddingBottom);
     if (naturalHeight < canvas.height && naturalHeight > 100) {
       return { width: canvas.width, height: naturalHeight, isTrimmed: true };
@@ -52,7 +56,8 @@ export function renderPageToCanvas(
     totalPages,
     page.renderedHeight,
     canvas,
-    spacing
+    spacing,
+    typography
   );
 
   const effectiveCanvasWidth = pageDims.width;
@@ -103,8 +108,8 @@ export function renderPageToCanvas(
   let extraLineSpacing = 0;
   let currentY = paddingTop;
 
-  if (pageDims.isTrimmed) {
-    // When trimmed, the canvas height matches the text exactly + padding
+  if (pageDims.isTrimmed && verticalAlignment !== 'center' && verticalAlignment !== 'justify') {
+    // When trimmed and top-aligned, start at paddingTop
     currentY = paddingTop;
   } else if (verticalAlignment === 'center' && remainingSpace > 0) {
     // Clean, natural vertical centering as a unified block (normal uniform paragraph spacing!)
@@ -117,9 +122,9 @@ export function renderPageToCanvas(
     }, 0);
 
     if (internalParagraphEnds > 0) {
-      // Multiple paragraphs: expand paragraph gaps tastefully up to a sane limit
-      const maxExtraPara = Math.min(36, Math.max(12, Math.round(spacing.paragraphSpacing * 0.8)));
+      // Multiple paragraphs: expand paragraph gaps cleanly to absorb remaining space flush to bottom
       const neededParaPerGap = remainingSpace / internalParagraphEnds;
+      const maxExtraPara = Math.max(72, Math.round(spacing.paragraphSpacing * 3.5));
       if (neededParaPerGap <= maxExtraPara) {
         extraParaSpacing = neededParaPerGap;
       } else {

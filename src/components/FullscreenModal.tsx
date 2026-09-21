@@ -91,8 +91,9 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
 
   const activePage = pages[currentPageIndex] || pages[0];
 
+  const effectiveTypo = activePage?.typography ?? typography;
   const pageDims = activePage
-    ? getPageCanvasDimensions(activePage.pageIndex, pages.length, activePage.renderedHeight, canvas, spacing)
+    ? getPageCanvasDimensions(activePage.pageIndex, pages.length, activePage.renderedHeight, canvas, spacing, effectiveTypo)
     : { width: canvas.width, height: canvas.height, isTrimmed: false };
 
   useEffect(() => {

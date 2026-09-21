@@ -216,12 +216,14 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
           )}
 
           {(() => {
+            const effectiveTypo = activeSinglePage.typography ?? typography;
             const singleDims = getPageCanvasDimensions(
               activeSinglePage.pageIndex,
               pages.length,
               activeSinglePage.renderedHeight,
               canvas,
-              spacing
+              spacing,
+              effectiveTypo
             );
             return (
               <div className="flex-1 min-h-0 w-full flex items-center justify-center p-2">
@@ -292,48 +294,48 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
             className="flex-1 min-h-0 w-full flex items-center overflow-x-auto snap-x snap-mandatory py-4 px-12 gap-8 scroll-smooth"
           >
             {pages.map((page, idx) => {
+              const effectiveTypo = page.typography ?? typography;
               const cardDims = getPageCanvasDimensions(
                 page.pageIndex,
                 pages.length,
                 page.renderedHeight,
                 canvas,
-                spacing
+                spacing,
+                effectiveTypo
               );
               return (
                 <div
                   key={`preview-carousel-${page.pageIndex}`}
                   className={`h-full ${isEditorCollapsed ? 'max-h-[82vh]' : 'max-h-[70vh]'} min-h-[280px] shrink-0 flex flex-col items-center justify-center snap-center`}
-                  style={{
-                    aspectRatio: `${cardDims.width} / ${cardDims.height}`,
-                  }}
+                  style={{ aspectRatio: `${cardDims.width} / ${cardDims.height}` }}
                 >
-                <div className="w-full flex-1 min-h-0 relative flex items-center justify-center">
-                  <PageCard
-                    page={page}
-                    totalPages={pages.length}
-                    canvas={canvas}
-                    typography={typography}
-                    spacing={spacing}
-                    exportFormat={exportFormat}
-                    exportScale={exportScale}
-                    projectName={projectName}
-                    isHovered={highlightedPageIndex === idx}
-                    onHover={(isHovering) => onPageHover(isHovering ? idx : null)}
-                    onClick={() => {
-                      scrollCarouselTo(idx);
-                      onSelectPage(idx);
-                    }}
-                    onEnlarge={() => onOpenFullscreen(idx)}
-                    allowClippedExport={allowClippedExport}
-                    onBlockedExport={onBlockedExport}
-                  />
+                  <div className="w-full h-full relative flex items-center justify-center">
+                    <PageCard
+                      page={page}
+                      totalPages={pages.length}
+                      canvas={canvas}
+                      typography={typography}
+                      spacing={spacing}
+                      exportFormat={exportFormat}
+                      exportScale={exportScale}
+                      projectName={projectName}
+                      isHovered={highlightedPageIndex === idx}
+                      onHover={(isHovering) => onPageHover(isHovering ? idx : null)}
+                      onClick={() => {
+                        onSelectPage(idx);
+                        scrollCarouselTo(idx);
+                      }}
+                      onEnlarge={() => onOpenFullscreen(idx)}
+                      allowClippedExport={allowClippedExport}
+                      onBlockedExport={onBlockedExport}
+                    />
+                  </div>
+                  <span className="text-[11px] font-mono font-semibold px-2.5 py-0.5 rounded-full bg-zinc-200/90 dark:bg-zinc-800/90 text-zinc-800 dark:text-zinc-200 border border-zinc-300 dark:border-zinc-700/80 shadow-2xs mt-2 shrink-0 select-none">
+                    Page {page.pageIndex + 1}
+                  </span>
                 </div>
-                <span className="text-[11px] font-mono font-medium text-zinc-300/90 mt-2 shrink-0 select-none tracking-wide">
-                  Page {page.pageIndex + 1}
-                </span>
-              </div>
-            );
-          })}
+              );
+            })}
           </div>
 
           {/* Bottom Interactive Slide Indicators & Page Counter */}
@@ -385,7 +387,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                 allowClippedExport={allowClippedExport}
                 onBlockedExport={onBlockedExport}
               />
-              <span className="text-[11px] font-mono font-medium text-zinc-300/90 select-none tracking-wide">
+              <span className="text-[11px] font-mono font-semibold px-2.5 py-0.5 rounded-full bg-zinc-200/90 dark:bg-zinc-800/90 text-zinc-800 dark:text-zinc-200 border border-zinc-300 dark:border-zinc-700/80 shadow-2xs select-none">
                 Page {page.pageIndex + 1}
               </span>
             </div>
