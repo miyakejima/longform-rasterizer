@@ -75,7 +75,11 @@ export function autoFitFontSize(
         if (!overflows && singlePage) {
           bestPageRes = {
             ...p,
-            lines: singlePage.lines,
+            lines: singlePage.lines.map((l) => ({
+              ...l,
+              startIndex: l.startIndex + p.startIndex,
+              endIndex: l.endIndex + p.startIndex,
+            })),
             renderedHeight: singlePage.renderedHeight,
             utilization: singlePage.utilization,
             overflowPx: singlePage.overflowPx,

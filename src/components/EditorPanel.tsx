@@ -54,35 +54,40 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
       }
 
       const computed = window.getComputedStyle(ta);
-      mirror.style.width = `${ta.clientWidth}px`;
+      const padL = parseFloat(computed.paddingLeft) || 0;
+      const padR = parseFloat(computed.paddingRight) || 0;
+      const padT = parseFloat(computed.paddingTop) || 0;
+      const contentWidth = Math.max(10, ta.clientWidth - padL - padR);
+
+      mirror.style.boxSizing = 'content-box';
+      mirror.style.width = `${contentWidth}px`;
+      mirror.style.padding = '0px';
+      mirror.style.border = 'none';
       mirror.style.fontFamily = computed.fontFamily;
       mirror.style.fontSize = computed.fontSize;
       mirror.style.fontWeight = computed.fontWeight;
       mirror.style.lineHeight = computed.lineHeight;
       mirror.style.letterSpacing = computed.letterSpacing;
-      mirror.style.paddingLeft = computed.paddingLeft;
-      mirror.style.paddingRight = computed.paddingRight;
-      mirror.style.paddingTop = computed.paddingTop;
-      mirror.style.paddingBottom = computed.paddingBottom;
-      mirror.style.boxSizing = computed.boxSizing;
       mirror.style.textAlign = computed.textAlign;
 
       const start = Math.max(0, Math.min(text.length, target.startIndex));
       const end = Math.max(start, Math.min(text.length, target.endIndex));
 
-      // Calculate topY and height using mirror.scrollHeight
-      let topY = 0;
+      // Calculate topY and bottomY using pure text content in mirror
+      let topY = padT;
       if (start > 0) {
-        mirror.textContent = text.slice(0, start);
-        topY = mirror.scrollHeight;
+        const sliceBefore = text.slice(0, start);
+        mirror.textContent = sliceBefore.endsWith('\n') ? sliceBefore + '\u200B' : sliceBefore;
+        topY = mirror.scrollHeight + padT;
       }
 
-      mirror.textContent = text.slice(0, end);
-      const bottomY = mirror.scrollHeight;
+      const sliceEnd = text.slice(0, end);
+      mirror.textContent = sliceEnd.endsWith('\n') ? sliceEnd + '\u200B' : sliceEnd;
+      const bottomY = mirror.scrollHeight + padT;
       const height = Math.max(28, bottomY - topY);
 
-      spotlight.style.top = `${Math.max(0, topY - 4)}px`;
-      spotlight.style.height = `${height + 8}px`;
+      spotlight.style.top = `${Math.max(0, topY - 2)}px`;
+      spotlight.style.height = `${height + 4}px`;
       spotlight.style.opacity = '1';
       spotlightLayer.style.transform = `translateY(-${ta.scrollTop}px)`;
 
@@ -92,7 +97,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
       const isBelow = topY + height > currentScroll + viewportHeight - 30;
 
       if (isAbove || isBelow) {
-        const targetScroll = Math.max(0, topY - 40);
+        const targetScroll = Math.max(0, topY - Math.round(viewportHeight * 0.25));
         ta.scrollTo({ top: targetScroll, behavior: 'smooth' });
       }
     },
@@ -122,33 +127,35 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
     const p = pages[highlightedPageIndex];
     const ta = textareaRef.current;
     const mirror = mirrorRef.current;
-    if (!ta) return;
+    if (!ta || !mirror) return;
 
     if (p.startIndex === 0) {
       ta.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
-    if (mirror) {
-      const computed = window.getComputedStyle(ta);
-      mirror.style.width = `${ta.clientWidth}px`;
-      mirror.style.fontFamily = computed.fontFamily;
-      mirror.style.fontSize = computed.fontSize;
-      mirror.style.fontWeight = computed.fontWeight;
-      mirror.style.lineHeight = computed.lineHeight;
-      mirror.style.letterSpacing = computed.letterSpacing;
-      mirror.style.paddingLeft = computed.paddingLeft;
-      mirror.style.paddingRight = computed.paddingRight;
-      mirror.style.boxSizing = computed.boxSizing;
+    const computed = window.getComputedStyle(ta);
+    const padL = parseFloat(computed.paddingLeft) || 0;
+    const padR = parseFloat(computed.paddingRight) || 0;
+    const contentWidth = Math.max(10, ta.clientWidth - padL - padR);
 
-      // Text up to the start of this page
-      const textBefore = text.slice(0, p.startIndex);
-      mirror.textContent = textBefore;
+    mirror.style.boxSizing = 'content-box';
+    mirror.style.width = `${contentWidth}px`;
+    mirror.style.padding = '0px';
+    mirror.style.border = 'none';
+    mirror.style.fontFamily = computed.fontFamily;
+    mirror.style.fontSize = computed.fontSize;
+    mirror.style.fontWeight = computed.fontWeight;
+    mirror.style.lineHeight = computed.lineHeight;
+    mirror.style.letterSpacing = computed.letterSpacing;
 
-      // Exact pixel height where the page starts
-      const targetScroll = Math.max(0, mirror.scrollHeight - 8);
-      ta.scrollTo({ top: targetScroll, behavior: 'smooth' });
-    }
+    // Text up to the start of this page
+    const textBefore = text.slice(0, p.startIndex);
+    mirror.textContent = textBefore.endsWith('\n') ? textBefore + '\u200B' : textBefore;
+
+    // Exact pixel height where the page starts
+    const targetScroll = Math.max(0, mirror.scrollHeight - 8);
+    ta.scrollTo({ top: targetScroll, behavior: 'smooth' });
   }, [highlightedParagraph, highlightedPageIndex, pages, text]);
 
   const handleFileLoad = (file: File) => {

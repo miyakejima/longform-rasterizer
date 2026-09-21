@@ -117,6 +117,15 @@ export function getParagraphBoundsForPage(
 
   for (let i = 0; i < page.lines.length; i++) {
     const line = page.lines[i];
+
+    if (line.text.trim().length === 0) {
+      currentY += lineBoxHeight;
+      if (line.isParagraphEnd && i < page.lines.length - 1) {
+        currentY += paragraphSpacing + extraParaSpacing;
+      }
+      continue;
+    }
+
     const lineTop = currentY;
     const lineBottom = currentY + lineBoxHeight;
 
@@ -135,8 +144,10 @@ export function getParagraphBoundsForPage(
 
     currentY += lineBoxHeight;
     if (line.isParagraphEnd || i === page.lines.length - 1) {
-      bounds.push(currentGroup);
-      currentGroup = null;
+      if (currentGroup) {
+        bounds.push(currentGroup);
+        currentGroup = null;
+      }
       if (i < page.lines.length - 1) {
         currentY += paragraphSpacing + extraParaSpacing;
       }
