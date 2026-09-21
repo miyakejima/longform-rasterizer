@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *, html.dark, html.dark *));
+
 /* ── Longform Rasterizer Theme System (Studio Workstation Edition) ── */
 
 :root, [data-theme="dark"], html.dark {
