@@ -67,6 +67,7 @@ describe('Paragraph Spotlight Targeting & Character Offset Precision', () => {
     console.log('\n[Index Check] "tool removes the difficulty":', p4Last);
     const missing = INITIAL_SAMPLE_TEXT.indexOf('missing context filled');
     console.log('[Index Check] "missing context filled":', missing);
+    console.log('[Index Check] slice around 447:', JSON.stringify(INITIAL_SAMPLE_TEXT.slice(440, 455)));
   });
 
   it('proves whether autoFitFontSize preserves absolute doc.text startIndex and endIndex on all pages', async () => {

@@ -72,19 +72,48 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
 
       const start = Math.max(0, Math.min(text.length, target.startIndex));
       const end = Math.max(start, Math.min(text.length, target.endIndex));
+      const targetRaw = text.slice(start, end);
 
-      // Calculate topY and bottomY using pure text content in mirror
-      let topY = padT;
-      if (start > 0) {
-        const sliceBefore = text.slice(0, start);
-        mirror.textContent = sliceBefore.endsWith('\n') ? sliceBefore + '\u200B' : sliceBefore;
-        topY = mirror.scrollHeight + padT;
+      // Strip leading and trailing newlines so spanTarget tightly bounds the visible text lines
+      const leadingMatch = targetRaw.match(/^[\r\n]+/);
+      const leadingLen = leadingMatch ? leadingMatch[0].length : 0;
+      const effectiveStart = start + leadingLen;
+      const effectiveTargetRaw = targetRaw.slice(leadingLen);
+      const trailingMatch = effectiveTargetRaw.match(/[\r\n]+$/);
+      const trailingLen = trailingMatch ? trailingMatch[0].length : 0;
+      const targetContent = effectiveTargetRaw.slice(0, effectiveTargetRaw.length - trailingLen);
+
+      if (targetContent.trim().length === 0) {
+        spotlight.style.opacity = '0';
+        return;
       }
 
-      const sliceEnd = text.slice(0, end);
-      mirror.textContent = sliceEnd.endsWith('\n') ? sliceEnd + '\u200B' : sliceEnd;
-      const bottomY = mirror.scrollHeight + padT;
-      const height = Math.max(28, bottomY - topY);
+      mirror.innerHTML = '';
+      const spanBefore = document.createElement('span');
+      spanBefore.textContent = text.slice(0, effectiveStart);
+
+      const spanTarget = document.createElement('span');
+      spanTarget.textContent = targetContent;
+
+      mirror.appendChild(spanBefore);
+      mirror.appendChild(spanTarget);
+
+      const mirrorRect = mirror.getBoundingClientRect();
+      const targetRect = spanTarget.getBoundingClientRect();
+
+      let topY = padT;
+      let height = 28;
+
+      if (targetRect.height > 0) {
+        topY = targetRect.top - mirrorRect.top + padT;
+        height = targetRect.height;
+      } else {
+        // Fallback for headless environments
+        mirror.textContent = text.slice(0, effectiveStart);
+        topY = mirror.scrollHeight + padT;
+        mirror.textContent = text.slice(0, effectiveStart) + targetContent;
+        height = Math.max(28, mirror.scrollHeight + padT - topY);
+      }
 
       spotlight.style.top = `${Math.max(0, topY - 2)}px`;
       spotlight.style.height = `${height + 4}px`;
@@ -137,6 +166,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
     const computed = window.getComputedStyle(ta);
     const padL = parseFloat(computed.paddingLeft) || 0;
     const padR = parseFloat(computed.paddingRight) || 0;
+    const padT = parseFloat(computed.paddingTop) || 0;
     const contentWidth = Math.max(10, ta.clientWidth - padL - padR);
 
     mirror.style.boxSizing = 'content-box';
@@ -149,12 +179,25 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
     mirror.style.lineHeight = computed.lineHeight;
     mirror.style.letterSpacing = computed.letterSpacing;
 
-    // Text up to the start of this page
-    const textBefore = text.slice(0, p.startIndex);
-    mirror.textContent = textBefore.endsWith('\n') ? textBefore + '\u200B' : textBefore;
+    mirror.innerHTML = '';
+    const spanBefore = document.createElement('span');
+    spanBefore.textContent = text.slice(0, p.startIndex);
+    const spanTarget = document.createElement('span');
+    spanTarget.textContent = p.text.trim().slice(0, 100);
+    mirror.appendChild(spanBefore);
+    mirror.appendChild(spanTarget);
 
-    // Exact pixel height where the page starts
-    const targetScroll = Math.max(0, mirror.scrollHeight - 8);
+    const mirrorRect = mirror.getBoundingClientRect();
+    const targetRect = spanTarget.getBoundingClientRect();
+    let targetY = padT;
+    if (targetRect.height > 0) {
+      targetY = targetRect.top - mirrorRect.top + padT;
+    } else {
+      mirror.textContent = text.slice(0, p.startIndex);
+      targetY = mirror.scrollHeight;
+    }
+
+    const targetScroll = Math.max(0, targetY - 8);
     ta.scrollTo({ top: targetScroll, behavior: 'smooth' });
   }, [highlightedParagraph, highlightedPageIndex, pages, text]);
 
@@ -272,15 +315,13 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
         )}
       </div>
 
-      {/* Invisible mirror div for 100% exact scroll calculation */}
+      {/* Invisible mirror div for 100% exact layout calculation */}
       <div
         ref={mirrorRef}
         aria-hidden="true"
-        className="absolute pointer-events-none opacity-0 -z-50 select-none overflow-hidden"
+        className="absolute top-5 left-7 pointer-events-none opacity-0 select-none overflow-hidden -z-50"
         style={{
           visibility: 'hidden',
-          top: -9999,
-          left: -9999,
           whiteSpace: 'pre-wrap',
           wordBreak: 'break-word',
         }}
