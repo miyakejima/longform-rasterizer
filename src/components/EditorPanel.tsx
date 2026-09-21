@@ -269,7 +269,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
           >
             <div
               ref={spotlightRef}
-              className="absolute left-2 right-4 sm:left-3 sm:right-6 rounded-lg pointer-events-none transition-all duration-150 ease-out opacity-0 bg-gradient-to-r from-amber-400/[0.18] via-amber-400/[0.08] to-transparent dark:bg-gradient-to-r dark:from-amber-400/[0.14] dark:via-amber-500/[0.05] dark:to-transparent shadow-[0_0_24px_rgba(245,158,11,0.06)]"
+              className="absolute left-0 right-0 rounded-none pointer-events-none transition-all duration-150 ease-out opacity-0 bg-gradient-to-r from-slate-900/[0.045] via-slate-900/[0.015] to-transparent dark:bg-gradient-to-r dark:from-white/[0.06] dark:via-white/[0.015] dark:to-transparent"
               style={{
                 top: 0,
                 height: 0,
