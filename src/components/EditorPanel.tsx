@@ -89,8 +89,8 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
       const topY = Math.max(0, targetRect.top - mirrorRect.top);
       const height = Math.max(24, targetRect.height);
 
-      spotlight.style.top = `${Math.max(0, topY - 2)}px`;
-      spotlight.style.height = `${height + 4}px`;
+      spotlight.style.top = `${Math.max(0, topY - 4)}px`;
+      spotlight.style.height = `${height + 8}px`;
       spotlight.style.opacity = '1';
       spotlightLayer.style.transform = `translateY(-${ta.scrollTop}px)`;
 
@@ -227,7 +227,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
           >
             <div
               ref={spotlightRef}
-              className="absolute left-2.5 right-4 rounded-r-lg bg-black/[0.035] dark:bg-white/[0.045] border-l-[3px] border-zinc-800 dark:border-zinc-200 transition-all duration-150 ease-out opacity-0 pointer-events-none"
+              className="absolute left-4 right-4 sm:left-5 sm:right-5 rounded-lg bg-amber-500/[0.14] dark:bg-amber-400/[0.10] border border-amber-600/20 dark:border-amber-400/20 transition-all duration-150 ease-out opacity-0 pointer-events-none"
               style={{
                 top: 0,
                 height: 0,

@@ -818,7 +818,7 @@ describe('Typography Pagination and Layout Engine', () => {
     expect(bounds[1].bottomY).toBeGreaterThan(bounds[1].topY);
   });
 
-  it('renders active paragraph with full contrast and sibling paragraphs at 0.65 opacity', () => {
+  it('renders active paragraph with warm amber highlight wash and sibling paragraphs at 0.85 opacity', () => {
     const doc: DocumentState = {
       text: 'Paragraph zero.\n\nParagraph one.',
       projectName: 'spotlight-test',
@@ -832,6 +832,7 @@ describe('Typography Pagination and Layout Engine', () => {
     const page = result.pages[0];
 
     const alphas: number[] = [];
+    const fillStyles: string[] = [];
     const mockCanvas = {
       getContext: () => ({
         save: () => {},
@@ -840,6 +841,17 @@ describe('Typography Pagination and Layout Engine', () => {
         clearRect: () => {},
         fillRect: () => {},
         fillText: () => {},
+        beginPath: () => {},
+        moveTo: () => {},
+        arcTo: () => {},
+        closePath: () => {},
+        fill: () => {},
+        stroke: () => {},
+        set fillStyle(val: string) {
+          fillStyles.push(val);
+        },
+        set strokeStyle(val: string) {},
+        set lineWidth(val: number) {},
         set globalAlpha(val: number) {
           alphas.push(val);
         },
@@ -857,11 +869,13 @@ describe('Typography Pagination and Layout Engine', () => {
       highlightedParagraphIndex: 1,
     });
 
-    // Paragraph 0 should be rendered at 0.65, paragraph 1 at 1.0
-    expect(alphas).toContain(0.65);
+    // Paragraph 0 should be rendered at 0.85, paragraph 1 at 1.0
+    expect(alphas).toContain(0.85);
     expect(alphas).toContain(1.0);
-    expect(alphas[0]).toBe(0.65); // Para 0
+    expect(alphas[0]).toBe(0.85); // Para 0
     expect(alphas[alphas.length - 1]).toBe(1.0); // Para 1
+    // Warm amber highlight wash should be painted
+    expect(fillStyles).toContain('rgba(245, 158, 11, 0.14)');
   });
 });
 
