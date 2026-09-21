@@ -72,6 +72,8 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
   const activeCarouselIndexRef = useRef(activeCarouselIndex);
   activeCarouselIndexRef.current = activeCarouselIndex;
   const lastWheelTimeRef = useRef<number>(0);
+  const wheelDeltaAccumulatorRef = useRef<number>(0);
+  const wheelResetTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const scrollCarouselTo = useCallback((index: number) => {
     const container = carouselContainerRef.current;
@@ -85,6 +87,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
       container.scrollTo({ left: targetScroll, behavior: 'smooth' });
     }
     setActiveCarouselIndex(index);
+    activeCarouselIndexRef.current = index;
     onSelectPage(index);
   }, [onSelectPage]);
 
@@ -98,18 +101,54 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
       const container = carouselContainerRef.current;
       if (!container || pages.length <= 1) return;
 
-      // Translate vertical wheel ticks directly into continuous, buttery-smooth horizontal scrolling
-      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-        e.preventDefault();
-        container.scrollLeft += e.deltaY;
+      // Allow natural horizontal trackpad swipes without interception
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+        return;
+      }
+
+      // Vertical wheel or scroll gesture: advance or retreat carousel cards cleanly
+      e.preventDefault();
+      wheelDeltaAccumulatorRef.current += e.deltaY;
+
+      if (wheelResetTimerRef.current) {
+        clearTimeout(wheelResetTimerRef.current);
+      }
+      wheelResetTimerRef.current = setTimeout(() => {
+        wheelDeltaAccumulatorRef.current = 0;
+      }, 200);
+
+      const threshold = 25;
+      const now = Date.now();
+      if (now - lastWheelTimeRef.current < 240) return;
+
+      if (Math.abs(wheelDeltaAccumulatorRef.current) >= threshold) {
+        const currentIdx = activeCarouselIndexRef.current;
+        if (wheelDeltaAccumulatorRef.current > 0) {
+          const next = Math.min(pages.length - 1, currentIdx + 1);
+          if (next !== currentIdx) {
+            lastWheelTimeRef.current = now;
+            wheelDeltaAccumulatorRef.current = 0;
+            scrollCarouselTo(next);
+          }
+        } else {
+          const next = Math.max(0, currentIdx - 1);
+          if (next !== currentIdx) {
+            lastWheelTimeRef.current = now;
+            wheelDeltaAccumulatorRef.current = 0;
+            scrollCarouselTo(next);
+          }
+        }
       }
     };
 
     panel.addEventListener('wheel', handleWheel, { passive: false });
     return () => {
       panel.removeEventListener('wheel', handleWheel);
+      if (wheelResetTimerRef.current) {
+        clearTimeout(wheelResetTimerRef.current);
+      }
     };
-  }, [previewMode, pages.length]);
+  }, [previewMode, pages.length, scrollCarouselTo]);
 
   const handleCarouselScroll = () => {
     const container = carouselContainerRef.current;
@@ -127,8 +166,10 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
         closestIndex = i;
       }
     }
-    if (closestIndex !== activeCarouselIndex && closestIndex < pages.length) {
+    if (closestIndex !== activeCarouselIndexRef.current && closestIndex < pages.length) {
       setActiveCarouselIndex(closestIndex);
+      activeCarouselIndexRef.current = closestIndex;
+      onSelectPage(closestIndex);
     }
   };
 
@@ -143,20 +184,20 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
         if (previewMode === 'single') {
           setInternalSingleIndex((prev) => Math.max(0, prev - 1));
         } else {
-          scrollCarouselTo(Math.max(0, activeCarouselIndex - 1));
+          scrollCarouselTo(Math.max(0, activeCarouselIndexRef.current - 1));
         }
       } else if (e.key === 'ArrowRight') {
         e.preventDefault();
         if (previewMode === 'single') {
           setInternalSingleIndex((prev) => Math.min(pages.length - 1, prev + 1));
         } else {
-          scrollCarouselTo(Math.min(pages.length - 1, activeCarouselIndex + 1));
+          scrollCarouselTo(Math.min(pages.length - 1, activeCarouselIndexRef.current + 1));
         }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [previewMode, pages.length, activeCarouselIndex, scrollCarouselTo]);
+  }, [previewMode, pages.length, scrollCarouselTo]);
 
   // Grid column class matching large card display (adapts dynamically to collapsed studio space)
   const getGridCols = () => {
@@ -325,7 +366,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
           <div
             ref={carouselContainerRef}
             onScroll={handleCarouselScroll}
-            className="flex-1 min-h-0 w-full flex items-center overflow-x-auto snap-x snap-proximity py-4 px-12 gap-8 no-scrollbar"
+            className="flex-1 min-h-0 w-full flex items-center overflow-x-auto snap-x snap-mandatory py-4 px-12 gap-8 scroll-smooth no-scrollbar"
           >
             {pages.map((page, idx) => {
               const effectiveTypo = page.typography
