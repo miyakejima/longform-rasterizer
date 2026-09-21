@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useRef, useCallback, useSyncExternalStore } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { PanelLeftClose, PanelLeft } from 'lucide-react';
 import { HeaderBar } from '../components/HeaderBar';
 import { EditorPanel } from '../components/EditorPanel';
@@ -48,40 +48,17 @@ interface HistoryItem {
   advanced: AdvancedSettings;
 }
 
-function useIsMounted() {
-  return useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false
-  );
-}
-
-function getBasePath() {
-  if (process.env.NEXT_PUBLIC_BASE_PATH) return process.env.NEXT_PUBLIC_BASE_PATH;
-  if (typeof window !== 'undefined' && window.location.pathname.startsWith('/longform-rasterizer')) {
-    return '/longform-rasterizer';
-  }
-  return '';
-}
-
 function Workspace() {
-  // Initial session from localStorage (restored lazily)
-  const [initialSession] = useState<SessionState | null>(() =>
-    typeof window !== 'undefined' ? loadStoredSession() : null
-  );
-
   // State
-  const [doc, setDoc] = useState<DocumentState>(() => initialSession?.document ?? DEFAULT_DOCUMENT);
-  const [canvas, setCanvas] = useState<CanvasSettings>(() => initialSession?.canvas ?? DEFAULT_CANVAS);
-  const [typography, setTypography] = useState<TypographySettings>(() => initialSession?.typography ?? DEFAULT_TYPOGRAPHY);
-  const [spacing, setSpacing] = useState<SpacingSettings>(() => initialSession?.spacing ?? DEFAULT_SPACING);
-  const [advanced, setAdvanced] = useState<AdvancedSettings>(() => initialSession?.advanced ?? DEFAULT_ADVANCED);
-  const [exportScale, setExportScale] = useState<ExportScale>(() => initialSession?.exportScale ?? 2);
+  const [doc, setDoc] = useState<DocumentState>(DEFAULT_DOCUMENT);
+  const [canvas, setCanvas] = useState<CanvasSettings>(DEFAULT_CANVAS);
+  const [typography, setTypography] = useState<TypographySettings>(DEFAULT_TYPOGRAPHY);
+  const [spacing, setSpacing] = useState<SpacingSettings>(DEFAULT_SPACING);
+  const [advanced, setAdvanced] = useState<AdvancedSettings>(DEFAULT_ADVANCED);
+  const [exportScale, setExportScale] = useState<ExportScale>(2);
   const [exportFormat, setExportFormat] = useState<ExportFormat>('png');
-  const [presets, setPresets] = useState<VisualPreset[]>(() =>
-    typeof window !== 'undefined' ? loadStoredPresets() : [DEFAULT_PRESET]
-  );
-  const [selectedPresetId, setSelectedPresetId] = useState<string>(() => initialSession?.selectedPresetId ?? 'x-essay');
+  const [presets, setPresets] = useState<VisualPreset[]>([DEFAULT_PRESET]);
+  const [selectedPresetId, setSelectedPresetId] = useState<string>('x-essay');
   const [customFonts, setCustomFonts] = useState<string[]>([]);
   const [highlightedPageIndex, setHighlightedPageIndex] = useState<number | null>(null);
   const [fullscreenPageIndex, setFullscreenPageIndex] = useState<number | null>(null);
@@ -92,6 +69,31 @@ function Workspace() {
   const [showPresetsModal, setShowPresetsModal] = useState(false);
   const [showShortcutsModal, setShowShortcutsModal] = useState(false);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+
+  // Load stored session & presets seamlessly on client mount
+  useEffect(() => {
+    try {
+      const session = loadStoredSession();
+      if (session) {
+        if (session.document) {
+          setDoc(session.document);
+          setDebouncedText(session.document.text);
+        }
+        if (session.canvas) setCanvas(session.canvas);
+        if (session.typography) setTypography(session.typography);
+        if (session.spacing) setSpacing(session.spacing);
+        if (session.advanced) setAdvanced(session.advanced);
+        if (session.exportScale) setExportScale(session.exportScale);
+        if (session.selectedPresetId) setSelectedPresetId(session.selectedPresetId);
+      }
+      const loadedPresets = loadStoredPresets();
+      if (loadedPresets && loadedPresets.length > 0) {
+        setPresets(loadedPresets);
+      }
+    } catch {
+      // Ignore
+    }
+  }, []);
 
   useEffect(() => {
     try {
@@ -919,23 +921,5 @@ function Workspace() {
 }
 
 export default function Home() {
-  const isMounted = useIsMounted();
-
-  if (!isMounted) {
-    return (
-      <div className="flex h-screen w-screen items-center justify-center bg-[var(--bg)] text-[var(--text-dim)] font-mono text-xs select-none">
-        <div className="flex items-center gap-2.5">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={`${getBasePath()}/icon.png`}
-            alt="icon"
-            className="w-5 h-5 rounded-[4px] object-cover"
-          />
-          <span className="lowercase">loading workspace...</span>
-        </div>
-      </div>
-    );
-  }
-
   return <Workspace />;
 }
