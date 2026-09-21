@@ -70,24 +70,16 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
       const start = Math.max(0, Math.min(text.length, target.startIndex));
       const end = Math.max(start, Math.min(text.length, target.endIndex));
 
-      mirror.innerHTML = '';
-      const spanBefore = document.createElement('span');
-      const spanTarget = document.createElement('span');
-      const spanAfter = document.createElement('span');
+      // Calculate topY and height using mirror.scrollHeight
+      let topY = 0;
+      if (start > 0) {
+        mirror.textContent = text.slice(0, start);
+        topY = mirror.scrollHeight;
+      }
 
-      spanBefore.textContent = text.slice(0, start);
-      spanTarget.textContent = text.slice(start, end) || ' ';
-      spanAfter.textContent = text.slice(end);
-
-      mirror.appendChild(spanBefore);
-      mirror.appendChild(spanTarget);
-      mirror.appendChild(spanAfter);
-
-      const mirrorRect = mirror.getBoundingClientRect();
-      const targetRect = spanTarget.getBoundingClientRect();
-
-      const topY = Math.max(0, targetRect.top - mirrorRect.top);
-      const height = Math.max(24, targetRect.height);
+      mirror.textContent = text.slice(0, end);
+      const bottomY = mirror.scrollHeight;
+      const height = Math.max(28, bottomY - topY);
 
       spotlight.style.top = `${Math.max(0, topY - 4)}px`;
       spotlight.style.height = `${height + 8}px`;
@@ -100,7 +92,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
       const isBelow = topY + height > currentScroll + viewportHeight - 30;
 
       if (isAbove || isBelow) {
-        const targetScroll = Math.max(0, topY - viewportHeight / 3);
+        const targetScroll = Math.max(0, topY - 40);
         ta.scrollTo({ top: targetScroll, behavior: 'smooth' });
       }
     },
@@ -227,7 +219,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
           >
             <div
               ref={spotlightRef}
-              className="absolute left-4 right-4 sm:left-5 sm:right-5 rounded-lg bg-amber-500/[0.14] dark:bg-amber-400/[0.10] border border-amber-600/20 dark:border-amber-400/20 transition-all duration-150 ease-out opacity-0 pointer-events-none"
+              className="absolute left-2 right-4 sm:left-3 sm:right-6 rounded-lg pointer-events-none transition-all duration-150 ease-out opacity-0 bg-gradient-to-r from-amber-400/[0.18] via-amber-400/[0.08] to-transparent dark:bg-gradient-to-r dark:from-amber-400/[0.14] dark:via-amber-500/[0.05] dark:to-transparent shadow-[0_0_24px_rgba(245,158,11,0.06)]"
               style={{
                 top: 0,
                 height: 0,

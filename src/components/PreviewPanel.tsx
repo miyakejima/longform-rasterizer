@@ -98,25 +98,10 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
       const container = carouselContainerRef.current;
       if (!container || pages.length <= 1) return;
 
-      const isVertical = Math.abs(e.deltaY) > Math.abs(e.deltaX) && Math.abs(e.deltaY) > 15;
-      if (isVertical) {
+      // Translate vertical wheel ticks directly into continuous, buttery-smooth horizontal scrolling
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
         e.preventDefault();
-        const now = Date.now();
-        if (now - lastWheelTimeRef.current < 220) return;
-        lastWheelTimeRef.current = now;
-
-        const currentIdx = activeCarouselIndexRef.current;
-        if (e.deltaY > 0) {
-          const next = Math.min(pages.length - 1, currentIdx + 1);
-          if (next !== currentIdx) {
-            scrollCarouselTo(next);
-          }
-        } else {
-          const next = Math.max(0, currentIdx - 1);
-          if (next !== currentIdx) {
-            scrollCarouselTo(next);
-          }
-        }
+        container.scrollLeft += e.deltaY;
       }
     };
 
@@ -124,7 +109,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
     return () => {
       panel.removeEventListener('wheel', handleWheel);
     };
-  }, [previewMode, pages.length, scrollCarouselTo]);
+  }, [previewMode, pages.length]);
 
   const handleCarouselScroll = () => {
     const container = carouselContainerRef.current;
@@ -340,12 +325,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
           <div
             ref={carouselContainerRef}
             onScroll={handleCarouselScroll}
-            onWheel={(e) => {
-              if (e.deltaY !== 0 && e.deltaX === 0 && carouselContainerRef.current) {
-                carouselContainerRef.current.scrollLeft += e.deltaY;
-              }
-            }}
-            className="flex-1 min-h-0 w-full flex items-center overflow-x-auto snap-x snap-mandatory py-4 px-12 gap-8 scroll-smooth no-scrollbar"
+            className="flex-1 min-h-0 w-full flex items-center overflow-x-auto snap-x snap-proximity py-4 px-12 gap-8 no-scrollbar"
           >
             {pages.map((page, idx) => {
               const effectiveTypo = page.typography

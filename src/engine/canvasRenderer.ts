@@ -27,44 +27,7 @@ export interface ParagraphBounds {
   endIndex: number;
 }
 
-function isDarkColor(hex: string): boolean {
-  if (!hex) return true;
-  const clean = hex.replace('#', '');
-  if (clean.length === 3) {
-    const r = parseInt(clean[0] + clean[0], 16);
-    const g = parseInt(clean[1] + clean[1], 16);
-    const b = parseInt(clean[2] + clean[2], 16);
-    return (0.299 * r + 0.587 * g + 0.114 * b) < 128;
-  }
-  if (clean.length === 6) {
-    const r = parseInt(clean.slice(0, 2), 16);
-    const g = parseInt(clean.slice(2, 4), 16);
-    const b = parseInt(clean.slice(4, 6), 16);
-    return (0.299 * r + 0.587 * g + 0.114 * b) < 128;
-  }
-  return true;
-}
 
-function drawRoundedRectPath(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  w: number,
-  h: number,
-  r: number
-) {
-  ctx.beginPath();
-  if (typeof (ctx as unknown as { roundRect?: Function }).roundRect === 'function') {
-    (ctx as unknown as { roundRect: Function }).roundRect(x, y, w, h, r);
-  } else {
-    ctx.moveTo(x + r, y);
-    ctx.arcTo(x + w, y, x + w, y + h, r);
-    ctx.arcTo(x + w, y + h, x, y + h, r);
-    ctx.arcTo(x, y + h, x, y, r);
-    ctx.arcTo(x, y, x + w, y, r);
-    ctx.closePath();
-  }
-}
 
 export function getPageCanvasDimensions(
   pageIndex: number,
@@ -149,34 +112,38 @@ export function getParagraphBoundsForPage(
     }
   }
 
-  const boundsMap = new Map<number, ParagraphBounds>();
+  const bounds: ParagraphBounds[] = [];
+  let currentGroup: ParagraphBounds | null = null;
 
   for (let i = 0; i < page.lines.length; i++) {
     const line = page.lines[i];
     const lineTop = currentY;
     const lineBottom = currentY + lineBoxHeight;
 
-    const existing = boundsMap.get(line.paragraphIndex);
-    if (!existing) {
-      boundsMap.set(line.paragraphIndex, {
-        paragraphIndex: line.paragraphIndex,
+    if (!currentGroup) {
+      currentGroup = {
+        paragraphIndex: bounds.length,
         topY: lineTop,
         bottomY: lineBottom,
         startIndex: line.startIndex,
         endIndex: line.endIndex,
-      });
+      };
     } else {
-      existing.bottomY = Math.max(existing.bottomY, lineBottom);
-      existing.endIndex = Math.max(existing.endIndex, line.endIndex);
+      currentGroup.bottomY = Math.max(currentGroup.bottomY, lineBottom);
+      currentGroup.endIndex = Math.max(currentGroup.endIndex, line.endIndex);
     }
 
     currentY += lineBoxHeight;
-    if (line.isParagraphEnd && i < page.lines.length - 1) {
-      currentY += paragraphSpacing + extraParaSpacing;
+    if (line.isParagraphEnd || i === page.lines.length - 1) {
+      bounds.push(currentGroup);
+      currentGroup = null;
+      if (i < page.lines.length - 1) {
+        currentY += paragraphSpacing + extraParaSpacing;
+      }
     }
   }
 
-  return Array.from(boundsMap.values());
+  return bounds;
 }
 
 export function renderPageToCanvas(
@@ -282,49 +249,11 @@ export function renderPageToCanvas(
     }
   }
 
-  const hasHighlight =
-    options.highlightedParagraphIndex !== undefined && options.highlightedParagraphIndex !== null;
-
-  if (hasHighlight) {
-    const bounds = getParagraphBoundsForPage(page, totalPages, canvas, spacing, typography);
-    const targetBound = bounds.find((b) => b.paragraphIndex === options.highlightedParagraphIndex);
-    if (targetBound) {
-      const isDark = isDarkColor(canvas.backgroundColor);
-      const padX = Math.min(24, Math.max(12, Math.round(paddingLeft * 0.25)));
-      const padY = Math.min(14, Math.max(6, Math.round(lineBoxHeight * 0.2)));
-      const hlLeft = paddingLeft - padX;
-      const hlTop = targetBound.topY - padY;
-      const hlWidth = contentWidth + padX * 2;
-      const hlHeight = targetBound.bottomY - targetBound.topY + padY * 2;
-      const hlRadius = 10;
-
-      ctx.save();
-      // Draw warm retro amber highlight wash behind the paragraph
-      ctx.fillStyle = isDark
-        ? 'rgba(245, 158, 11, 0.14)' // warm amber tungsten glow
-        : 'rgba(245, 158, 11, 0.16)'; // warm archival honey/parchment highlighter
-      drawRoundedRectPath(ctx, hlLeft, hlTop, hlWidth, hlHeight, hlRadius);
-      ctx.fill();
-
-      // Subtle warm border outline
-      ctx.strokeStyle = isDark
-        ? 'rgba(251, 191, 36, 0.25)'
-        : 'rgba(217, 119, 6, 0.22)';
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-      ctx.restore();
-    }
-  }
+  ctx.globalAlpha = 1.0;
 
   for (let i = 0; i < page.lines.length; i++) {
     const line = page.lines[i];
     const lineText = line.text;
-
-    if (hasHighlight) {
-      ctx.globalAlpha = line.paragraphIndex === options.highlightedParagraphIndex ? 1.0 : 0.85;
-    } else {
-      ctx.globalAlpha = 1.0;
-    }
 
     if (lineText.length === 0) {
       currentY += lineBoxHeight + extraLineSpacing;
