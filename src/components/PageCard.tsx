@@ -124,7 +124,7 @@ export const PageCard: React.FC<PageCardProps> = ({
 
   return (
     <div
-      className={`group relative flex flex-col bg-[#000000] border transition-all cursor-zoom-in select-none rounded-md shadow-2xl shadow-black/80 ${
+      className={`page-card-frame group relative flex flex-col bg-[#000000] border transition-all cursor-zoom-in select-none rounded-md shadow-2xl shadow-black/80 ${
         isHovered
           ? 'border-zinc-500 shadow-zinc-950 ring-1 ring-zinc-500/20'
           : hasOverflow

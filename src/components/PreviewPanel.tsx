@@ -131,10 +131,10 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
   const getGridCols = () => {
     if (isEditorCollapsed) {
       if (pages.length === 1) return 'grid-cols-1 max-w-xl';
-      if (pages.length === 2) return 'grid-cols-1 sm:grid-cols-2 max-w-5xl';
-      if (pages.length === 3) return 'grid-cols-1 md:grid-cols-3 max-w-6xl';
-      if (pages.length === 4) return 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 max-w-[1700px]';
-      return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 max-w-[1800px]';
+      if (pages.length === 2) return 'grid-cols-1 sm:grid-cols-2 max-w-5xl xl:max-w-6xl';
+      if (pages.length === 3) return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-6xl xl:max-w-7xl';
+      if (pages.length === 4) return 'grid-cols-1 sm:grid-cols-2 max-w-5xl xl:max-w-6xl 2xl:max-w-7xl';
+      return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 max-w-7xl 2xl:max-w-[1700px]';
     }
     if (pages.length === 1) return 'grid-cols-1 max-w-md';
     return 'grid-cols-1 xl:grid-cols-2 max-w-4xl';
@@ -257,41 +257,18 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
         </div>
       )}
 
-      {/* Mode 2: Gold-Standard Horizontal Carousel with Floating Controls & Scroll Snap */}
+      {/* Mode 2: Horizontal Carousel with Streamlined Unified Navigation */}
       {previewMode === 'carousel' && (
         <div className="flex-1 min-h-0 w-full relative flex flex-col items-center justify-center overflow-hidden">
-          {/* Floating Left / Right Navigation Chevrons */}
-          {pages.length > 1 && (
-            <>
-              <button
-                type="button"
-                disabled={activeCarouselIndex === 0}
-                onClick={() => scrollCarouselTo(Math.max(0, activeCarouselIndex - 1))}
-                className="absolute left-4 top-1/2 -translate-y-1/2 z-30 h-10 w-10 rounded-full bg-[#0c0c0e]/90 hover:bg-[#16161c] border border-[#1b1b22] hover:border-[#2e2e3a] text-zinc-300 hover:text-white flex items-center justify-center backdrop-blur-md shadow-2xl transition-all disabled:opacity-0 disabled:pointer-events-none focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-zinc-500"
-                title="Previous image (Arrow Left)"
-                aria-label="Previous slide"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-
-              <button
-                type="button"
-                disabled={activeCarouselIndex >= pages.length - 1}
-                onClick={() => scrollCarouselTo(Math.min(pages.length - 1, activeCarouselIndex + 1))}
-                className="absolute right-4 top-1/2 -translate-y-1/2 z-30 h-10 w-10 rounded-full bg-[#0c0c0e]/90 hover:bg-[#16161c] border border-[#1b1b22] hover:border-[#2e2e3a] text-zinc-300 hover:text-white flex items-center justify-center backdrop-blur-md shadow-2xl transition-all disabled:opacity-0 disabled:pointer-events-none focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-zinc-500"
-                title="Next image (Arrow Right)"
-                aria-label="Next slide"
-              >
-                <ChevronRight className="w-5 h-5" />
-              </button>
-            </>
-          )}
-
-          {/* Carousel Scroll Track: Height-constrained, Aspect-Ratio Preserving */}
+          {/* Carousel Scroll Track: Multi-card preview with smooth scroll snap */}
           <div
             ref={carouselContainerRef}
             onScroll={handleCarouselScroll}
-            className="flex-1 min-h-0 w-full flex items-center overflow-x-auto snap-x snap-mandatory py-4 px-12 gap-8 scroll-smooth"
+            className="flex-1 min-h-0 w-full flex items-center overflow-x-auto snap-x snap-mandatory py-4 gap-6 sm:gap-8 scroll-smooth no-scrollbar"
+            style={{
+              paddingLeft: 'max(48px, calc(50% - 220px))',
+              paddingRight: 'max(48px, calc(50% - 220px))',
+            }}
           >
             {pages.map((page, idx) => {
               const effectiveTypo = page.typography ?? typography;
@@ -303,11 +280,23 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                 spacing,
                 effectiveTypo
               );
+              const isActive = activeCarouselIndex === idx;
               return (
                 <div
                   key={`preview-carousel-${page.pageIndex}`}
-                  className={`h-full ${isEditorCollapsed ? 'max-h-[82vh]' : 'max-h-[70vh]'} min-h-[280px] shrink-0 flex flex-col items-center justify-center snap-center`}
+                  className={`h-full ${
+                    isEditorCollapsed ? 'max-h-[80vh]' : 'max-h-[70vh]'
+                  } min-h-[280px] shrink-0 flex flex-col items-center justify-center snap-center transition-all duration-300 ${
+                    isActive
+                      ? 'opacity-100 scale-100 z-10'
+                      : 'opacity-40 hover:opacity-75 scale-[0.96] cursor-pointer'
+                  }`}
                   style={{ aspectRatio: `${cardDims.width} / ${cardDims.height}` }}
+                  onClick={() => {
+                    if (!isActive) {
+                      scrollCarouselTo(idx);
+                    }
+                  }}
                 >
                   <div className="w-full h-full relative flex items-center justify-center">
                     <PageCard
@@ -338,29 +327,55 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
             })}
           </div>
 
-          {/* Bottom Interactive Slide Indicators & Page Counter */}
+          {/* Streamlined Unified Navigation Pill Bar */}
           {pages.length > 1 && (
-            <div className="flex items-center gap-3 py-1.5 px-3 rounded-full bg-[#0c0c0e]/80 border border-[#1b1b22] backdrop-blur-md shrink-0 shadow-lg mt-2 select-none">
-              <span className="text-[11px] font-mono font-medium text-zinc-300">
+            <div className="flex items-center gap-2 py-1.5 px-3 rounded-full bg-white/90 dark:bg-[#0c0c0e]/90 border border-zinc-200 dark:border-[#1b1b22] text-zinc-700 dark:text-zinc-300 backdrop-blur-md shrink-0 shadow-md mt-2 select-none">
+              <button
+                type="button"
+                disabled={activeCarouselIndex === 0}
+                onClick={() => scrollCarouselTo(Math.max(0, activeCarouselIndex - 1))}
+                className="p-1 rounded-full hover:bg-zinc-100 dark:hover:bg-[#16161c] text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white disabled:opacity-25 disabled:pointer-events-none transition-colors cursor-pointer"
+                title="Previous page (Arrow Left)"
+                aria-label="Previous slide"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+
+              <span className="text-[11px] font-mono font-medium px-1.5 min-w-[54px] text-center">
                 {activeCarouselIndex + 1} / {pages.length}
               </span>
-              <div className="w-px h-3 bg-[#18181f]" />
-              <div className="flex items-center gap-1.5">
+
+              <div className="w-px h-3 bg-zinc-200 dark:bg-[#18181f]" />
+
+              <div className="flex items-center gap-1.5 px-1">
                 {pages.map((p, idx) => (
                   <button
                     key={`dot-${p.pageIndex}`}
                     type="button"
                     onClick={() => scrollCarouselTo(idx)}
-                    className={`h-1.5 rounded-full transition-all focus-visible:outline-hidden ${
+                    className={`h-1.5 rounded-full transition-all cursor-pointer focus-visible:outline-hidden ${
                       activeCarouselIndex === idx
-                        ? 'w-5 bg-zinc-200'
-                        : 'w-1.5 bg-zinc-600 hover:bg-zinc-400'
+                        ? 'w-5 bg-zinc-800 dark:bg-zinc-200'
+                        : 'w-1.5 bg-zinc-300 dark:bg-zinc-600 hover:bg-zinc-400'
                     }`}
                     title={`Go to page ${idx + 1}`}
                     aria-label={`Go to page ${idx + 1}`}
                   />
                 ))}
               </div>
+
+              <div className="w-px h-3 bg-zinc-200 dark:bg-[#18181f]" />
+
+              <button
+                type="button"
+                disabled={activeCarouselIndex >= pages.length - 1}
+                onClick={() => scrollCarouselTo(Math.min(pages.length - 1, activeCarouselIndex + 1))}
+                className="p-1 rounded-full hover:bg-zinc-100 dark:hover:bg-[#16161c] text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white disabled:opacity-25 disabled:pointer-events-none transition-colors cursor-pointer"
+                title="Next page (Arrow Right)"
+                aria-label="Next slide"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
             </div>
           )}
         </div>
