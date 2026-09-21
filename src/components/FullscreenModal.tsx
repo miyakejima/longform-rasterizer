@@ -61,6 +61,7 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
   const [copied, setCopied] = useState(false);
   const [zoomLevel, setZoomLevel] = useState<'fit' | '100%'>('fit');
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const lastWheelTimeRef = useRef(0);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -76,9 +77,29 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
       }
     };
 
+    const handleWheel = (e: WheelEvent) => {
+      if (zoomLevel === '100%') return;
+      if (pages.length <= 1) return;
+      const delta = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+      if (Math.abs(delta) < 25) return;
+      e.preventDefault();
+      const now = Date.now();
+      if (now - lastWheelTimeRef.current < 280) return;
+      lastWheelTimeRef.current = now;
+      if (delta > 0) {
+        setCurrentPageIndex((prev) => Math.min(pages.length - 1, prev + 1));
+      } else {
+        setCurrentPageIndex((prev) => Math.max(0, prev - 1));
+      }
+    };
+
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, pages.length, onClose]);
+    window.addEventListener('wheel', handleWheel, { passive: false });
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('wheel', handleWheel);
+    };
+  }, [isOpen, pages.length, zoomLevel, onClose]);
 
   useEffect(() => {
     if (!isOpen || typeof document === 'undefined') return;
@@ -140,17 +161,17 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-50 bg-[#08080a]/98 backdrop-blur-md flex flex-col select-none">
+    <div className="fixed inset-0 z-50 bg-[#f8fafc]/98 dark:bg-[#08080a]/98 backdrop-blur-md flex flex-col select-none transition-colors">
       {/* Top bar */}
-      <div className="h-12 px-6 border-b border-[#18181f] bg-[#0c0c0e] flex items-center justify-between text-zinc-300">
+      <div className="h-12 px-6 border-b border-black/[0.08] dark:border-[#18181f] bg-white/95 dark:bg-[#0c0c0e]/95 backdrop-blur-md flex items-center justify-between text-slate-700 dark:text-zinc-300">
         <div className="flex items-center gap-3">
-          <span className="font-semibold text-sm text-white font-mono">
+          <span className="font-semibold text-sm text-slate-900 dark:text-white font-mono tracking-tight">
             Page {String(currentPageIndex + 1).padStart(2, '0')} / {String(pages.length).padStart(2, '0')}
           </span>
-          <span className="text-xs text-zinc-500 font-mono">
+          <span className="text-xs text-slate-500 dark:text-zinc-400 font-mono">
             {canvas.width} × {canvas.height} px
           </span>
-          <span className="text-xs bg-[#09090c] border border-[#18181f] text-zinc-400 px-2 py-0.5 rounded-[4px] font-mono">
+          <span className="text-xs bg-slate-100 dark:bg-[#09090c] border border-slate-200 dark:border-[#18181f] text-slate-600 dark:text-zinc-400 px-2 py-0.5 rounded-[4px] font-mono">
             Util: {activePage.utilization}%
           </span>
         </div>
@@ -160,7 +181,7 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
           <button
             type="button"
             onClick={() => setZoomLevel((prev) => (prev === 'fit' ? '100%' : 'fit'))}
-            className="h-7 px-2.5 flex items-center gap-1.5 text-xs bg-[#0c0c0e] border border-[#1b1b22] hover:border-[#2e2e3a] hover:bg-[#16161c] hover:text-white rounded-[6px] transition-colors text-zinc-300"
+            className="h-7 px-2.5 flex items-center gap-1.5 text-xs bg-slate-100 hover:bg-slate-200 dark:bg-[#0c0c0e] dark:hover:bg-[#16161c] border border-slate-200 dark:border-[#1b1b22] hover:border-slate-300 dark:hover:border-[#2e2e3a] text-slate-700 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white rounded-[6px] transition-colors cursor-pointer"
           >
             {zoomLevel === 'fit' ? <ZoomIn className="w-3.5 h-3.5" /> : <ZoomOut className="w-3.5 h-3.5" />}
             <span>{zoomLevel === 'fit' ? 'Fit View' : '100%'}</span>
@@ -170,9 +191,9 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
           <button
             type="button"
             onClick={handleCopyText}
-            className="h-7 px-2.5 flex items-center gap-1.5 text-xs bg-[#0c0c0e] border border-[#1b1b22] hover:border-[#2e2e3a] hover:bg-[#16161c] hover:text-white rounded-[6px] transition-colors text-zinc-300"
+            className="h-7 px-2.5 flex items-center gap-1.5 text-xs bg-slate-100 hover:bg-slate-200 dark:bg-[#0c0c0e] dark:hover:bg-[#16161c] border border-slate-200 dark:border-[#1b1b22] hover:border-slate-300 dark:hover:border-[#2e2e3a] text-slate-700 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white rounded-[6px] transition-colors cursor-pointer"
           >
-            {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+            {copied ? <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
             <span>{copied ? 'Copied' : 'Copy Text'}</span>
           </button>
 
@@ -180,7 +201,7 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
           <button
             type="button"
             onClick={handleDownloadCurrent}
-            className="h-7 px-3 flex items-center gap-1.5 text-xs bg-[#1c1c24] hover:bg-[#24242e] text-white border border-[#2e2e3a] font-medium rounded-[6px] transition-colors shadow-xs"
+            className="h-7 px-3 flex items-center gap-1.5 text-xs bg-slate-900 hover:bg-slate-800 text-white border border-slate-900 dark:bg-[#1c1c24] dark:hover:bg-[#24242e] dark:text-white dark:border-[#2e2e3a] font-medium rounded-[6px] transition-colors shadow-xs cursor-pointer"
           >
             <Download className="w-3.5 h-3.5" />
             <span>Download</span>
@@ -190,7 +211,7 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="h-7 w-7 flex items-center justify-center text-zinc-400 hover:text-white rounded-[6px] bg-[#0c0c0e] border border-[#1b1b22] hover:border-[#2e2e3a] hover:bg-[#16161c] ml-1 transition-colors"
+            className="h-7 w-7 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white rounded-[6px] bg-slate-100 hover:bg-slate-200 dark:bg-[#0c0c0e] dark:hover:bg-[#16161c] border border-slate-200 dark:border-[#1b1b22] hover:border-slate-300 dark:hover:border-[#2e2e3a] ml-1 transition-colors cursor-pointer"
             title="Close (Esc)"
           >
             <X className="w-4 h-4" />
@@ -206,7 +227,7 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
             type="button"
             disabled={currentPageIndex === 0}
             onClick={() => setCurrentPageIndex((prev) => Math.max(0, prev - 1))}
-            className="absolute left-6 z-10 p-3 rounded-full bg-zinc-900/80 border border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-800 disabled:opacity-20 transition-all shadow-xl"
+            className="absolute left-6 z-10 p-3 rounded-full bg-white/90 dark:bg-zinc-900/80 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 hover:text-slate-950 dark:hover:text-white hover:bg-white dark:hover:bg-zinc-800 disabled:opacity-20 transition-all shadow-xl backdrop-blur-xs cursor-pointer hover:scale-105 active:scale-95"
             title="Previous Page (Left Arrow)"
           >
             <ChevronLeft className="w-6 h-6" />
@@ -215,8 +236,9 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
 
         {/* Canvas container */}
         <div
-          className="shadow-2xl border border-zinc-800 bg-black transition-all flex items-center justify-center"
+          className="shadow-2xl border border-black/[0.08] dark:border-zinc-800 transition-all flex items-center justify-center rounded-md overflow-hidden"
           style={{
+            backgroundColor: canvas.backgroundColor,
             maxHeight: zoomLevel === 'fit' ? '85vh' : 'none',
             maxWidth: zoomLevel === 'fit' ? '85vw' : 'none',
             aspectRatio: `${pageDims.width} / ${pageDims.height}`,
@@ -235,7 +257,7 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
             type="button"
             disabled={currentPageIndex === pages.length - 1}
             onClick={() => setCurrentPageIndex((prev) => Math.min(pages.length - 1, prev + 1))}
-            className="absolute right-6 z-10 p-3 rounded-full bg-zinc-900/80 border border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-800 disabled:opacity-20 transition-all shadow-xl"
+            className="absolute right-6 z-10 p-3 rounded-full bg-white/90 dark:bg-zinc-900/80 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 hover:text-slate-950 dark:hover:text-white hover:bg-white dark:hover:bg-zinc-800 disabled:opacity-20 transition-all shadow-xl backdrop-blur-xs cursor-pointer hover:scale-105 active:scale-95"
             title="Next Page (Right Arrow)"
           >
             <ChevronRight className="w-6 h-6" />
@@ -245,16 +267,16 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
 
       {/* Bottom thumbnails / pagination dots */}
       {pages.length > 1 && (
-        <div className="h-12 border-t border-[#18181f] bg-[#0c0c0e] px-4 flex items-center justify-center gap-2">
+        <div className="h-12 border-t border-black/[0.08] dark:border-[#18181f] bg-white/95 dark:bg-[#0c0c0e]/95 backdrop-blur-md px-4 flex items-center justify-center gap-2">
           {pages.map((_, idx) => (
             <button
               key={idx}
               type="button"
               onClick={() => setCurrentPageIndex(idx)}
-              className={`h-2 rounded-full transition-all ${
+              className={`h-2 rounded-full transition-all cursor-pointer ${
                 currentPageIndex === idx
-                  ? 'w-8 bg-[#f4f4f6]'
-                  : 'w-2 bg-zinc-800 hover:bg-zinc-600'
+                  ? 'w-8 bg-slate-900 dark:bg-[#f4f4f6]'
+                  : 'w-2 bg-slate-300 hover:bg-slate-400 dark:bg-zinc-800 dark:hover:bg-zinc-600'
               }`}
               title={`Jump to Page ${idx + 1}`}
             />
