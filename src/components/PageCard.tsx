@@ -126,12 +126,12 @@ export const PageCard: React.FC<PageCardProps> = ({
 
   return (
     <div
-      className={`page-card-frame group relative flex flex-col transition-all cursor-zoom-in select-none rounded-md shadow-sm dark:shadow-2xl dark:shadow-black/80 ${
+      className={`page-card-frame group relative flex flex-col transition-all cursor-zoom-in select-none rounded-md ${
         hasOverflow
           ? 'border border-red-800 shadow-red-950/20'
           : isHovered
-          ? 'border border-black/[0.10] dark:border-zinc-500 ring-1 ring-black/[0.04] dark:ring-zinc-500/20'
-          : 'border border-black/[0.04] dark:border-[#262630] hover:border-black/[0.10] dark:hover:border-zinc-500'
+          ? 'border border-black/[0.08] dark:border-white/[0.12]'
+          : 'border border-black/[0.04] dark:border-white/[0.05]'
       }`}
       style={{
         aspectRatio: `${pageDims.width} / ${pageDims.height}`,

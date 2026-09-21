@@ -199,6 +199,25 @@ input[type="range"]::-webkit-slider-thumb {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
+/* ── Page Card Frame & Studio Elevation Shadows ── */
+.page-card-frame {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.05),
+    0 4px 12px rgba(0, 0, 0, 0.6),
+    0 16px 36px -4px rgba(0, 0, 0, 0.8),
+    0 32px 64px -12px rgba(0, 0, 0, 0.9);
+  transition: box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, transform 0.2s ease;
+}
+
+.page-card-frame:hover {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.09),
+    0 8px 20px rgba(0, 0, 0, 0.7),
+    0 24px 48px -6px rgba(0, 0, 0, 0.85),
+    0 44px 80px -16px rgba(0, 0, 0, 0.95);
+  transform: translateY(-1px);
+}
+
 /* ── Theme Toggle Button (Headerlock Smooth Spring Animation) ── */
 .theme-toggle-btn {
   width: 32px;
@@ -322,14 +341,23 @@ html.light,
   & .border-\[\#262630\] {
     border-color: rgba(15, 23, 42, 0.12) !important;
   }
-  /* Page Card Frame - Low contrast subtle borders in light theme */
+  /* Page Card Frame - Editorial studio diffuse elevation in light theme */
   & .page-card-frame {
-    border-color: rgba(0, 0, 0, 0.04) !important;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), 0 6px 16px -3px rgba(0, 0, 0, 0.03) !important;
+    border-color: rgba(0, 0, 0, 0.05) !important;
+    box-shadow:
+      0 1px 2px rgba(15, 23, 42, 0.04),
+      0 4px 12px -2px rgba(15, 23, 42, 0.05),
+      0 16px 32px -6px rgba(15, 23, 42, 0.07),
+      0 32px 64px -12px rgba(15, 23, 42, 0.08) !important;
   }
   & .page-card-frame:hover {
-    border-color: rgba(0, 0, 0, 0.10) !important;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03), 0 10px 24px -4px rgba(0, 0, 0, 0.04) !important;
+    border-color: rgba(0, 0, 0, 0.09) !important;
+    box-shadow:
+      0 1px 3px rgba(15, 23, 42, 0.05),
+      0 8px 20px -3px rgba(15, 23, 42, 0.08),
+      0 24px 48px -8px rgba(15, 23, 42, 0.10),
+      0 44px 80px -16px rgba(15, 23, 42, 0.12) !important;
+    transform: translateY(-1px);
   }
   & .divide-\[\#1f1f23\] > :not([hidden]) ~ :not([hidden]),
   & .divide-\[\#18181f\] > :not([hidden]) ~ :not([hidden]) {
