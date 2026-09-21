@@ -268,7 +268,8 @@ html.light,
   & .bg-\[\#16161c\] {
     background-color: rgba(15, 23, 42, 0.05) !important;
   }
-  & .bg-\[\#1c1c24\] {
+  & .bg-\[\#1c1c24\],
+  & .bg-\[\#24242e\] {
     background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%) !important;
     color: #0f172a !important;
   }
@@ -303,7 +304,8 @@ html.light,
   }
   & .border-\[\#2e2e3a\],
   & .border-\[\#27272a\],
-  & .border-\[\#38383e\] {
+  & .border-\[\#38383e\],
+  & .border-\[\#3e3e4c\] {
     border-color: rgba(15, 23, 42, 0.15) !important;
   }
   & .border-\[\#262630\] {

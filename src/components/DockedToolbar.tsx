@@ -525,18 +525,18 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
 
           <span className="text-zinc-700 text-[10px] px-0.5 select-none">·</span>
 
-          {/* Auto-fit Toggle (Tasteful Obsidian Active State) */}
+          {/* Auto-fit Toggle */}
           <button
             type="button"
             onClick={() => onAdvancedChange({ ...advanced, autoFit: !advanced.autoFit })}
-            className={`h-7 px-2.5 flex items-center gap-1 rounded-[6px] text-[11px] font-medium transition-colors ${
+            className={`h-7 px-2.5 flex items-center gap-1.5 rounded-[6px] text-[11px] font-medium transition-colors ${
               advanced.autoFit
-                ? 'bg-[#24242e] text-white border border-[#3e3e4c] shadow-xs'
-                : 'text-zinc-400 hover:text-zinc-200 hover:bg-[#16161c]'
+                ? 'bg-[#1c1c24] text-[#f4f4f6] border border-[#2e2e3a] shadow-xs'
+                : 'text-zinc-400 hover:text-white hover:bg-[#16161c]'
             }`}
             title={advanced.autoFit ? 'Auto-fit is active (click to use manual size)' : 'Enable Auto-fit to fill pages'}
           >
-            <Sparkles className={`w-3 h-3 ${advanced.autoFit ? 'text-zinc-200' : 'text-zinc-500'}`} />
+            <Sparkles className="w-3 h-3 text-current" />
             <span>Auto-fit</span>
           </button>
 
@@ -544,10 +544,10 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
           <button
             type="button"
             onClick={onAuthorPreferred ?? onFillCanvas}
-            className="h-7 px-2.5 flex items-center gap-1.5 rounded-[6px] text-[11px] font-medium text-amber-300/90 hover:text-amber-200 hover:bg-amber-500/10 border border-amber-500/20 bg-amber-500/5 transition-all shadow-xs"
+            className="h-7 px-2.5 flex items-center gap-1.5 rounded-[6px] text-[11px] font-medium text-zinc-300 hover:text-white hover:bg-[#16161c] transition-colors"
             title="Auto-Balance: 1-click snap to optimal density, compact margins, and 100% vertical fill"
           >
-            <Wand2 className="w-3 h-3 text-amber-400" />
+            <Wand2 className="w-3 h-3 text-current" />
             <span>Auto-Balance</span>
           </button>
         </div>
@@ -674,8 +674,8 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                       onClick={() => onCanvasChange({ ...canvas, trimAllPages: true, trimLastPageHeight: true })}
                       className={`px-2 py-1 rounded-[4px] text-[11px] font-medium transition-colors ${
                         canvas.trimAllPages
-                          ? 'bg-[#24242e] text-white border border-[#3e3e4c]'
-                          : 'text-zinc-400 hover:text-zinc-200'
+                          ? 'bg-[#1c1c24] text-[#f4f4f6] border border-[#2e2e3a]'
+                          : 'text-zinc-400 hover:text-white hover:bg-[#14141a]'
                       }`}
                       title="Auto-fit every card height to content (100% util, no empty space)"
                     >
@@ -686,8 +686,8 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                       onClick={() => onCanvasChange({ ...canvas, trimAllPages: false, trimLastPageHeight: true })}
                       className={`px-2 py-1 rounded-[4px] text-[11px] font-medium transition-colors ${
                         !canvas.trimAllPages && canvas.trimLastPageHeight
-                          ? 'bg-[#24242e] text-white border border-[#3e3e4c]'
-                          : 'text-zinc-400 hover:text-zinc-200'
+                          ? 'bg-[#1c1c24] text-[#f4f4f6] border border-[#2e2e3a]'
+                          : 'text-zinc-400 hover:text-white hover:bg-[#14141a]'
                       }`}
                       title="Cards 1-(N-1) stay uniform 4:5 for carousels; only last card trims"
                     >
@@ -698,8 +698,8 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                       onClick={() => onCanvasChange({ ...canvas, trimAllPages: false, trimLastPageHeight: false })}
                       className={`px-2 py-1 rounded-[4px] text-[11px] font-medium transition-colors ${
                         !canvas.trimAllPages && !canvas.trimLastPageHeight
-                          ? 'bg-[#24242e] text-white border border-[#3e3e4c]'
-                          : 'text-zinc-400 hover:text-zinc-200'
+                          ? 'bg-[#1c1c24] text-[#f4f4f6] border border-[#2e2e3a]'
+                          : 'text-zinc-400 hover:text-white hover:bg-[#14141a]'
                       }`}
                       title="Strict fixed canvas dimensions for all cards"
                     >
