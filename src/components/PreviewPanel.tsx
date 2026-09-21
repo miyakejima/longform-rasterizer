@@ -330,7 +330,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                       onBlockedExport={onBlockedExport}
                     />
                   </div>
-                  <span className="text-[11px] font-mono font-semibold px-2.5 py-0.5 rounded-full bg-zinc-200/90 dark:bg-zinc-800/90 text-zinc-800 dark:text-zinc-200 border border-zinc-300 dark:border-zinc-700/80 shadow-2xs mt-2 shrink-0 select-none">
+                  <span className="text-[11px] font-mono font-medium text-zinc-600 dark:text-zinc-400 mt-2 shrink-0 select-none tracking-wide">
                     Page {page.pageIndex + 1}
                   </span>
                 </div>
@@ -387,7 +387,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                 allowClippedExport={allowClippedExport}
                 onBlockedExport={onBlockedExport}
               />
-              <span className="text-[11px] font-mono font-semibold px-2.5 py-0.5 rounded-full bg-zinc-200/90 dark:bg-zinc-800/90 text-zinc-800 dark:text-zinc-200 border border-zinc-300 dark:border-zinc-700/80 shadow-2xs select-none">
+              <span className="text-[11px] font-mono font-medium text-zinc-600 dark:text-zinc-400 select-none tracking-wide">
                 Page {page.pageIndex + 1}
               </span>
             </div>
