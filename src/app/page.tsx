@@ -318,7 +318,7 @@ function Workspace() {
     pushHistory(doc, optimized.canvas, optimized.typography, optimized.spacing, { ...advanced, autoFit: false });
   }, [doc, canvas, typography, spacing, advanced, pushHistory]);
 
-  // Author-Preferred: 1-click compact margins (48px), vertical justification (100% util), whole-paragraph preservation & trimmed last card
+  // Author-Preferred: 1-click compact margins (48px), clean centering, whole-paragraph preservation & trimmed last card
   const handleAuthorPreferred = useCallback(() => {
     const authorSpacing: SpacingSettings = {
       ...spacing,
@@ -328,11 +328,11 @@ function Workspace() {
       paddingBottom: 48,
       paddingLeft: 48,
       minBottomSpace: 0,
-      verticalAlignment: 'justify',
+      verticalAlignment: 'center',
     };
     const authorTypography: TypographySettings = {
       ...typography,
-      verticalAlignment: 'justify',
+      verticalAlignment: 'center',
     };
     const authorCanvas: CanvasSettings = {
       ...canvas,

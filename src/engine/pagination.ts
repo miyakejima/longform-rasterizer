@@ -189,7 +189,7 @@ export function paginateDocument(
   if (pageCount === 1) {
     const renderedH = computePageRenderedHeight(allLines, lineHeightPx, spacing.paragraphSpacing);
     const { overflowPx, isOverflowing } = computePageOverflow(renderedH, availableHeight, canvas, spacing);
-    const isFull = (isVerticalJustify || renderedH >= availableHeight) && !isOverflowing;
+    const isFull = renderedH >= availableHeight && !isOverflowing;
     return {
       pages: [
         {
@@ -368,7 +368,7 @@ export function paginateDocument(
           const renderedH = spanData.height;
           const { overflowPx, isOverflowing } = computePageOverflow(renderedH, availableHeight, canvas, spacing);
           const isTrimmedLastPage = Boolean(canvas.trimLastPageHeight && pageCount > 1 && p === pageCount - 1 && renderedH < availableHeight);
-          const isFull = (isVerticalJustify || isTrimmedLastPage || renderedH >= availableHeight) && !isOverflowing;
+          const isFull = (isTrimmedLastPage || renderedH >= availableHeight) && !isOverflowing;
           const util = isFull
             ? 100
             : Math.min(100, Math.round((renderedH / availableHeight) * 100));
@@ -476,7 +476,7 @@ export function paginateDocument(
           const renderedH = computePageRenderedHeight(pageLines, lineHeightPx, spacing.paragraphSpacing);
           const { overflowPx, isOverflowing } = computePageOverflow(renderedH, availableHeight, canvas, spacing);
           const isTrimmedLastPage = Boolean(canvas.trimLastPageHeight && pageCount > 1 && p === pageCount - 1 && renderedH < availableHeight);
-          const isFull = (isVerticalJustify || isTrimmedLastPage || renderedH >= availableHeight) && !isOverflowing;
+          const isFull = (isTrimmedLastPage || renderedH >= availableHeight) && !isOverflowing;
           const util = isFull
             ? 100
             : Math.min(100, Math.round((renderedH / availableHeight) * 100));
@@ -602,7 +602,7 @@ export function paginateDocument(
     const renderedH = getSpanHeight(startLineIdx, endLineIdx);
     const { overflowPx, isOverflowing } = computePageOverflow(renderedH, availableHeight, canvas, spacing);
     const isTrimmedLastPage = Boolean(canvas.trimLastPageHeight && pageCount > 1 && p === pageCount - 1 && renderedH < availableHeight);
-    const isFull = (isVerticalJustify || isTrimmedLastPage || renderedH >= availableHeight) && !isOverflowing;
+    const isFull = (isTrimmedLastPage || renderedH >= availableHeight) && !isOverflowing;
 
     pages.push({
       pageIndex: p,

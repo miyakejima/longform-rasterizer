@@ -110,25 +110,22 @@ export function renderPageToCanvas(
     const internalParagraphEnds = page.lines.reduce((acc, line, idx) => {
       return idx < page.lines.length - 1 && line.isParagraphEnd ? acc + 1 : acc;
     }, 0);
-    const lineGaps = page.lines.length - 1;
 
     if (internalParagraphEnds > 0) {
-      // Multiple paragraphs: distribute across paragraph gaps to reach flush bottom
-      const maxParaGap = 72;
+      // Multiple paragraphs: expand paragraph gaps tastefully up to a sane limit
+      const maxExtraPara = Math.min(36, Math.max(12, Math.round(spacing.paragraphSpacing * 0.8)));
       const neededParaPerGap = remainingSpace / internalParagraphEnds;
-      if (neededParaPerGap <= maxParaGap || lineGaps <= 0) {
+      if (neededParaPerGap <= maxExtraPara) {
         extraParaSpacing = neededParaPerGap;
       } else {
-        // Expand paragraph gaps to maxParaGap, and micro-distribute remaining slack into line height
-        extraParaSpacing = maxParaGap;
-        const remainingAfterParas = remainingSpace - maxParaGap * internalParagraphEnds;
-        if (remainingAfterParas > 0 && lineGaps > 0) {
-          extraLineSpacing = remainingAfterParas / lineGaps;
-        }
+        extraParaSpacing = maxExtraPara;
+        const remainingAfterParas = remainingSpace - maxExtraPara * internalParagraphEnds;
+        currentY = paddingTop + remainingAfterParas / 2;
       }
-    } else if (lineGaps > 0) {
-      // Single paragraph on the page: micro-distribute across line gaps to reach flush bottom
-      extraLineSpacing = remainingSpace / lineGaps;
+    } else {
+      // Single paragraph on page: NEVER blow apart lines!
+      // Keep natural line height and center the paragraph vertically
+      currentY = paddingTop + remainingSpace / 2;
     }
   }
 
