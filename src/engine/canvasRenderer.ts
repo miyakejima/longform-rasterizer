@@ -47,7 +47,13 @@ export function renderPageToCanvas(
   options: RenderCanvasOptions
 ): void {
   const { page, totalPages = 1, canvas, typography: baseTypography, spacing, scale = 1 } = options;
-  const typography = page.typography ?? baseTypography;
+  const typography: TypographySettings = page.typography
+    ? {
+        ...baseTypography,
+        ...page.typography,
+        textColor: baseTypography.textColor,
+      }
+    : baseTypography;
   const ctx = targetCanvas.getContext('2d');
   if (!ctx) return;
 

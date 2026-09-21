@@ -56,7 +56,9 @@ export const PageCard: React.FC<PageCardProps> = ({
   const [copied, setCopied] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
 
-  const effectiveTypo = page.typography ?? typography;
+  const effectiveTypo = page.typography
+    ? { ...typography, ...page.typography, textColor: typography.textColor }
+    : typography;
   const pageDims = getPageCanvasDimensions(
     page.pageIndex,
     totalPages,

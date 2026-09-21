@@ -733,4 +733,54 @@ describe('Typography Pagination and Layout Engine', () => {
     const bottomMargin = options.canvas.height - (expectedY + page.renderedHeight);
     expect(topMargin).toBeCloseTo(bottomMargin, 1);
   });
+
+  it('guarantees live baseTypography.textColor overrides stale page.typography.textColor upon theme switch', () => {
+    const doc: DocumentState = {
+      text: 'Sample line of text',
+      projectName: 'theme-test',
+      pageCount: 1,
+      distributionMode: 'balanced',
+      manualBreaks: [],
+      layoutLocked: false,
+    };
+    const options = createOptions({
+      typography: { fontSize: 24, textColor: '#000000' }, // light theme
+    });
+    const result = paginateDocument(doc, options);
+    const page = {
+      ...result.pages[0],
+      // Simulate page.typography generated under light theme
+      typography: { ...options.typography, fontSize: 32, textColor: '#000000' },
+    };
+
+    let fillStyles: string[] = [];
+    const mockCanvas = {
+      getContext: () => ({
+        save: () => {},
+        restore: () => {},
+        scale: () => {},
+        clearRect: () => {},
+        fillRect: () => {},
+        fillText: () => {},
+        set fillStyle(val: string) {
+          fillStyles.push(val);
+        },
+      }),
+      width: 0,
+      height: 0,
+    } as unknown as HTMLCanvasElement;
+
+    // Simulate switching to dark theme: baseTypography.textColor is now #FFFFFF
+    renderPageToCanvas(mockCanvas, {
+      page,
+      canvas: { ...options.canvas, backgroundColor: '#000000' },
+      typography: { ...options.typography, textColor: '#FFFFFF' },
+      spacing: options.spacing,
+    });
+
+    // The text fillStyle MUST be #FFFFFF (white), NOT the stale #000000 from page.typography
+    // fillStyles[0] is backgroundColor (#000000), fillStyles[1] is textColor
+    expect(fillStyles).toContain('#FFFFFF');
+    expect(fillStyles[fillStyles.length - 1]).toBe('#FFFFFF');
+  });
 });

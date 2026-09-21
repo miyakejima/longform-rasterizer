@@ -132,19 +132,21 @@ function Workspace() {
         }
       }
       setCanvas((prevC) => {
-        if (prevC.backgroundColor === '#000000' && next === 'light') {
+        const bg = prevC.backgroundColor.toLowerCase();
+        if ((bg === '#000000' || bg === '#000' || bg === '#09090b') && next === 'light') {
           return { ...prevC, backgroundColor: '#FFFFFF' };
         }
-        if (prevC.backgroundColor === '#FFFFFF' && next === 'dark') {
+        if ((bg === '#ffffff' || bg === '#fff') && next === 'dark') {
           return { ...prevC, backgroundColor: '#000000' };
         }
         return prevC;
       });
       setTypography((prevT) => {
-        if (prevT.textColor === '#FFFFFF' && next === 'light') {
+        const tc = prevT.textColor.toLowerCase();
+        if ((tc === '#ffffff' || tc === '#fff') && next === 'light') {
           return { ...prevT, textColor: '#000000' };
         }
-        if (prevT.textColor === '#000000' && next === 'dark') {
+        if ((tc === '#000000' || tc === '#000') && next === 'dark') {
           return { ...prevT, textColor: '#FFFFFF' };
         }
         return prevT;
@@ -557,11 +559,26 @@ function Workspace() {
     [typography, paginationResult.effectiveFontSize]
   );
 
+  // Sync page typography with active text color to prevent stale color freezes on theme change
+  const displayedPages = useMemo(() => {
+    return paginationResult.pages.map((p) => {
+      if (!p.typography) return p;
+      if (p.typography.textColor === typography.textColor) return p;
+      return {
+        ...p,
+        typography: {
+          ...p.typography,
+          textColor: typography.textColor,
+        },
+      };
+    });
+  }, [paginationResult.pages, typography.textColor]);
+
   const hasOverflow = paginationResult.pages.some((p) => p.isOverflowing);
 
   // Export handlers with strict text-safety checks
   const handleExportAll = useCallback(async () => {
-    const overflowing = paginationResult.pages.filter((p) => p.isOverflowing);
+    const overflowing = displayedPages.filter((p) => p.isOverflowing);
     if (overflowing.length > 0 && !advanced.allowClippedExport) {
       const pageNumbers = overflowing.map((p) => p.pageIndex + 1).join(', ');
       setExportWarning(`Export blocked: Page ${pageNumbers} contains clipped text.`);
@@ -570,7 +587,7 @@ function Workspace() {
     setExportWarning(null);
     setIsExporting(true);
     try {
-      await exportAllPagesSeparately(paginationResult.pages, {
+      await exportAllPagesSeparately(displayedPages, {
         canvas,
         typography: effectiveTypography,
         spacing,
@@ -582,7 +599,7 @@ function Workspace() {
       setIsExporting(false);
     }
   }, [
-    paginationResult.pages,
+    displayedPages,
     advanced.allowClippedExport,
     canvas,
     effectiveTypography,
@@ -593,7 +610,7 @@ function Workspace() {
   ]);
 
   const handleExportZip = useCallback(async () => {
-    const overflowing = paginationResult.pages.filter((p) => p.isOverflowing);
+    const overflowing = displayedPages.filter((p) => p.isOverflowing);
     if (overflowing.length > 0 && !advanced.allowClippedExport) {
       const pageNumbers = overflowing.map((p) => p.pageIndex + 1).join(', ');
       setExportWarning(`Export blocked: Page ${pageNumbers} contains clipped text.`);
@@ -602,7 +619,7 @@ function Workspace() {
     setExportWarning(null);
     setIsExporting(true);
     try {
-      await exportAllPagesAsZip(paginationResult.pages, {
+      await exportAllPagesAsZip(displayedPages, {
         canvas,
         typography: effectiveTypography,
         spacing,
@@ -614,7 +631,7 @@ function Workspace() {
       setIsExporting(false);
     }
   }, [
-    paginationResult.pages,
+    displayedPages,
     advanced.allowClippedExport,
     canvas,
     effectiveTypography,
@@ -699,7 +716,7 @@ function Workspace() {
           <EditorPanel
             text={doc.text}
             onTextChange={handleTextChange}
-            pages={paginationResult.pages}
+            pages={displayedPages}
             distributionMode={doc.distributionMode}
             manualBreaks={doc.manualBreaks}
             onManualBreaksChange={(breaks) => {
@@ -874,7 +891,7 @@ function Workspace() {
           {/* Previews Grid */}
           <div className="flex-1 min-h-0 overflow-hidden">
             <PreviewPanel
-              pages={paginationResult.pages}
+              pages={displayedPages}
               canvas={canvas}
               typography={effectiveTypography}
               spacing={spacing}
@@ -967,7 +984,7 @@ function Workspace() {
           key={fullscreenPageIndex}
           isOpen={true}
           onClose={() => setFullscreenPageIndex(null)}
-          pages={paginationResult.pages}
+          pages={displayedPages}
           initialPageIndex={fullscreenPageIndex}
           canvas={canvas}
           typography={effectiveTypography}

@@ -259,7 +259,9 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
           )}
 
           {(() => {
-            const effectiveTypo = activeSinglePage.typography ?? typography;
+            const effectiveTypo = activeSinglePage.typography
+              ? { ...typography, ...activeSinglePage.typography, textColor: typography.textColor }
+              : typography;
             const singleDims = getPageCanvasDimensions(
               activeSinglePage.pageIndex,
               pages.length,
@@ -340,7 +342,9 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
             className="flex-1 min-h-0 w-full flex items-center overflow-x-auto snap-x snap-mandatory py-4 px-12 gap-8 scroll-smooth no-scrollbar"
           >
             {pages.map((page, idx) => {
-              const effectiveTypo = page.typography ?? typography;
+              const effectiveTypo = page.typography
+                ? { ...typography, ...page.typography, textColor: typography.textColor }
+                : typography;
               const cardDims = getPageCanvasDimensions(
                 page.pageIndex,
                 pages.length,
