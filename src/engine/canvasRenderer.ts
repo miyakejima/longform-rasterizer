@@ -16,6 +16,15 @@ export interface RenderCanvasOptions {
   typography: TypographySettings;
   spacing: SpacingSettings;
   scale?: ExportScale;
+  highlightedParagraphIndex?: number | null;
+}
+
+export interface ParagraphBounds {
+  paragraphIndex: number;
+  topY: number;
+  bottomY: number;
+  startIndex: number;
+  endIndex: number;
 }
 
 export function getPageCanvasDimensions(
@@ -40,6 +49,95 @@ export function getPageCanvasDimensions(
     }
   }
   return { width: canvas.width, height: canvas.height, isTrimmed: false };
+}
+
+export function getParagraphBoundsForPage(
+  page: PageData,
+  totalPages: number = 1,
+  canvas: CanvasSettings,
+  spacing: SpacingSettings,
+  baseTypography: TypographySettings
+): ParagraphBounds[] {
+  const typography: TypographySettings = page.typography
+    ? {
+        ...baseTypography,
+        ...page.typography,
+        textColor: baseTypography.textColor,
+      }
+    : baseTypography;
+
+  const pageDims = getPageCanvasDimensions(
+    page.pageIndex,
+    totalPages,
+    page.renderedHeight,
+    canvas,
+    spacing,
+    typography
+  );
+
+  const { fontSize, lineHeight } = typography;
+  const { paddingTop, paragraphSpacing } = spacing;
+  const lineBoxHeight = fontSize * lineHeight;
+  const verticalAlignment = typography.verticalAlignment ?? spacing.verticalAlignment ?? 'center';
+  const availableHeight = pageDims.height - paddingTop - spacing.paddingBottom - (spacing.minBottomSpace || 0);
+  const remainingSpace = Math.max(0, availableHeight - page.renderedHeight);
+
+  let extraParaSpacing = 0;
+  let currentY = paddingTop;
+
+  if (pageDims.isTrimmed && verticalAlignment !== 'center' && verticalAlignment !== 'justify') {
+    currentY = paddingTop;
+  } else if (verticalAlignment === 'center' && remainingSpace > 0) {
+    currentY = paddingTop + remainingSpace / 2;
+  } else if (verticalAlignment === 'top') {
+    currentY = paddingTop;
+  } else if (verticalAlignment === 'justify' && remainingSpace > 0) {
+    const internalParagraphEnds = page.lines.reduce((acc, line, idx) => {
+      return idx < page.lines.length - 1 && line.isParagraphEnd ? acc + 1 : acc;
+    }, 0);
+    if (internalParagraphEnds > 0) {
+      const neededParaPerGap = remainingSpace / internalParagraphEnds;
+      const maxExtraPara = Math.max(72, Math.round(spacing.paragraphSpacing * 3.5));
+      if (neededParaPerGap <= maxExtraPara) {
+        extraParaSpacing = neededParaPerGap;
+      } else {
+        extraParaSpacing = maxExtraPara;
+        const remainingAfterParas = remainingSpace - maxExtraPara * internalParagraphEnds;
+        currentY = paddingTop + remainingAfterParas / 2;
+      }
+    } else {
+      currentY = paddingTop + remainingSpace / 2;
+    }
+  }
+
+  const boundsMap = new Map<number, ParagraphBounds>();
+
+  for (let i = 0; i < page.lines.length; i++) {
+    const line = page.lines[i];
+    const lineTop = currentY;
+    const lineBottom = currentY + lineBoxHeight;
+
+    const existing = boundsMap.get(line.paragraphIndex);
+    if (!existing) {
+      boundsMap.set(line.paragraphIndex, {
+        paragraphIndex: line.paragraphIndex,
+        topY: lineTop,
+        bottomY: lineBottom,
+        startIndex: line.startIndex,
+        endIndex: line.endIndex,
+      });
+    } else {
+      existing.bottomY = Math.max(existing.bottomY, lineBottom);
+      existing.endIndex = Math.max(existing.endIndex, line.endIndex);
+    }
+
+    currentY += lineBoxHeight;
+    if (line.isParagraphEnd && i < page.lines.length - 1) {
+      currentY += paragraphSpacing + extraParaSpacing;
+    }
+  }
+
+  return Array.from(boundsMap.values());
 }
 
 export function renderPageToCanvas(
@@ -145,9 +243,18 @@ export function renderPageToCanvas(
     }
   }
 
+  const hasHighlight =
+    options.highlightedParagraphIndex !== undefined && options.highlightedParagraphIndex !== null;
+
   for (let i = 0; i < page.lines.length; i++) {
     const line = page.lines[i];
     const lineText = line.text;
+
+    if (hasHighlight) {
+      ctx.globalAlpha = line.paragraphIndex === options.highlightedParagraphIndex ? 1.0 : 0.65;
+    } else {
+      ctx.globalAlpha = 1.0;
+    }
 
     if (lineText.length === 0) {
       currentY += lineBoxHeight + extraLineSpacing;

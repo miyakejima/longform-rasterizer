@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import {
   Copy,
   Check,
@@ -16,7 +16,11 @@ import {
   SpacingSettings,
   TypographySettings,
 } from '../types';
-import { renderPageToCanvas, getPageCanvasDimensions } from '../engine/canvasRenderer';
+import {
+  renderPageToCanvas,
+  getPageCanvasDimensions,
+  getParagraphBoundsForPage,
+} from '../engine/canvasRenderer';
 import { exportSinglePage } from '../engine/exportEngine';
 
 interface PageCardProps {
@@ -34,6 +38,8 @@ interface PageCardProps {
   onEnlarge: () => void;
   allowClippedExport?: boolean;
   onBlockedExport?: (msg: string) => void;
+  highlightedParagraphIndex?: number | null;
+  onParagraphHover?: (info: { pageIndex: number; paragraphIndex: number; startIndex: number; endIndex: number } | null) => void;
 }
 
 export const PageCard: React.FC<PageCardProps> = ({
@@ -51,6 +57,8 @@ export const PageCard: React.FC<PageCardProps> = ({
   onEnlarge,
   allowClippedExport = false,
   onBlockedExport,
+  highlightedParagraphIndex = null,
+  onParagraphHover,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [copied, setCopied] = useState(false);
@@ -68,6 +76,67 @@ export const PageCard: React.FC<PageCardProps> = ({
     effectiveTypo
   );
 
+  const paragraphBounds = useMemo(() => {
+    return getParagraphBoundsForPage(
+      page,
+      totalPages,
+      canvas,
+      spacing,
+      effectiveTypo
+    );
+  }, [page, totalPages, canvas, spacing, effectiveTypo]);
+
+  const currentHoveredParaRef = useRef<number | null>(null);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!onParagraphHover || paragraphBounds.length === 0) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    if (rect.height <= 0) return;
+
+    const relY = (e.clientY - rect.top) / rect.height;
+    const canvasY = relY * pageDims.height;
+
+    // Find the paragraph containing canvasY
+    let target = paragraphBounds.find((b) => canvasY >= b.topY && canvasY <= b.bottomY);
+    if (!target) {
+      if (canvasY < paragraphBounds[0].topY) {
+        target = paragraphBounds[0];
+      } else if (canvasY > paragraphBounds[paragraphBounds.length - 1].bottomY) {
+        target = paragraphBounds[paragraphBounds.length - 1];
+      } else {
+        let closest = paragraphBounds[0];
+        let minDist = Infinity;
+        for (const b of paragraphBounds) {
+          const mid = (b.topY + b.bottomY) / 2;
+          const dist = Math.abs(canvasY - mid);
+          if (dist < minDist) {
+            minDist = dist;
+            closest = b;
+          }
+        }
+        target = closest;
+      }
+    }
+
+    if (target && target.paragraphIndex !== currentHoveredParaRef.current) {
+      currentHoveredParaRef.current = target.paragraphIndex;
+      onParagraphHover({
+        pageIndex: page.pageIndex,
+        paragraphIndex: target.paragraphIndex,
+        startIndex: target.startIndex,
+        endIndex: target.endIndex,
+      });
+    }
+  };
+
+  const handleMouseLeave = () => {
+    onHover(false);
+    if (currentHoveredParaRef.current !== null) {
+      currentHoveredParaRef.current = null;
+      onParagraphHover?.(null);
+    }
+  };
+
   // Render canvas whenever layout/page changes with rAF throttling for buttery-smooth 60fps updates
   useEffect(() => {
     let animId: number;
@@ -81,13 +150,14 @@ export const PageCard: React.FC<PageCardProps> = ({
           typography,
           spacing,
           scale: 1, // Preview scale
+          highlightedParagraphIndex,
         });
       });
     }
     return () => {
       if (animId) cancelAnimationFrame(animId);
     };
-  }, [page, totalPages, canvas, typography, spacing]);
+  }, [page, totalPages, canvas, typography, spacing, highlightedParagraphIndex]);
 
   const handleCopyText = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -137,8 +207,12 @@ export const PageCard: React.FC<PageCardProps> = ({
         aspectRatio: `${pageDims.width} / ${pageDims.height}`,
         backgroundColor: canvas.backgroundColor,
       }}
-      onMouseEnter={() => onHover(true)}
-      onMouseLeave={() => onHover(false)}
+      onMouseEnter={(e) => {
+        onHover(true);
+        handleMouseMove(e);
+      }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
       onClick={() => {
         onClick();
         onEnlarge();

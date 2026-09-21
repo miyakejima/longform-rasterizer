@@ -61,6 +61,12 @@ function Workspace() {
   const [selectedPresetId, setSelectedPresetId] = useState<string>('x-essay');
   const [customFonts, setCustomFonts] = useState<string[]>([]);
   const [highlightedPageIndex, setHighlightedPageIndex] = useState<number | null>(null);
+  const [highlightedParagraph, setHighlightedParagraph] = useState<{
+    pageIndex: number;
+    paragraphIndex: number;
+    startIndex: number;
+    endIndex: number;
+  } | null>(null);
   const [fullscreenPageIndex, setFullscreenPageIndex] = useState<number | null>(null);
   const [previewMode, setPreviewMode] = useState<PreviewMode>('carousel');
   const [isEditorCollapsed, setIsEditorCollapsed] = useState(false);
@@ -737,6 +743,7 @@ function Workspace() {
             highlightedPageIndex={highlightedPageIndex}
             onSelectPage={(pIdx) => setHighlightedPageIndex(pIdx)}
             typography={effectiveTypography}
+            highlightedParagraph={highlightedParagraph}
           />
         </div>
 
@@ -907,6 +914,8 @@ function Workspace() {
               onBlockedExport={(msg) => setExportWarning(msg)}
               previewMode={previewMode}
               isEditorCollapsed={isEditorCollapsed}
+              highlightedParagraph={highlightedParagraph}
+              onParagraphHover={setHighlightedParagraph}
             />
           </div>
         </div>

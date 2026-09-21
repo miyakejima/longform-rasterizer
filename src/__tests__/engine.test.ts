@@ -10,7 +10,7 @@ import { paginateDocument, PaginationOptions, computePageAvailableHeight } from 
 import { autoFitFontSize } from '../engine/autoFit';
 import { measureTextWidth } from '../engine/textMeasurement';
 import { sanitizeFileName, generateProceduralTitle } from '../engine/exportEngine';
-import { renderPageToCanvas } from '../engine/canvasRenderer';
+import { renderPageToCanvas, getParagraphBoundsForPage } from '../engine/canvasRenderer';
 
 const defaultCanvas: CanvasSettings = {
   width: 1080,
@@ -783,4 +783,85 @@ describe('Typography Pagination and Layout Engine', () => {
     expect(fillStyles).toContain('#FFFFFF');
     expect(fillStyles[fillStyles.length - 1]).toBe('#FFFFFF');
   });
+
+  it('correctly calculates vertical paragraph bounds for a page', () => {
+    const doc: DocumentState = {
+      text: 'First paragraph here.\n\nSecond paragraph has more text to span across lines.',
+      projectName: 'bounds-test',
+      pageCount: 1,
+      distributionMode: 'balanced',
+      manualBreaks: [],
+      layoutLocked: false,
+    };
+    const options = createOptions({
+      typography: { fontSize: 32, lineHeight: 1.5 },
+      spacing: { paddingTop: 100, paddingBottom: 100, paragraphSpacing: 40 },
+    });
+    const result = paginateDocument(doc, options);
+    expect(result.pages.length).toBe(1);
+
+    const bounds = getParagraphBoundsForPage(
+      result.pages[0],
+      1,
+      options.canvas,
+      options.spacing,
+      options.typography
+    );
+
+    expect(bounds.length).toBe(2);
+    expect(bounds[0].paragraphIndex).toBe(0);
+    expect(bounds[0].startIndex).toBe(0);
+    expect(bounds[0].bottomY).toBeGreaterThan(bounds[0].topY);
+
+    expect(bounds[1].paragraphIndex).toBe(1);
+    expect(bounds[1].topY).toBeGreaterThan(bounds[0].bottomY);
+    expect(bounds[1].bottomY).toBeGreaterThan(bounds[1].topY);
+  });
+
+  it('renders active paragraph with full contrast and sibling paragraphs at 0.65 opacity', () => {
+    const doc: DocumentState = {
+      text: 'Paragraph zero.\n\nParagraph one.',
+      projectName: 'spotlight-test',
+      pageCount: 1,
+      distributionMode: 'balanced',
+      manualBreaks: [],
+      layoutLocked: false,
+    };
+    const options = createOptions();
+    const result = paginateDocument(doc, options);
+    const page = result.pages[0];
+
+    const alphas: number[] = [];
+    const mockCanvas = {
+      getContext: () => ({
+        save: () => {},
+        restore: () => {},
+        scale: () => {},
+        clearRect: () => {},
+        fillRect: () => {},
+        fillText: () => {},
+        set globalAlpha(val: number) {
+          alphas.push(val);
+        },
+      }),
+      width: 0,
+      height: 0,
+    } as unknown as HTMLCanvasElement;
+
+    // Highlight paragraph 1
+    renderPageToCanvas(mockCanvas, {
+      page,
+      canvas: options.canvas,
+      typography: options.typography,
+      spacing: options.spacing,
+      highlightedParagraphIndex: 1,
+    });
+
+    // Paragraph 0 should be rendered at 0.65, paragraph 1 at 1.0
+    expect(alphas).toContain(0.65);
+    expect(alphas).toContain(1.0);
+    expect(alphas[0]).toBe(0.65); // Para 0
+    expect(alphas[alphas.length - 1]).toBe(1.0); // Para 1
+  });
 });
+

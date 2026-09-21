@@ -31,6 +31,8 @@ interface PreviewPanelProps {
   onBlockedExport?: (msg: string) => void;
   previewMode?: PreviewMode;
   isEditorCollapsed?: boolean;
+  highlightedParagraph?: { pageIndex: number; paragraphIndex: number; startIndex: number; endIndex: number } | null;
+  onParagraphHover?: (info: { pageIndex: number; paragraphIndex: number; startIndex: number; endIndex: number } | null) => void;
 }
 
 export const PreviewPanel: React.FC<PreviewPanelProps> = ({
@@ -50,6 +52,8 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
   onBlockedExport,
   previewMode = 'grid',
   isEditorCollapsed = false,
+  highlightedParagraph = null,
+  onParagraphHover,
 }) => {
   const overflowingPages = pages.filter((p) => p.isOverflowing);
   const hasOverflow = overflowingPages.length > 0;
@@ -294,6 +298,8 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                 onEnlarge={() => onOpenFullscreen(effectiveSingleIndex)}
                 allowClippedExport={allowClippedExport}
                 onBlockedExport={onBlockedExport}
+                highlightedParagraphIndex={highlightedParagraph?.pageIndex === activeSinglePage.pageIndex ? highlightedParagraph.paragraphIndex : null}
+                onParagraphHover={onParagraphHover}
               />
             </div>
           </div>
@@ -380,6 +386,8 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                       onEnlarge={() => onOpenFullscreen(idx)}
                       allowClippedExport={allowClippedExport}
                       onBlockedExport={onBlockedExport}
+                      highlightedParagraphIndex={highlightedParagraph?.pageIndex === page.pageIndex ? highlightedParagraph.paragraphIndex : null}
+                      onParagraphHover={onParagraphHover}
                     />
                   </div>
                   <span className="text-[11px] font-mono font-medium text-zinc-600 dark:text-zinc-400 mt-2 shrink-0 select-none tracking-wide">
@@ -412,6 +420,8 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                 onEnlarge={() => onOpenFullscreen(idx)}
                 allowClippedExport={allowClippedExport}
                 onBlockedExport={onBlockedExport}
+                highlightedParagraphIndex={highlightedParagraph?.pageIndex === page.pageIndex ? highlightedParagraph.paragraphIndex : null}
+                onParagraphHover={onParagraphHover}
               />
               <span className="text-[11px] font-mono font-medium text-zinc-600 dark:text-zinc-400 select-none tracking-wide">
                 Page {page.pageIndex + 1}
