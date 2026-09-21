@@ -63,7 +63,11 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
       : Math.min(Math.max(0, internalSingleIndex), Math.max(0, pages.length - 1));
 
   const carouselContainerRef = useRef<HTMLDivElement>(null);
+  const previewPanelRef = useRef<HTMLDivElement>(null);
   const [activeCarouselIndex, setActiveCarouselIndex] = useState(0);
+  const activeCarouselIndexRef = useRef(activeCarouselIndex);
+  activeCarouselIndexRef.current = activeCarouselIndex;
+  const lastWheelTimeRef = useRef<number>(0);
 
   const scrollCarouselTo = useCallback((index: number) => {
     const container = carouselContainerRef.current;
@@ -79,6 +83,44 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
     setActiveCarouselIndex(index);
     onSelectPage(index);
   }, [onSelectPage]);
+
+  // Allow hover-and-scroll across the preview panel to advance carousel pages smoothly without needing prior click
+  useEffect(() => {
+    if (previewMode !== 'carousel') return;
+    const panel = previewPanelRef.current;
+    if (!panel) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      const container = carouselContainerRef.current;
+      if (!container || pages.length <= 1) return;
+
+      const isVertical = Math.abs(e.deltaY) > Math.abs(e.deltaX) && Math.abs(e.deltaY) > 15;
+      if (isVertical) {
+        e.preventDefault();
+        const now = Date.now();
+        if (now - lastWheelTimeRef.current < 220) return;
+        lastWheelTimeRef.current = now;
+
+        const currentIdx = activeCarouselIndexRef.current;
+        if (e.deltaY > 0) {
+          const next = Math.min(pages.length - 1, currentIdx + 1);
+          if (next !== currentIdx) {
+            scrollCarouselTo(next);
+          }
+        } else {
+          const next = Math.max(0, currentIdx - 1);
+          if (next !== currentIdx) {
+            scrollCarouselTo(next);
+          }
+        }
+      }
+    };
+
+    panel.addEventListener('wheel', handleWheel, { passive: false });
+    return () => {
+      panel.removeEventListener('wheel', handleWheel);
+    };
+  }, [previewMode, pages.length, scrollCarouselTo]);
 
   const handleCarouselScroll = () => {
     const container = carouselContainerRef.current;
@@ -144,7 +186,8 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
 
   return (
     <div
-      className={`flex flex-col h-full w-full bg-[#09090b] ${
+      ref={previewPanelRef}
+      className={`flex flex-col h-full w-full bg-[#09090b] no-scrollbar ${
         previewMode === 'single' || previewMode === 'carousel'
           ? 'p-4 justify-between items-center overflow-hidden'
           : isEditorCollapsed ? 'overflow-y-auto p-6 md:p-8 lg:p-12' : 'overflow-y-auto p-6 md:p-8'
