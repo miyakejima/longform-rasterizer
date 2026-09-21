@@ -29,7 +29,7 @@ Finalmente, la partición armónica de un discurso a lo largo de múltiples pág
 
     const options = {
       canvas: { ...DEFAULT_CANVAS, width: 1080, height: 1350, backgroundColor: '#000000' },
-      typography: { ...DEFAULT_TYPOGRAPHY, fontFamily: 'Inter', fontSize: 36, alignment: 'left' as const },
+      typography: { ...DEFAULT_TYPOGRAPHY, fontFamily: 'Inter', fontSize: 36, textColor: '#FFFFFF', alignment: 'left' as const },
       spacing: { ...DEFAULT_SPACING, paddingTop: 96, paddingBottom: 96, paddingLeft: 96, paddingRight: 96 },
       advanced: { ...DEFAULT_ADVANCED, autoFit: true, minFontSize: 20, maxFontSize: 48 },
     };

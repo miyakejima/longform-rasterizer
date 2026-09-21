@@ -62,13 +62,13 @@ function Workspace() {
   const [customFonts, setCustomFonts] = useState<string[]>([]);
   const [highlightedPageIndex, setHighlightedPageIndex] = useState<number | null>(null);
   const [fullscreenPageIndex, setFullscreenPageIndex] = useState<number | null>(null);
-  const [previewMode, setPreviewMode] = useState<PreviewMode>('grid');
+  const [previewMode, setPreviewMode] = useState<PreviewMode>('carousel');
   const [isEditorCollapsed, setIsEditorCollapsed] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [exportWarning, setExportWarning] = useState<string | null>(null);
   const [showPresetsModal, setShowPresetsModal] = useState(false);
   const [showShortcutsModal, setShowShortcutsModal] = useState(false);
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [theme, setTheme] = useState<'dark' | 'light'>('light');
 
   // Load stored session & presets seamlessly on client mount
   useEffect(() => {
@@ -98,16 +98,15 @@ function Workspace() {
   useEffect(() => {
     try {
       const stored = localStorage.getItem('longform-rasterizer-theme');
-      if (stored === 'light' || stored === 'dark') {
-        setTheme(stored);
-        document.documentElement.setAttribute('data-theme', stored);
-        if (stored === 'light') {
-          document.documentElement.classList.add('light');
-          document.documentElement.classList.remove('dark');
-        } else {
-          document.documentElement.classList.add('dark');
-          document.documentElement.classList.remove('light');
-        }
+      const active = stored === 'light' || stored === 'dark' ? stored : 'light';
+      setTheme(active);
+      document.documentElement.setAttribute('data-theme', active);
+      if (active === 'light') {
+        document.documentElement.classList.add('light');
+        document.documentElement.classList.remove('dark');
+      } else {
+        document.documentElement.classList.add('dark');
+        document.documentElement.classList.remove('light');
       }
     } catch {
       // Ignore
@@ -132,6 +131,24 @@ function Workspace() {
           // Ignore
         }
       }
+      setCanvas((prevC) => {
+        if (prevC.backgroundColor === '#000000' && next === 'light') {
+          return { ...prevC, backgroundColor: '#FFFFFF' };
+        }
+        if (prevC.backgroundColor === '#FFFFFF' && next === 'dark') {
+          return { ...prevC, backgroundColor: '#000000' };
+        }
+        return prevC;
+      });
+      setTypography((prevT) => {
+        if (prevT.textColor === '#FFFFFF' && next === 'light') {
+          return { ...prevT, textColor: '#000000' };
+        }
+        if (prevT.textColor === '#000000' && next === 'dark') {
+          return { ...prevT, textColor: '#FFFFFF' };
+        }
+        return prevT;
+      });
       return next;
     });
   }, []);

@@ -425,8 +425,8 @@ describe('Release Showcase E2E Verification Suite (4-Tier Framework)', () => {
       };
 
       expect(testDoc.distributionMode).toBe('balanced');
-      expect(DEFAULT_CANVAS.backgroundColor).toBe('#000000');
-      expect(DEFAULT_TYPOGRAPHY.textColor).toBe('#FFFFFF');
+      expect(DEFAULT_CANVAS.backgroundColor).toBe('#FFFFFF');
+      expect(DEFAULT_TYPOGRAPHY.textColor).toBe('#000000');
     });
 
     it('T4.3: Regression Guard — 49 Core Unit/Engine Tests Integrity', () => {

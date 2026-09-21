@@ -108,7 +108,7 @@ describe('User Text Investigation', () => {
     const trimAllDocRes = paginateDocument(doc, {
       canvas: { ...DEFAULT_CANVAS, trimAllPages: true },
       typography: { ...DEFAULT_TYPOGRAPHY, fontSize: 28 },
-      spacing: { ...DEFAULT_SPACING, preset: 'compact', paddingTop: 48, paddingBottom: 48, paddingLeft: 48, paddingRight: 48, minBottomSpace: 0 },
+      spacing: { ...DEFAULT_SPACING, preset: 'compact', paddingTop: 48, paddingBottom: 48, paddingLeft: 48, paddingRight: 48, paragraphSpacing: 28, minBottomSpace: 0 },
       advanced: DEFAULT_ADVANCED,
     });
     trimAllDocRes.pages.forEach((p, i) => {

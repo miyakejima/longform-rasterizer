@@ -19,7 +19,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${inter.variable} h-full dark`} suppressHydrationWarning>
+    <html lang="en" className={`${inter.variable} h-full light`} data-theme="light" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -30,7 +30,7 @@ export default function RootLayout({
         />
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var s=localStorage.getItem('longform-rasterizer-theme');var t=s||'dark';if(t==='light'){document.documentElement.setAttribute('data-theme','light');document.documentElement.classList.remove('dark');document.documentElement.classList.add('light');}else{document.documentElement.setAttribute('data-theme','dark');document.documentElement.classList.remove('light');document.documentElement.classList.add('dark');}}catch(e){}})();`,
+            __html: `(function(){try{var s=localStorage.getItem('longform-rasterizer-theme');var t=s||'light';if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');document.documentElement.classList.remove('light');document.documentElement.classList.add('dark');}else{document.documentElement.setAttribute('data-theme','light');document.documentElement.classList.remove('dark');document.documentElement.classList.add('light');}}catch(e){}})();`,
           }}
         />
       </head>

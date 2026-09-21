@@ -187,7 +187,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
   return (
     <div
       ref={previewPanelRef}
-      className={`flex flex-col h-full w-full bg-[#09090b] no-scrollbar ${
+      className={`flex flex-col h-full w-full bg-[var(--bg)] no-scrollbar ${
         previewMode === 'single' || previewMode === 'carousel'
           ? 'p-4 justify-between items-center overflow-hidden'
           : isEditorCollapsed ? 'overflow-y-auto p-6 md:p-8 lg:p-12' : 'overflow-y-auto p-6 md:p-8'
@@ -303,6 +303,31 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
       {/* Mode 2: Horizontal Carousel with Streamlined Unified Navigation */}
       {previewMode === 'carousel' && (
         <div className="flex-1 min-h-0 w-full relative flex flex-col items-center justify-center overflow-hidden">
+          {/* Floating Navigation Controls */}
+          {pages.length > 1 && activeCarouselIndex > 0 && (
+            <button
+              type="button"
+              onClick={() => scrollCarouselTo(activeCarouselIndex - 1)}
+              className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 z-30 h-11 w-11 rounded-full flex items-center justify-center bg-white/90 dark:bg-[#14141a]/90 hover:bg-white dark:hover:bg-[#1e1e26] border border-black/10 dark:border-white/10 text-zinc-700 dark:text-zinc-200 shadow-lg backdrop-blur-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
+              title="Previous page"
+              aria-label="Previous page"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+          )}
+
+          {pages.length > 1 && activeCarouselIndex < pages.length - 1 && (
+            <button
+              type="button"
+              onClick={() => scrollCarouselTo(activeCarouselIndex + 1)}
+              className="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 z-30 h-11 w-11 rounded-full flex items-center justify-center bg-white/90 dark:bg-[#14141a]/90 hover:bg-white dark:hover:bg-[#1e1e26] border border-black/10 dark:border-white/10 text-zinc-700 dark:text-zinc-200 shadow-lg backdrop-blur-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
+              title="Next page"
+              aria-label="Next page"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          )}
+
           {/* Carousel Scroll Track: Multi-card preview with smooth scroll snap */}
           <div
             ref={carouselContainerRef}
