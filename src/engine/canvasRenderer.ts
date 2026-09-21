@@ -260,11 +260,24 @@ export function renderPageToCanvas(
     }
   }
 
-  ctx.globalAlpha = 1.0;
+  const hasHighlight =
+    options.highlightedParagraphIndex !== undefined && options.highlightedParagraphIndex !== null;
+  const targetBound = hasHighlight
+    ? getParagraphBoundsForPage(page, totalPages, canvas, spacing, typography).find(
+        (b) => b.paragraphIndex === options.highlightedParagraphIndex
+      )
+    : null;
 
   for (let i = 0; i < page.lines.length; i++) {
     const line = page.lines[i];
     const lineText = line.text;
+
+    if (targetBound) {
+      const isCurrentPara = line.startIndex >= targetBound.startIndex && line.endIndex <= targetBound.endIndex;
+      ctx.globalAlpha = isCurrentPara ? 1.0 : 0.58;
+    } else {
+      ctx.globalAlpha = 1.0;
+    }
 
     if (lineText.length === 0) {
       currentY += lineBoxHeight + extraLineSpacing;

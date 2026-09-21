@@ -260,8 +260,8 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
 
       {/* Editorial Writing Canvas (snug top start, zero navbar) */}
       <div className="relative flex-1 w-full pt-5 pb-4 px-7 flex flex-col min-h-0 overflow-hidden">
-        {/* Paragraph Spotlight Backdrop Layer (clipped to editor viewport) */}
-        <div className="pointer-events-none absolute inset-0 overflow-hidden z-0">
+        {/* Paragraph Spotlight Backdrop / Focus Scrim Layer (clipped to editor viewport) */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden z-20">
           <div
             ref={spotlightLayerRef}
             className="absolute inset-x-0 top-5"
@@ -269,7 +269,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
           >
             <div
               ref={spotlightRef}
-              className="absolute left-0 right-0 rounded-none pointer-events-none transition-all duration-150 ease-out opacity-0 bg-gradient-to-r from-slate-900/[0.045] via-slate-900/[0.015] to-transparent dark:bg-gradient-to-r dark:from-white/[0.06] dark:via-white/[0.015] dark:to-transparent"
+              className="spotlight-scrim absolute left-0 right-0 rounded-none pointer-events-none transition-all duration-150 ease-out opacity-0"
               style={{
                 top: 0,
                 height: 0,

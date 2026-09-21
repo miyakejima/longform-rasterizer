@@ -440,3 +440,16 @@ html.light,
     color: #334155 !important;
   }
 }
+
+/* Paragraph Spotlight Focus Mode Scrim */
+.spotlight-scrim {
+  box-shadow: 0 0 0 9999px rgba(255, 255, 255, 0.72);
+  background-color: rgba(245, 158, 11, 0.18);
+}
+.dark .spotlight-scrim,
+[data-theme="dark"] .spotlight-scrim,
+html.dark .spotlight-scrim {
+  box-shadow: 0 0 0 9999px rgba(12, 12, 14, 0.70);
+  background-color: rgba(245, 158, 11, 0.14);
+}
+

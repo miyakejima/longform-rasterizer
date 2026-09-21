@@ -818,7 +818,7 @@ describe('Typography Pagination and Layout Engine', () => {
     expect(bounds[1].bottomY).toBeGreaterThan(bounds[1].topY);
   });
 
-  it('maintains 100% pure text contrast without canvas highlight wash to protect card aesthetic', () => {
+  it('spotlights active paragraph while subtly dimming other paragraphs on canvas preview', () => {
     const doc: DocumentState = {
       text: 'Paragraph zero.\n\nParagraph one.',
       projectName: 'spotlight-test',
@@ -857,7 +857,7 @@ describe('Typography Pagination and Layout Engine', () => {
       height: 0,
     } as unknown as HTMLCanvasElement;
 
-    // Render canvas with highlightedParagraphIndex
+    // 1. When highlightedParagraphIndex is active (paragraph 1)
     renderPageToCanvas(mockCanvas, {
       page,
       canvas: options.canvas,
@@ -866,7 +866,22 @@ describe('Typography Pagination and Layout Engine', () => {
       highlightedParagraphIndex: 1,
     });
 
-    // Canvas must remain 100% full contrast for all text lines to preserve clean presentation
+    // Paragraph 0 should be subtly dimmed (0.58), Paragraph 1 should be full contrast (1.0)
+    expect(alphas).toContain(0.58);
+    expect(alphas).toContain(1.0);
+    expect(alphas[alphas.length - 1]).toBe(1.0);
+
+    // 2. When highlightedParagraphIndex is null (normal viewing / export)
+    alphas.length = 0;
+    renderPageToCanvas(mockCanvas, {
+      page,
+      canvas: options.canvas,
+      typography: options.typography,
+      spacing: options.spacing,
+      highlightedParagraphIndex: null,
+    });
+
+    // All text lines must remain 100% full contrast (1.0)
     expect(alphas.every((a) => a === 1.0)).toBe(true);
   });
 });
