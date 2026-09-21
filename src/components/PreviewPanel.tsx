@@ -264,11 +264,12 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
           <div
             ref={carouselContainerRef}
             onScroll={handleCarouselScroll}
-            className="flex-1 min-h-0 w-full flex items-center overflow-x-auto snap-x snap-mandatory py-4 gap-6 sm:gap-8 scroll-smooth no-scrollbar"
-            style={{
-              paddingLeft: 'max(48px, calc(50% - 220px))',
-              paddingRight: 'max(48px, calc(50% - 220px))',
+            onWheel={(e) => {
+              if (e.deltaY !== 0 && e.deltaX === 0 && carouselContainerRef.current) {
+                carouselContainerRef.current.scrollLeft += e.deltaY;
+              }
             }}
+            className="flex-1 min-h-0 w-full flex items-center overflow-x-auto snap-x snap-mandatory py-4 px-12 gap-8 scroll-smooth no-scrollbar"
           >
             {pages.map((page, idx) => {
               const effectiveTypo = page.typography ?? typography;
@@ -280,23 +281,13 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                 spacing,
                 effectiveTypo
               );
-              const isActive = activeCarouselIndex === idx;
               return (
                 <div
                   key={`preview-carousel-${page.pageIndex}`}
                   className={`h-full ${
-                    isEditorCollapsed ? 'max-h-[80vh]' : 'max-h-[70vh]'
-                  } min-h-[280px] shrink-0 flex flex-col items-center justify-center snap-center transition-all duration-300 ${
-                    isActive
-                      ? 'opacity-100 scale-100 z-10'
-                      : 'opacity-40 hover:opacity-75 scale-[0.96] cursor-pointer'
-                  }`}
+                    isEditorCollapsed ? 'max-h-[82vh]' : 'max-h-[72vh]'
+                  } min-h-[280px] shrink-0 flex flex-col items-center justify-center snap-center`}
                   style={{ aspectRatio: `${cardDims.width} / ${cardDims.height}` }}
-                  onClick={() => {
-                    if (!isActive) {
-                      scrollCarouselTo(idx);
-                    }
-                  }}
                 >
                   <div className="w-full h-full relative flex items-center justify-center">
                     <PageCard
@@ -326,58 +317,6 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
               );
             })}
           </div>
-
-          {/* Streamlined Unified Navigation Pill Bar */}
-          {pages.length > 1 && (
-            <div className="flex items-center gap-2 py-1.5 px-3 rounded-full bg-white/90 dark:bg-[#0c0c0e]/90 border border-zinc-200 dark:border-[#1b1b22] text-zinc-700 dark:text-zinc-300 backdrop-blur-md shrink-0 shadow-md mt-2 select-none">
-              <button
-                type="button"
-                disabled={activeCarouselIndex === 0}
-                onClick={() => scrollCarouselTo(Math.max(0, activeCarouselIndex - 1))}
-                className="p-1 rounded-full hover:bg-zinc-100 dark:hover:bg-[#16161c] text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white disabled:opacity-25 disabled:pointer-events-none transition-colors cursor-pointer"
-                title="Previous page (Arrow Left)"
-                aria-label="Previous slide"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-
-              <span className="text-[11px] font-mono font-medium px-1.5 min-w-[54px] text-center">
-                {activeCarouselIndex + 1} / {pages.length}
-              </span>
-
-              <div className="w-px h-3 bg-zinc-200 dark:bg-[#18181f]" />
-
-              <div className="flex items-center gap-1.5 px-1">
-                {pages.map((p, idx) => (
-                  <button
-                    key={`dot-${p.pageIndex}`}
-                    type="button"
-                    onClick={() => scrollCarouselTo(idx)}
-                    className={`h-1.5 rounded-full transition-all cursor-pointer focus-visible:outline-hidden ${
-                      activeCarouselIndex === idx
-                        ? 'w-5 bg-zinc-800 dark:bg-zinc-200'
-                        : 'w-1.5 bg-zinc-300 dark:bg-zinc-600 hover:bg-zinc-400'
-                    }`}
-                    title={`Go to page ${idx + 1}`}
-                    aria-label={`Go to page ${idx + 1}`}
-                  />
-                ))}
-              </div>
-
-              <div className="w-px h-3 bg-zinc-200 dark:bg-[#18181f]" />
-
-              <button
-                type="button"
-                disabled={activeCarouselIndex >= pages.length - 1}
-                onClick={() => scrollCarouselTo(Math.min(pages.length - 1, activeCarouselIndex + 1))}
-                className="p-1 rounded-full hover:bg-zinc-100 dark:hover:bg-[#16161c] text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white disabled:opacity-25 disabled:pointer-events-none transition-colors cursor-pointer"
-                title="Next page (Arrow Right)"
-                aria-label="Next slide"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-          )}
         </div>
       )}
 

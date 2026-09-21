@@ -313,12 +313,12 @@ html.light,
   }
   /* Page Card Frame - Low contrast subtle borders in light theme */
   & .page-card-frame {
-    border-color: rgba(0, 0, 0, 0.05) !important;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03), 0 8px 24px -4px rgba(0, 0, 0, 0.04) !important;
+    border-color: rgba(0, 0, 0, 0.04) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), 0 6px 16px -3px rgba(0, 0, 0, 0.03) !important;
   }
   & .page-card-frame:hover {
-    border-color: rgba(0, 0, 0, 0.12) !important;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04), 0 12px 32px -4px rgba(0, 0, 0, 0.06) !important;
+    border-color: rgba(0, 0, 0, 0.10) !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03), 0 10px 24px -4px rgba(0, 0, 0, 0.04) !important;
   }
   & .divide-\[\#1f1f23\] > :not([hidden]) ~ :not([hidden]),
   & .divide-\[\#18181f\] > :not([hidden]) ~ :not([hidden]) {
