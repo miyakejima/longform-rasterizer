@@ -323,8 +323,40 @@ function Workspace() {
     pushHistory(doc, fillCanvas, optimized.typography, optimized.spacing, { ...advanced, autoFit: true });
   }, [doc, canvas, typography, spacing, advanced, pushHistory]);
 
-  // Author-Preferred: 1-click compact margins (48px), clean centering, whole-paragraph preservation & auto-trimmed cards
+  // Author-Preferred / Auto-Balance: 1-click toggle between optimal compact preset and standard layout
   const handleAuthorPreferred = useCallback(() => {
+    const isCurrentlyBalanced =
+      spacing.preset === 'compact' &&
+      canvas.trimAllPages &&
+      doc.distributionMode === 'paragraph-preserving' &&
+      advanced.autoFit;
+
+    if (isCurrentlyBalanced) {
+      // Toggle OFF: revert to standard balanced distribution, 96px margins, fixed canvas height
+      const standardSpacing: SpacingSettings = {
+        ...spacing,
+        preset: 'balanced',
+        paddingTop: 96,
+        paddingRight: 96,
+        paddingBottom: 96,
+        paddingLeft: 96,
+      };
+      const standardCanvas: CanvasSettings = {
+        ...canvas,
+        trimAllPages: false,
+        trimLastPageHeight: true,
+      };
+      const standardDoc: DocumentState = {
+        ...doc,
+        distributionMode: 'balanced',
+      };
+      setDoc(standardDoc);
+      setSpacing(standardSpacing);
+      setCanvas(standardCanvas);
+      pushHistory(standardDoc, standardCanvas, typography, standardSpacing, advanced);
+      return;
+    }
+
     const authorSpacing: SpacingSettings = {
       ...spacing,
       preset: 'compact',

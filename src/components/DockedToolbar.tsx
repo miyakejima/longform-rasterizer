@@ -109,6 +109,13 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
     setCustomHeight(String(canvas.height));
   }
 
+  const isAutoBalanced = Boolean(
+    distributionMode === 'paragraph-preserving' &&
+    canvas.trimAllPages &&
+    spacing.preset === 'compact' &&
+    advanced.autoFit
+  );
+
   const commitCustomDimensions = (wStr = customWidth, hStr = customHeight) => {
     const w = parseInt(wStr, 10);
     const h = parseInt(hStr, 10);
@@ -540,12 +547,20 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
             <span>Auto-fit</span>
           </button>
 
-          {/* 1-Click Auto-Balance / Optimize */}
+          {/* 1-Click Auto-Balance / Optimize Toggle */}
           <button
             type="button"
             onClick={onAuthorPreferred ?? onFillCanvas}
-            className="h-7 px-2.5 flex items-center gap-1.5 rounded-[6px] text-[11px] font-medium text-zinc-300 hover:text-white hover:bg-[#16161c] transition-colors"
-            title="Auto-Balance: 1-click snap to optimal density, compact margins, and 100% vertical fill"
+            className={`h-7 px-2.5 flex items-center gap-1.5 rounded-[6px] text-[11px] font-medium transition-colors ${
+              isAutoBalanced
+                ? 'bg-[#1c1c24] text-[#f4f4f6] border border-[#2e2e3a] shadow-xs'
+                : 'text-zinc-400 hover:text-white hover:bg-[#16161c]'
+            }`}
+            title={
+              isAutoBalanced
+                ? 'Auto-Balance is ON (Compact 48px, Trim All, Whole Paragraphs) — click to disable'
+                : 'Auto-Balance: 1-click snap to optimal density, compact margins, and 100% vertical fill'
+            }
           >
             <Wand2 className="w-3 h-3 text-current" />
             <span>Auto-Balance</span>
