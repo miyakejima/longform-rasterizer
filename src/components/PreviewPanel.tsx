@@ -71,9 +71,18 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
   const [activeCarouselIndex, setActiveCarouselIndex] = useState(0);
   const activeCarouselIndexRef = useRef(activeCarouselIndex);
   activeCarouselIndexRef.current = activeCarouselIndex;
-  const lastWheelTimeRef = useRef<number>(0);
-  const wheelDeltaAccumulatorRef = useRef<number>(0);
-  const wheelResetTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const targetScrollLeftRef = useRef<number>(0);
+  const rafIdRef = useRef<number | null>(null);
+  const isWheelingRef = useRef(false);
+
+  // Mouse drag-to-scroll state
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartXRef = useRef(0);
+  const dragStartScrollRef = useRef(0);
+  const hasDraggedRef = useRef(false);
+  const dragVelocityRef = useRef(0);
+  const lastDragTimeRef = useRef(0);
+  const lastDragXRef = useRef(0);
 
   const scrollCarouselTo = useCallback((index: number) => {
     const container = carouselContainerRef.current;
@@ -91,7 +100,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
     onSelectPage(index);
   }, [onSelectPage]);
 
-  // Allow hover-and-scroll across the preview panel to advance carousel pages smoothly without needing prior click
+  // Buttery-smooth, free-scrolling horizontal wheel momentum (RAF lerp)
   useEffect(() => {
     if (previewMode !== 'carousel') return;
     const panel = previewPanelRef.current;
@@ -106,49 +115,131 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
         return;
       }
 
-      // Vertical wheel or scroll gesture: advance or retreat carousel cards cleanly
       e.preventDefault();
-      wheelDeltaAccumulatorRef.current += e.deltaY;
 
-      if (wheelResetTimerRef.current) {
-        clearTimeout(wheelResetTimerRef.current);
+      const maxScroll = container.scrollWidth - container.clientWidth;
+      if (maxScroll <= 0) return;
+
+      if (!isWheelingRef.current) {
+        targetScrollLeftRef.current = container.scrollLeft;
+        isWheelingRef.current = true;
       }
-      wheelResetTimerRef.current = setTimeout(() => {
-        wheelDeltaAccumulatorRef.current = 0;
-      }, 200);
 
-      const threshold = 25;
-      const now = Date.now();
-      if (now - lastWheelTimeRef.current < 240) return;
+      let delta = e.deltaY;
+      if (e.deltaMode === 1) delta *= 33;
+      else if (e.deltaMode === 2) delta *= container.clientWidth;
 
-      if (Math.abs(wheelDeltaAccumulatorRef.current) >= threshold) {
-        const currentIdx = activeCarouselIndexRef.current;
-        if (wheelDeltaAccumulatorRef.current > 0) {
-          const next = Math.min(pages.length - 1, currentIdx + 1);
-          if (next !== currentIdx) {
-            lastWheelTimeRef.current = now;
-            wheelDeltaAccumulatorRef.current = 0;
-            scrollCarouselTo(next);
+      targetScrollLeftRef.current = Math.max(
+        0,
+        Math.min(maxScroll, targetScrollLeftRef.current + delta * 1.15)
+      );
+
+      if (rafIdRef.current === null) {
+        const step = () => {
+          const c = carouselContainerRef.current;
+          if (!c) {
+            isWheelingRef.current = false;
+            rafIdRef.current = null;
+            return;
           }
-        } else {
-          const next = Math.max(0, currentIdx - 1);
-          if (next !== currentIdx) {
-            lastWheelTimeRef.current = now;
-            wheelDeltaAccumulatorRef.current = 0;
-            scrollCarouselTo(next);
+
+          const current = c.scrollLeft;
+          const target = targetScrollLeftRef.current;
+          const diff = target - current;
+
+          if (Math.abs(diff) < 0.5) {
+            c.scrollLeft = target;
+            isWheelingRef.current = false;
+            rafIdRef.current = null;
+            return;
           }
-        }
+
+          c.scrollLeft = current + diff * 0.18;
+          rafIdRef.current = requestAnimationFrame(step);
+        };
+        rafIdRef.current = requestAnimationFrame(step);
       }
     };
 
     panel.addEventListener('wheel', handleWheel, { passive: false });
     return () => {
       panel.removeEventListener('wheel', handleWheel);
-      if (wheelResetTimerRef.current) {
-        clearTimeout(wheelResetTimerRef.current);
+      if (rafIdRef.current) {
+        cancelAnimationFrame(rafIdRef.current);
+        rafIdRef.current = null;
+      }
+      isWheelingRef.current = false;
+    };
+  }, [previewMode, pages.length]);
+
+  // Drag-to-scroll mouse listener
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (e.button !== 0) return;
+    const container = carouselContainerRef.current;
+    if (!container) return;
+
+    if (rafIdRef.current) {
+      cancelAnimationFrame(rafIdRef.current);
+      rafIdRef.current = null;
+      isWheelingRef.current = false;
+    }
+
+    setIsDragging(true);
+    hasDraggedRef.current = false;
+    dragStartXRef.current = e.clientX;
+    dragStartScrollRef.current = container.scrollLeft;
+    lastDragXRef.current = e.clientX;
+    lastDragTimeRef.current = performance.now();
+    dragVelocityRef.current = 0;
+  };
+
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const container = carouselContainerRef.current;
+      if (!container) return;
+
+      const dx = e.clientX - dragStartXRef.current;
+      if (Math.abs(dx) > 4) {
+        hasDraggedRef.current = true;
+      }
+
+      const now = performance.now();
+      const dt = now - lastDragTimeRef.current;
+      if (dt > 0) {
+        dragVelocityRef.current = (e.clientX - lastDragXRef.current) / dt;
+      }
+      lastDragXRef.current = e.clientX;
+      lastDragTimeRef.current = now;
+
+      container.scrollLeft = dragStartScrollRef.current - dx;
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+      const container = carouselContainerRef.current;
+      if (!container) return;
+
+      let velocity = -dragVelocityRef.current * 18;
+      if (Math.abs(velocity) > 1.5) {
+        const fling = () => {
+          if (!carouselContainerRef.current || Math.abs(velocity) < 0.5) return;
+          carouselContainerRef.current.scrollLeft += velocity;
+          velocity *= 0.92;
+          requestAnimationFrame(fling);
+        };
+        requestAnimationFrame(fling);
       }
     };
-  }, [previewMode, pages.length, scrollCarouselTo]);
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging]);
 
   const handleCarouselScroll = () => {
     const container = carouselContainerRef.current;
@@ -362,11 +453,21 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
             </button>
           )}
 
-          {/* Carousel Scroll Track: Multi-card preview with smooth scroll snap */}
+          {/* Carousel Scroll Track: Free scrolling with buttery kinetic momentum */}
           <div
             ref={carouselContainerRef}
             onScroll={handleCarouselScroll}
-            className="flex-1 min-h-0 w-full flex items-center overflow-x-auto snap-x snap-mandatory py-4 px-12 gap-8 scroll-smooth no-scrollbar"
+            onMouseDown={handleMouseDown}
+            onClickCapture={(e) => {
+              if (hasDraggedRef.current) {
+                e.stopPropagation();
+                e.preventDefault();
+              }
+            }}
+            className={`flex-1 min-h-0 w-full flex items-center overflow-x-auto py-4 px-12 gap-8 no-scrollbar ${
+              isDragging ? 'cursor-grabbing select-none' : 'cursor-grab'
+            }`}
+            style={{ scrollBehavior: 'auto' }}
           >
             {pages.map((page, idx) => {
               const effectiveTypo = page.typography
@@ -385,7 +486,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                   key={`preview-carousel-${page.pageIndex}`}
                   className={`h-full ${
                     isEditorCollapsed ? 'max-h-[82vh]' : 'max-h-[72vh]'
-                  } min-h-[280px] shrink-0 flex flex-col items-center justify-center snap-center`}
+                  } min-h-[280px] shrink-0 flex flex-col items-center justify-center`}
                   style={{ aspectRatio: `${cardDims.width} / ${cardDims.height}` }}
                 >
                   <div className="w-full h-full relative flex items-center justify-center">
