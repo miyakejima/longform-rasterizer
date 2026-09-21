@@ -17,6 +17,7 @@ import {
   Bookmark,
   Maximize2,
   MoreHorizontal,
+  Wand2,
 } from 'lucide-react';
 import {
   CanvasSettings,
@@ -53,6 +54,7 @@ interface DockedToolbarProps {
   onOpenShortcutsModal: () => void;
   onResetAll: () => void;
   onFillCanvas: () => void;
+  onAuthorPreferred: () => void;
 }
 
 const BUILT_IN_FONTS = [
@@ -90,6 +92,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
   onOpenShortcutsModal,
   onResetAll,
   onFillCanvas,
+  onAuthorPreferred,
 }) => {
   const [activePopover, setActivePopover] = useState<'pages' | 'font' | 'size' | 'format' | 'margins' | 'more' | null>(null);
   const [fontSearch, setFontSearch] = useState('');
@@ -543,6 +546,17 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
           >
             <Maximize2 className="w-3 h-3 text-zinc-400" />
             <span>Fill</span>
+          </button>
+
+          {/* Author-Preferred Mode */}
+          <button
+            type="button"
+            onClick={onAuthorPreferred}
+            className="h-7 px-2.5 flex items-center gap-1.5 rounded-[6px] text-[11px] font-medium text-amber-300/90 hover:text-amber-200 hover:bg-amber-500/10 border border-amber-500/20 bg-amber-500/5 transition-all shadow-xs"
+            title="Author Preferred: 1-click compact 48px margins, vertical justification (100% util), whole-paragraph preservation & trimmed last card"
+          >
+            <Wand2 className="w-3 h-3 text-amber-400" />
+            <span>Author Fit</span>
           </button>
         </div>
 

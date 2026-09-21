@@ -4,6 +4,7 @@ import { BalanceStrength, TargetDensity } from '../types';
 
 export interface VisualBalanceOptions {
   availableHeight: number;
+  maxSafeHeight?: number;
   targetHeight: number;
   balanceStrength: BalanceStrength;
   densityTarget: TargetDensity;
@@ -19,13 +20,14 @@ export function computeBalanceScore(
   isOrphan: boolean,
   isWidow: boolean
 ): number {
-  const { availableHeight, targetHeight, balanceStrength, mode, preventOrphanLines } = options;
+  const { availableHeight, maxSafeHeight, targetHeight, balanceStrength, mode, preventOrphanLines } = options;
+  const hardLimit = maxSafeHeight ?? availableHeight;
 
   let score = 0;
 
-  // 1. Overflow penalty: immense penalty if content exceeds available height
-  if (pageHeight > availableHeight) {
-    const overflow = pageHeight - availableHeight;
+  // 1. Overflow penalty: immense penalty if content exceeds safe limit
+  if (pageHeight > hardLimit) {
+    const overflow = pageHeight - hardLimit;
     return 10_000_000 + overflow * 20_000;
   }
 

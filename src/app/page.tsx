@@ -38,7 +38,7 @@ import { paginateDocument } from '../engine/pagination';
 import { autoFitFontSize } from '../engine/autoFit';
 import { optimizeCanvasFill } from '../engine/canvasFillOptimizer';
 import { waitForFonts } from '../engine/fontLoader';
-import { exportAllPagesAsZip, exportAllPagesSeparately } from '../engine/exportEngine';
+import { exportAllPagesAsZip, exportAllPagesSeparately, generateProceduralTitle } from '../engine/exportEngine';
 
 interface HistoryItem {
   document: DocumentState;
@@ -157,15 +157,16 @@ function Workspace() {
   const textHistoryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const handleTextChange = useCallback(
     (newText: string) => {
-      setDoc((prev) => ({ ...prev, text: newText }));
+      const proceduralTitle = generateProceduralTitle(newText);
+      setDoc((prev) => ({ ...prev, text: newText, projectName: proceduralTitle }));
       if (textHistoryTimeoutRef.current) {
         clearTimeout(textHistoryTimeoutRef.current);
       }
       if (newText === '' || Math.abs(newText.length - doc.text.length) > 15) {
-        pushHistory({ ...doc, text: newText }, canvas, typography, spacing, advanced);
+        pushHistory({ ...doc, text: newText, projectName: proceduralTitle }, canvas, typography, spacing, advanced);
       } else {
         textHistoryTimeoutRef.current = setTimeout(() => {
-          pushHistory({ ...doc, text: newText }, canvas, typography, spacing, advanced);
+          pushHistory({ ...doc, text: newText, projectName: proceduralTitle }, canvas, typography, spacing, advanced);
         }, 600);
       }
     },
@@ -180,6 +181,11 @@ function Workspace() {
     }, 120);
     return () => clearTimeout(timer);
   }, [doc.text]);
+
+  // Procedural export title derived dynamically from current text content
+  const proceduralProjectName = useMemo(() => {
+    return generateProceduralTitle(debouncedText);
+  }, [debouncedText]);
 
   // Push initial session into history and wait for fonts on mount
   useEffect(() => {
@@ -308,6 +314,39 @@ function Workspace() {
     setCanvas(optimized.canvas);
     setAdvanced((prev) => ({ ...prev, autoFit: false }));
     pushHistory(doc, optimized.canvas, optimized.typography, optimized.spacing, { ...advanced, autoFit: false });
+  }, [doc, canvas, typography, spacing, advanced, pushHistory]);
+
+  // Author-Preferred: 1-click compact margins (48px), vertical justification (100% util), whole-paragraph preservation & trimmed last card
+  const handleAuthorPreferred = useCallback(() => {
+    const authorSpacing: SpacingSettings = {
+      ...spacing,
+      preset: 'compact',
+      paddingTop: 48,
+      paddingRight: 48,
+      paddingBottom: 48,
+      paddingLeft: 48,
+      minBottomSpace: 0,
+      verticalAlignment: 'justify',
+    };
+    const authorTypography: TypographySettings = {
+      ...typography,
+      verticalAlignment: 'justify',
+    };
+    const authorCanvas: CanvasSettings = {
+      ...canvas,
+      trimLastPageHeight: true,
+    };
+    const authorDoc: DocumentState = {
+      ...doc,
+      distributionMode: 'paragraph-preserving',
+    };
+    const optimized = optimizeCanvasFill(authorDoc, authorCanvas, authorTypography, authorSpacing, advanced);
+    setDoc(authorDoc);
+    setTypography(optimized.typography);
+    setSpacing(optimized.spacing);
+    setCanvas(optimized.canvas);
+    setAdvanced((prev) => ({ ...prev, autoFit: false }));
+    pushHistory(authorDoc, optimized.canvas, optimized.typography, optimized.spacing, { ...advanced, autoFit: false });
   }, [doc, canvas, typography, spacing, advanced, pushHistory]);
 
   // Layout primitives for zero-overhead color adjustments and strict debounced typing
@@ -472,7 +511,7 @@ function Workspace() {
         spacing,
         scale: exportScale,
         format: exportFormat,
-        projectName: doc.projectName,
+        projectName: proceduralProjectName,
       });
     } finally {
       setIsExporting(false);
@@ -485,7 +524,7 @@ function Workspace() {
     spacing,
     exportScale,
     exportFormat,
-    doc.projectName,
+    proceduralProjectName,
   ]);
 
   const handleExportZip = useCallback(async () => {
@@ -504,7 +543,7 @@ function Workspace() {
         spacing,
         scale: exportScale,
         format: exportFormat,
-        projectName: doc.projectName,
+        projectName: proceduralProjectName,
       });
     } finally {
       setIsExporting(false);
@@ -517,7 +556,7 @@ function Workspace() {
     spacing,
     exportScale,
     exportFormat,
-    doc.projectName,
+    proceduralProjectName,
   ]);
   // Keyboard Shortcuts Listener
   useEffect(() => {
@@ -776,7 +815,7 @@ function Workspace() {
               spacing={spacing}
               exportFormat={exportFormat}
               exportScale={exportScale}
-              projectName={doc.projectName}
+              projectName={proceduralProjectName}
               highlightedPageIndex={highlightedPageIndex}
               onPageHover={setHighlightedPageIndex}
               onSelectPage={(idx) => setHighlightedPageIndex(idx)}
@@ -846,6 +885,7 @@ function Workspace() {
           onOpenShortcutsModal={() => setShowShortcutsModal(true)}
           onResetAll={handleResetAll}
           onFillCanvas={handleFillCanvas}
+          onAuthorPreferred={handleAuthorPreferred}
         />
 
         {/* Right: Crisp Doc Stats */}
@@ -869,7 +909,7 @@ function Workspace() {
           spacing={spacing}
           exportFormat={exportFormat}
           exportScale={exportScale}
-          projectName={doc.projectName}
+          projectName={proceduralProjectName}
           allowClippedExport={advanced.allowClippedExport}
           onBlockedExport={(msg) => setExportWarning(msg)}
         />

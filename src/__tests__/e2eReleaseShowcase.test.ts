@@ -36,7 +36,7 @@ const CANONICAL_ESSAY_PARAGRAPHS = [
 function getShowcaseEssayText(): string {
   const sampleFilePath = path.resolve(process.cwd(), 'docs', 'samples', 'essay-critique-16paras.txt');
   if (fs.existsSync(sampleFilePath)) {
-    return fs.readFileSync(sampleFilePath, 'utf8');
+    return fs.readFileSync(sampleFilePath, 'utf8').replace(/\r\n/g, '\n');
   }
   return CANONICAL_ESSAY_PARAGRAPHS.join('\n\n');
 }

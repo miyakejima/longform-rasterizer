@@ -95,7 +95,7 @@ export function renderPageToCanvas(
   // Compute vertical space distribution
   const remainingSpace = Math.max(0, availableHeight - page.renderedHeight);
   let extraParaSpacing = 0;
-  const extraLineSpacing = 0;
+  let extraLineSpacing = 0;
   let currentY = paddingTop;
 
   if (pageDims.isTrimmed) {
@@ -107,15 +107,28 @@ export function renderPageToCanvas(
   } else if (verticalAlignment === 'top') {
     currentY = paddingTop;
   } else if (verticalAlignment === 'justify' && remainingSpace > 0) {
-    // Only micro-feather if space is small (<= 8px per gap), otherwise center cleanly!
     const internalParagraphEnds = page.lines.reduce((acc, line, idx) => {
       return idx < page.lines.length - 1 && line.isParagraphEnd ? acc + 1 : acc;
     }, 0);
-    const maxSaneGap = 8;
-    if (internalParagraphEnds > 0 && (remainingSpace / internalParagraphEnds) <= maxSaneGap) {
-      extraParaSpacing = remainingSpace / internalParagraphEnds;
-    } else {
-      currentY = paddingTop + remainingSpace / 2;
+    const lineGaps = page.lines.length - 1;
+
+    if (internalParagraphEnds > 0) {
+      // Multiple paragraphs: distribute across paragraph gaps to reach flush bottom
+      const maxParaGap = 72;
+      const neededParaPerGap = remainingSpace / internalParagraphEnds;
+      if (neededParaPerGap <= maxParaGap || lineGaps <= 0) {
+        extraParaSpacing = neededParaPerGap;
+      } else {
+        // Expand paragraph gaps to maxParaGap, and micro-distribute remaining slack into line height
+        extraParaSpacing = maxParaGap;
+        const remainingAfterParas = remainingSpace - maxParaGap * internalParagraphEnds;
+        if (remainingAfterParas > 0 && lineGaps > 0) {
+          extraLineSpacing = remainingAfterParas / lineGaps;
+        }
+      }
+    } else if (lineGaps > 0) {
+      // Single paragraph on the page: micro-distribute across line gaps to reach flush bottom
+      extraLineSpacing = remainingSpace / lineGaps;
     }
   }
 

@@ -48,17 +48,24 @@ export function optimizeCanvasFill(
 
   // Reset any runaway bloat from previous high-res runs or manual slider extremes
   const baseLineHeight = typography.lineHeight > 1.8 ? 1.45 : typography.lineHeight;
+  const maxSensibleSpacing = Math.max(48, Math.round(availableHeight * 0.045));
+  const baseParagraphSpacing = spacing.paragraphSpacing > maxSensibleSpacing
+    ? Math.max(20, Math.round(availableHeight * 0.025))
+    : spacing.paragraphSpacing;
+
+  const targetVAlign = typography.verticalAlignment ?? spacing.verticalAlignment ?? 'center';
 
   const baseSpacing: SpacingSettings = {
     ...spacing,
+    paragraphSpacing: baseParagraphSpacing,
     minBottomSpace: 0,
-    verticalAlignment: 'center',
+    verticalAlignment: targetVAlign,
   };
 
   const baseTypography: TypographySettings = {
     ...typography,
     lineHeight: baseLineHeight,
-    verticalAlignment: 'center',
+    verticalAlignment: targetVAlign,
   };
 
   // Phase 1: Binary search to find the maximum font size that fits without overflow
@@ -77,7 +84,7 @@ export function optimizeCanvasFill(
     };
 
     const res = paginateDocument(doc, testOptions);
-    const overflows = res.pages.some((p) => p.isOverflowing);
+    const overflows = res.pages.some((p) => p.renderedHeight > availableHeight);
 
     if (!overflows) {
       optimalFontSize = mid;
@@ -163,7 +170,7 @@ export function optimizeCanvasFill(
         };
 
         const testRes = paginateDocument(doc, testOptions);
-        const hasOverflow = testRes.pages.some((p) => p.isOverflowing);
+        const hasOverflow = testRes.pages.some((p) => p.renderedHeight > availableHeight || p.isOverflowing);
 
         if (!hasOverflow) {
           const { avg, min } = computeUtilMetrics(testRes);

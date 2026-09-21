@@ -331,5 +331,60 @@ the recorded music can already be heard exactly as produced, without crowd noise
     expect(resBack.minUtilization).toBeGreaterThanOrEqual(0.90);
     expect(resBack.averageUtilization).toBeGreaterThanOrEqual(0.92);
   });
+
+  it('verifies Author-Preferred mode produces 100% card utilization with whole-paragraph preservation', () => {
+    const doc = {
+      ...DEFAULT_DOCUMENT,
+      text: fullUserText,
+      pageCount: 4,
+      distributionMode: 'paragraph-preserving' as const,
+    };
+
+    const authorSpacing = {
+      ...DEFAULT_SPACING,
+      preset: 'compact' as const,
+      paddingTop: 48,
+      paddingRight: 48,
+      paddingBottom: 48,
+      paddingLeft: 48,
+      minBottomSpace: 0,
+      verticalAlignment: 'justify' as const,
+    };
+
+    const authorTypography = {
+      ...DEFAULT_TYPOGRAPHY,
+      verticalAlignment: 'justify' as const,
+    };
+
+    const authorCanvas = {
+      ...DEFAULT_CANVAS,
+      trimLastPageHeight: true,
+    };
+
+    const res = optimizeCanvasFill(doc, authorCanvas, authorTypography, authorSpacing, DEFAULT_ADVANCED);
+
+    // Strict requirements:
+    // 1. Exactly 4 pages
+    expect(res.paginationResult.pages.length).toBe(4);
+    // 2. Zero page overflow
+    expect(res.paginationResult.pages.every((p) => !p.isOverflowing)).toBe(true);
+    // 3. 100% utilization on every page because of dual-axis vertical justification + trimmed last page
+    expect(res.paginationResult.pages.every((p) => p.utilization === 100)).toBe(true);
+    // 4. Whole-paragraph preservation: all 16 paragraphs preserved intact, none split
+    const paragraphs = fullUserText.split('\n\n');
+    let totalParasFound = 0;
+    for (const page of res.paginationResult.pages) {
+      const pageParas = page.text.trim().split('\n\n');
+      totalParasFound += pageParas.length;
+      for (const p of pageParas) {
+        expect(paragraphs).toContain(p);
+      }
+    }
+    expect(totalParasFound).toBe(16);
+    // 5. Text integrity: full reconstruction equals input
+    const fullReconstructed = res.paginationResult.pages.map((p) => p.text).join('\n\n');
+    expect(fullReconstructed.replace(/\s+/g, ' ')).toBe(fullUserText.replace(/\s+/g, ' '));
+  });
 });
+
 

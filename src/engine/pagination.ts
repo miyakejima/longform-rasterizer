@@ -23,6 +23,32 @@ export function computePageAvailableHeight(canvas: CanvasSettings, spacing: Spac
   return Math.max(100, canvas.height - spacing.paddingTop - spacing.paddingBottom - spacing.minBottomSpace);
 }
 
+/**
+ * Calculates whether rendered content genuinely overflows the physical card boundary.
+ * Allows graceful, aesthetic encroachment into generous padding before flagging clipping.
+ */
+export function computePageOverflow(
+  renderedH: number,
+  availableHeight: number,
+  canvas: CanvasSettings,
+  spacing: SpacingSettings
+): { overflowPx: number; isOverflowing: boolean } {
+  if (renderedH <= availableHeight) {
+    return { overflowPx: 0, isOverflowing: false };
+  }
+
+  // Graceful buffer into bottom margin before physical canvas edge
+  const safeEdgeBuffer = Math.min(24, Math.max(12, spacing.paddingBottom * 0.35));
+  const maxSafeRenderedHeight = canvas.height - spacing.paddingTop - safeEdgeBuffer;
+
+  if (renderedH <= maxSafeRenderedHeight) {
+    return { overflowPx: 0, isOverflowing: false };
+  }
+
+  const overflow = Math.round(renderedH - maxSafeRenderedHeight);
+  return { overflowPx: overflow, isOverflowing: overflow > 0 };
+}
+
 export function computePageRenderedHeight(
   lines: WrappedLine[],
   lineHeightPx: number,
@@ -106,8 +132,9 @@ export function paginateDocument(
       }));
 
       const renderedH = computePageRenderedHeight(pageLines, lineHeightPx, spacing.paragraphSpacing);
-      const overflow = Math.max(0, renderedH - availableHeight);
+      const { overflowPx, isOverflowing } = computePageOverflow(renderedH, availableHeight, canvas, spacing);
       const isTrimmedLastPage = Boolean(canvas.trimLastPageHeight && pageCount > 1 && i === pageCount - 1 && renderedH < availableHeight);
+      const isFull = (isVerticalJustify || isTrimmedLastPage || renderedH >= availableHeight) && !isOverflowing;
       pages.push({
         pageIndex: i,
         text: pageSlice,
@@ -116,11 +143,11 @@ export function paginateDocument(
         lines: pageLines,
         renderedHeight: renderedH,
         availableHeight,
-        utilization: (isVerticalJustify || isTrimmedLastPage) && overflow === 0
+        utilization: isFull
           ? 100
           : Math.min(100, Math.round((renderedH / availableHeight) * 100)),
-        overflowPx: overflow,
-        isOverflowing: overflow > 0,
+        overflowPx,
+        isOverflowing,
       });
     }
 
@@ -161,7 +188,8 @@ export function paginateDocument(
   // If pageCount === 1, all lines go to single page
   if (pageCount === 1) {
     const renderedH = computePageRenderedHeight(allLines, lineHeightPx, spacing.paragraphSpacing);
-    const overflow = Math.max(0, renderedH - availableHeight);
+    const { overflowPx, isOverflowing } = computePageOverflow(renderedH, availableHeight, canvas, spacing);
+    const isFull = (isVerticalJustify || renderedH >= availableHeight) && !isOverflowing;
     return {
       pages: [
         {
@@ -172,9 +200,9 @@ export function paginateDocument(
           lines: allLines,
           renderedHeight: renderedH,
           availableHeight,
-          utilization: Math.min(100, Math.round((renderedH / availableHeight) * 100)),
-          overflowPx: overflow,
-          isOverflowing: overflow > 0,
+          utilization: isFull ? 100 : Math.min(100, Math.round((renderedH / availableHeight) * 100)),
+          overflowPx,
+          isOverflowing,
         },
       ],
       totalAvailableHeight: availableHeight,
@@ -253,8 +281,12 @@ export function paginateDocument(
     }
   }
 
+  const safeEdgeBuffer = Math.min(24, Math.max(12, spacing.paddingBottom * 0.35));
+  const maxSafeHeight = canvas.height - spacing.paddingTop - safeEdgeBuffer;
+
   const balanceOpts: VisualBalanceOptions = {
     availableHeight,
+    maxSafeHeight,
     targetHeight,
     balanceStrength: advanced.balanceStrength,
     densityTarget: advanced.densityTarget,
@@ -334,9 +366,10 @@ export function paginateDocument(
             endIndex: l.endIndex + startChar,
           }));
           const renderedH = spanData.height;
-          const overflow = Math.max(0, renderedH - availableHeight);
+          const { overflowPx, isOverflowing } = computePageOverflow(renderedH, availableHeight, canvas, spacing);
           const isTrimmedLastPage = Boolean(canvas.trimLastPageHeight && pageCount > 1 && p === pageCount - 1 && renderedH < availableHeight);
-          const util = (isVerticalJustify || isTrimmedLastPage) && overflow === 0
+          const isFull = (isVerticalJustify || isTrimmedLastPage || renderedH >= availableHeight) && !isOverflowing;
+          const util = isFull
             ? 100
             : Math.min(100, Math.round((renderedH / availableHeight) * 100));
 
@@ -349,8 +382,8 @@ export function paginateDocument(
             renderedHeight: renderedH,
             availableHeight,
             utilization: util,
-            overflowPx: overflow,
-            isOverflowing: overflow > 0,
+            overflowPx,
+            isOverflowing,
           });
         }
 
@@ -441,9 +474,10 @@ export function paginateDocument(
             endIndex: l.endIndex + startChar,
           }));
           const renderedH = computePageRenderedHeight(pageLines, lineHeightPx, spacing.paragraphSpacing);
-          const overflow = Math.max(0, renderedH - availableHeight);
+          const { overflowPx, isOverflowing } = computePageOverflow(renderedH, availableHeight, canvas, spacing);
           const isTrimmedLastPage = Boolean(canvas.trimLastPageHeight && pageCount > 1 && p === pageCount - 1 && renderedH < availableHeight);
-          const util = (isVerticalJustify || isTrimmedLastPage) && overflow === 0
+          const isFull = (isVerticalJustify || isTrimmedLastPage || renderedH >= availableHeight) && !isOverflowing;
+          const util = isFull
             ? 100
             : Math.min(100, Math.round((renderedH / availableHeight) * 100));
 
@@ -456,8 +490,8 @@ export function paginateDocument(
             renderedHeight: renderedH,
             availableHeight,
             utilization: util,
-            overflowPx: overflow,
-            isOverflowing: overflow > 0,
+            overflowPx,
+            isOverflowing,
           });
         }
 
@@ -566,8 +600,9 @@ export function paginateDocument(
     prevEndIndex = endChar;
 
     const renderedH = getSpanHeight(startLineIdx, endLineIdx);
-    const overflow = Math.max(0, renderedH - availableHeight);
+    const { overflowPx, isOverflowing } = computePageOverflow(renderedH, availableHeight, canvas, spacing);
     const isTrimmedLastPage = Boolean(canvas.trimLastPageHeight && pageCount > 1 && p === pageCount - 1 && renderedH < availableHeight);
+    const isFull = (isVerticalJustify || isTrimmedLastPage || renderedH >= availableHeight) && !isOverflowing;
 
     pages.push({
       pageIndex: p,
@@ -577,11 +612,11 @@ export function paginateDocument(
       lines: pageLines,
       renderedHeight: renderedH,
       availableHeight,
-      utilization: (isVerticalJustify || isTrimmedLastPage) && overflow === 0
+      utilization: isFull
         ? 100
         : Math.min(100, Math.round((renderedH / availableHeight) * 100)),
-      overflowPx: overflow,
-      isOverflowing: overflow > 0,
+      overflowPx,
+      isOverflowing,
     });
   }
 

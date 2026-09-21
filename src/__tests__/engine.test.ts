@@ -9,7 +9,7 @@ import {
 import { paginateDocument, PaginationOptions, computePageAvailableHeight } from '../engine/pagination';
 import { autoFitFontSize } from '../engine/autoFit';
 import { measureTextWidth } from '../engine/textMeasurement';
-import { sanitizeFileName } from '../engine/exportEngine';
+import { sanitizeFileName, generateProceduralTitle } from '../engine/exportEngine';
 import { renderPageToCanvas } from '../engine/canvasRenderer';
 
 const defaultCanvas: CanvasSettings = {
@@ -510,6 +510,28 @@ describe('Typography Pagination and Layout Engine', () => {
     expect(sanitizeFileName('Mi Ensayo Crítico Sobre Arte! #1')).toBe('mi-ensayo-cr-tico-sobre-arte-1');
     expect(sanitizeFileName('')).toBe('text');
     expect(sanitizeFileName('   ')).toBe('text');
+  });
+
+  // Test 24b: Procedural title generation
+  it('procedurally generates clean, concise titles based on document text', () => {
+    // 1. First line / title
+    expect(generateProceduralTitle('The Meaning of Enough\n\nIn a world...')).toBe('the-meaning-of-enough');
+
+    // 2. Markdown heading stripping
+    expect(generateProceduralTitle('## 10 Rules for Deep Focus\n\nFocus is rare...')).toBe('10-rules-for-deep-focus');
+
+    // 3. Multilingual accents cleaned to clean ASCII letters
+    expect(generateProceduralTitle('Ensayo Crítico Sobre Fotografía')).toBe('ensayo-critico-sobre');
+
+    // 4. Fallback on empty or symbol-only input
+    expect(generateProceduralTitle('')).toBe('card-deck');
+    expect(generateProceduralTitle('   \n\n   ')).toBe('card-deck');
+    expect(generateProceduralTitle('### !!! ***')).toBe('card-deck');
+
+    // 5. Length clamping without exceeding maximum bound
+    const longTitle = generateProceduralTitle('A Very Long Headline That Extends Well Beyond The Default Twenty Eight Character Limit', 25);
+    expect(longTitle.length).toBeLessThanOrEqual(25);
+    expect(longTitle).not.toMatch(/-$/); // No trailing hyphen
   });
 
   // Test 25: Custom font name measurement fallback
