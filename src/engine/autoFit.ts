@@ -7,7 +7,10 @@ export function autoFitFontSize(
   doc: DocumentState,
   options: PaginationOptions
 ): PaginationResult {
-  const minFont = Math.max(6, options.advanced.minFontSize && options.advanced.minFontSize < 64 ? options.advanced.minFontSize : 8);
+  // If minFontSize is 18 (the legacy default before v1.1), treat it as default 8.
+  const rawMin = options.advanced.minFontSize;
+  const userMinFont = rawMin && rawMin !== 18 ? rawMin : 8;
+  const minFont = Math.max(6, userMinFont < 64 ? userMinFont : 8);
   // Calculate dynamic upper bound based on canvas dimensions so high-res canvases (e.g. 4000x4000) or short texts can scale up properly
   const availableWidth = Math.max(100, options.canvas.width - options.spacing.paddingLeft - options.spacing.paddingRight);
   const availableHeight = Math.max(100, options.canvas.height - options.spacing.paddingTop - options.spacing.paddingBottom);

@@ -109,7 +109,13 @@ function Workspace() {
         if (session.canvas) setCanvas(session.canvas);
         if (session.typography) setTypography(session.typography);
         if (session.spacing) setSpacing(session.spacing);
-        if (session.advanced) setAdvanced(session.advanced);
+        if (session.advanced) {
+          const sanitizedAdvanced = {
+            ...session.advanced,
+            minFontSize: session.advanced.minFontSize === 18 ? 8 : (session.advanced.minFontSize || 8),
+          };
+          setAdvanced(sanitizedAdvanced);
+        }
         if (session.exportScale) setExportScale(session.exportScale);
         if (session.selectedPresetId) setSelectedPresetId(session.selectedPresetId);
       }
@@ -954,7 +960,13 @@ function Workspace() {
               onPageHover={setHighlightedPageIndex}
               onSelectPage={(idx) => setHighlightedPageIndex(idx)}
               onOpenFullscreen={(idx) => setFullscreenPageIndex(idx)}
-              onTriggerAutoFit={() => setAdvanced((prev) => ({ ...prev, autoFit: true }))}
+              onTriggerAutoFit={() =>
+                setAdvanced((prev) => ({
+                  ...prev,
+                  autoFit: true,
+                  minFontSize: prev.minFontSize === 18 ? 8 : (prev.minFontSize || 8),
+                }))
+              }
               allowClippedExport={advanced.allowClippedExport}
               onBlockedExport={(msg) => setExportWarning(msg)}
               previewMode={previewMode}

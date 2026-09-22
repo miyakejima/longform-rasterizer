@@ -471,7 +471,11 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                   </div>
                   <button
                     type="button"
-                    onClick={() => onAdvancedChange({ ...advanced, autoFit: !advanced.autoFit })}
+                    onClick={() => {
+                      const nextAutoFit = !advanced.autoFit;
+                      const nextMin = advanced.minFontSize === 18 ? 8 : (advanced.minFontSize || 8);
+                      onAdvancedChange({ ...advanced, autoFit: nextAutoFit, minFontSize: nextMin });
+                    }}
                     className={`w-9 h-5 rounded-full p-0.5 transition-colors ${
                       advanced.autoFit ? 'bg-[#24242e] border border-[#3e3e4c]' : 'bg-[#18181f]'
                     }`}
@@ -574,7 +578,11 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
           {/* Auto-fit Toggle */}
           <button
             type="button"
-            onClick={() => onAdvancedChange({ ...advanced, autoFit: !advanced.autoFit })}
+            onClick={() => {
+              const nextAutoFit = !advanced.autoFit;
+              const nextMin = advanced.minFontSize === 18 ? 8 : (advanced.minFontSize || 8);
+              onAdvancedChange({ ...advanced, autoFit: nextAutoFit, minFontSize: nextMin });
+            }}
             className={`h-7 px-2.5 flex items-center gap-1.5 rounded-[6px] text-[11px] font-medium transition-colors ${
               advanced.autoFit
                 ? 'bg-[#1c1c24] text-[#f4f4f6] border border-[#2e2e3a] shadow-xs'
