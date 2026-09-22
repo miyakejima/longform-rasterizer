@@ -447,7 +447,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
               }`}
               title="Adjust font size, weight and line height"
             >
-              <span>{effectiveFontSize}px</span>
+              <span>{Number(effectiveFontSize.toFixed(1))}px</span>
               <ChevronDown className="w-3 h-3 text-zinc-500" />
             </button>
 
@@ -456,7 +456,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-[10px] font-semibold text-zinc-500 uppercase font-mono tracking-wider">Font Size & Spacing</span>
                   <span className="text-xs font-mono text-zinc-400">
-                    {advanced.autoFit ? `Auto (${effectiveFontSize}px)` : `${typography.fontSize}px`}
+                    {advanced.autoFit ? `Auto (${Number(effectiveFontSize.toFixed(1))}px)` : `${typography.fontSize}px`}
                   </span>
                 </div>
 
@@ -492,7 +492,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                   </div>
                   <input
                     type="range"
-                    min={14}
+                    min={8}
                     max={96}
                     value={typography.fontSize}
                     onChange={(e) => {

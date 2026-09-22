@@ -50,7 +50,7 @@ export const DEFAULT_ADVANCED: AdvancedSettings = {
   preventOrphanLines: true,
   allowClippedExport: false,
   autoFit: true,
-  minFontSize: 18,
+  minFontSize: 8,
   maxFontSize: 64,
 };
 

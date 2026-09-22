@@ -35,7 +35,7 @@ export function optimizeCanvasFill(
   const availableWidth = Math.max(100, canvas.width - spacing.paddingLeft - spacing.paddingRight);
   const availableHeight = computePageAvailableHeight(canvas, spacing);
   const canvasScaleMax = Math.max(160, Math.floor(Math.min(availableWidth, availableHeight) / 2));
-  const minFont = Math.max(12, advanced.minFontSize || 14);
+  const minFont = Math.max(8, advanced.minFontSize || 8);
   const maxFont = advanced.maxFontSize && advanced.maxFontSize !== 64
     ? Math.max(minFont, advanced.maxFontSize)
     : Math.max(minFont, canvasScaleMax);

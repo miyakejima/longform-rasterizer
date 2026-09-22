@@ -7,7 +7,7 @@ export function autoFitFontSize(
   doc: DocumentState,
   options: PaginationOptions
 ): PaginationResult {
-  const minFont = Math.max(8, options.advanced.minFontSize || 16);
+  const minFont = Math.max(6, options.advanced.minFontSize && options.advanced.minFontSize < 64 ? options.advanced.minFontSize : 8);
   // Calculate dynamic upper bound based on canvas dimensions so high-res canvases (e.g. 4000x4000) or short texts can scale up properly
   const availableWidth = Math.max(100, options.canvas.width - options.spacing.paddingLeft - options.spacing.paddingRight);
   const availableHeight = Math.max(100, options.canvas.height - options.spacing.paddingTop - options.spacing.paddingBottom);
@@ -26,7 +26,7 @@ export function autoFitFontSize(
     },
   };
   const minResult = paginateDocument(doc, minOptions);
-  const minHasOverflow = minResult.pages.some((p) => p.isOverflowing);
+  const minHasOverflow = minResult.pages.some((p) => p.renderedHeight > availableHeight || p.isOverflowing);
 
   if (minHasOverflow) {
     const pageCount = doc.pageCount;
@@ -38,14 +38,16 @@ export function autoFitFontSize(
     };
   }
 
-  // 2. minFont fits cleanly. Binary search between minFont + 1 and maxFont to find largest fitting size
-  let low = minFont + 1;
+  // 2. minFont fits cleanly. Continuous sub-pixel binary search down to 0.25px precision
+  // Finds the exact theoretical global maximum font size that fits without overflow.
+  let low = minFont;
   let high = maxFont;
   let bestFontSize = minFont;
   let bestResult: PaginationResult = minResult;
+  const precision = 0.25;
 
-  while (low <= high) {
-    const mid = Math.floor((low + high) / 2);
+  while (high - low >= precision) {
+    const mid = Number(((low + high) / 2).toFixed(2));
     const testOptions: PaginationOptions = {
       ...options,
       typography: {
@@ -55,16 +57,14 @@ export function autoFitFontSize(
     };
 
     const result = paginateDocument(doc, testOptions);
-    const hasOverflow = result.pages.some((p) => p.isOverflowing);
+    const hasOverflow = result.pages.some((p) => p.renderedHeight > availableHeight || p.isOverflowing);
 
     if (!hasOverflow) {
       bestFontSize = mid;
       bestResult = result;
-      // Try a larger font size
-      low = mid + 1;
+      low = mid;
     } else {
-      // Too big, shrink font size
-      high = mid - 1;
+      high = mid;
     }
   }
 
@@ -84,8 +84,8 @@ export function autoFitFontSize(
       let high = Math.max(bestFontSize, canvasScaleMax);
       let bestPageRes = p;
 
-      while (low <= high) {
-        const mid = Math.floor((low + high) / 2);
+      while (high - low >= 0.5) {
+        const mid = Number(((low + high) / 2).toFixed(2));
         const testTypo = { ...options.typography, fontSize: mid };
         const testOpt: PaginationOptions = {
           ...options,
@@ -109,9 +109,9 @@ export function autoFitFontSize(
             isOverflowing: singlePage.isOverflowing,
             typography: testTypo,
           };
-          low = mid + 1;
+          low = mid;
         } else {
-          high = mid - 1;
+          high = mid;
         }
       }
 
