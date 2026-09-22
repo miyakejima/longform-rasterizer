@@ -888,78 +888,180 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
             </button>
 
             {activePopover === 'colors' && (
-              <div className="absolute bottom-full right-0 mb-3 w-80 bg-[#0c0c0e] border border-[#1b1b22] rounded-xl shadow-2xl shadow-black p-4 text-zinc-200 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
-                <span className="text-[10px] font-semibold text-zinc-500 uppercase font-mono tracking-wider block mb-2">
-                  Colors & Appearance
-                </span>
-                <div className="space-y-2 mb-3 bg-[#09090c] p-2.5 rounded-[6px] border border-[#18181f]">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-zinc-300">Background</span>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="color"
-                        value={canvas.backgroundColor}
-                        onChange={(e) => onCanvasChange({ ...canvas, backgroundColor: e.target.value })}
-                        className="w-6 h-6 rounded cursor-pointer border border-[#18181f] bg-transparent"
-                      />
-                      <span className="text-xs font-mono text-zinc-400">{canvas.backgroundColor}</span>
-                    </div>
-                  </div>
+              <div className="absolute bottom-full right-0 mb-3 w-84 bg-white dark:bg-[#0c0c0e] border border-slate-200 dark:border-[#1b1b22] rounded-xl shadow-2xl shadow-black/10 dark:shadow-black/80 p-4 text-slate-800 dark:text-zinc-200 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
+                <div className="flex items-center justify-between mb-3 pb-2 border-b border-black/[0.06] dark:border-[#18181f]">
+                  <span className="text-[10px] font-semibold text-zinc-500 uppercase font-mono tracking-wider">
+                    Colors & Appearance
+                  </span>
+                  {canvas.transparentBackground && (
+                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                      Transparent
+                    </span>
+                  )}
+                </div>
 
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-zinc-300">Text Color</span>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="color"
-                        value={typography.textColor}
-                        onChange={(e) => onTypographyChange({ ...typography, textColor: e.target.value })}
-                        className="w-6 h-6 rounded cursor-pointer border border-[#18181f] bg-transparent"
-                      />
-                      <span className="text-xs font-mono text-zinc-400">{typography.textColor}</span>
-                    </div>
-                  </div>
-
-                  <div className="pt-2 border-t border-[#18181f] flex items-center justify-between">
-                    <span className="text-xs text-zinc-300">Transparent Background</span>
-                    <input
-                      type="checkbox"
-                      checked={canvas.transparentBackground}
-                      onChange={(e) =>
-                        onCanvasChange({ ...canvas, transparentBackground: e.target.checked })
-                      }
-                      className="rounded border-[#18181f] text-zinc-300 focus:ring-0 cursor-pointer"
-                    />
+                {/* Quick Curated Palettes as Mini Visual Cards */}
+                <div className="mb-3">
+                  <span className="text-[10px] font-mono uppercase text-zinc-400 dark:text-zinc-500 block mb-2 font-medium">
+                    Curated Palettes
+                  </span>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { name: 'Dark Obsidian', subtitle: 'Black · White', bg: '#000000', text: '#FFFFFF', isLight: false },
+                      { name: 'Linen Light', subtitle: 'Slate · Navy', bg: '#F8FAFC', text: '#0F172A', isLight: true },
+                      { name: 'Warm Editorial', subtitle: 'Cream · Charcoal', bg: '#FBF9F5', text: '#2D2A26', isLight: true },
+                      { name: 'Studio Slate', subtitle: 'Zinc · Off-white', bg: '#09090B', text: '#EDEDED', isLight: false },
+                    ].map((pal) => {
+                      const isActive =
+                        canvas.backgroundColor.toLowerCase() === pal.bg.toLowerCase() &&
+                        typography.textColor.toLowerCase() === pal.text.toLowerCase() &&
+                        !canvas.transparentBackground;
+                      return (
+                        <button
+                          key={pal.name}
+                          type="button"
+                          onClick={() => {
+                            onCanvasChange({ ...canvas, backgroundColor: pal.bg, transparentBackground: false });
+                            onTypographyChange({ ...typography, textColor: pal.text });
+                          }}
+                          className={`relative p-2.5 rounded-lg border text-left flex flex-col justify-between h-16 transition-all cursor-pointer shadow-xs hover:scale-[1.02] active:scale-[0.98] ${
+                            pal.isLight
+                              ? 'border-black/15 hover:border-black/30'
+                              : 'border-white/15 hover:border-white/30'
+                          } ${isActive ? 'ring-2 ring-blue-500/80' : ''}`}
+                          style={{ backgroundColor: pal.bg }}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span
+                              className="text-base font-serif font-bold tracking-tight leading-none"
+                              style={{ color: pal.text }}
+                            >
+                              Aa
+                            </span>
+                            {isActive && (
+                              <span
+                                className="w-4 h-4 rounded-full flex items-center justify-center text-[10px] shadow-xs"
+                                style={{
+                                  backgroundColor: pal.text,
+                                  color: pal.bg,
+                                }}
+                              >
+                                <Check className="w-2.5 h-2.5 stroke-[3]" />
+                              </span>
+                            )}
+                          </div>
+                          <div>
+                            <div
+                              className="text-[11px] font-semibold leading-tight truncate"
+                              style={{ color: pal.text }}
+                            >
+                              {pal.name}
+                            </div>
+                            <div
+                              className="text-[9px] opacity-75 font-mono leading-none mt-0.5"
+                              style={{ color: pal.text }}
+                            >
+                              {pal.subtitle}
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
-                {/* Quick Curated Palettes */}
-                <div className="pt-2 border-t border-[#18181f]">
-                  <span className="text-[10px] font-semibold text-zinc-500 uppercase font-mono tracking-wider block mb-2">
-                    Quick Palettes
+                {/* Custom Color Controls */}
+                <div className="pt-3 border-t border-black/[0.06] dark:border-[#18181f] space-y-2">
+                  <span className="text-[10px] font-mono uppercase text-zinc-400 dark:text-zinc-500 block font-medium">
+                    Custom Colors
                   </span>
-                  <div className="grid grid-cols-2 gap-1.5">
-                    {[
-                      { name: 'Dark Obsidian', bg: '#000000', text: '#FFFFFF' },
-                      { name: 'Linen Light', bg: '#F8FAFC', text: '#0F172A' },
-                      { name: 'Warm Editorial', bg: '#FBF9F5', text: '#2D2A26' },
-                      { name: 'Studio Slate', bg: '#09090B', text: '#EDEDED' },
-                    ].map((pal) => (
-                      <button
-                        key={pal.name}
-                        type="button"
-                        onClick={() => {
-                          onCanvasChange({ ...canvas, backgroundColor: pal.bg, transparentBackground: false });
-                          onTypographyChange({ ...typography, textColor: pal.text });
-                        }}
-                        className="flex items-center gap-2 px-2 py-1.5 rounded-[6px] text-xs bg-[#09090c] hover:bg-[#14141a] border border-[#18181f] hover:border-[#2e2e3a] text-zinc-300 transition-colors text-left cursor-pointer"
+
+                  {/* Background */}
+                  <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-[#09090c] border border-slate-200/80 dark:border-[#18181f]">
+                    <div>
+                      <span className="text-xs font-medium text-slate-800 dark:text-zinc-200 block leading-tight">
+                        Background
+                      </span>
+                      <span className="text-[10px] text-slate-500 dark:text-zinc-500 leading-none">
+                        Card canvas fill
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-xs px-2 py-1 rounded bg-white dark:bg-[#14141a] border border-slate-200 dark:border-[#22222a] text-slate-700 dark:text-zinc-300 uppercase font-medium shadow-2xs">
+                        {canvas.backgroundColor}
+                      </span>
+                      <label
+                        className="relative w-7 h-7 rounded-md border border-black/15 dark:border-white/15 overflow-hidden shadow-xs cursor-pointer block shrink-0"
+                        style={{ backgroundColor: canvas.backgroundColor }}
                       >
-                        <div className="flex items-center shrink-0">
-                          <span className="w-3 h-3 rounded-full border border-black/30 dark:border-white/30" style={{ backgroundColor: pal.bg }} />
-                          <span className="w-3 h-3 rounded-full border border-black/30 dark:border-white/30 -ml-1" style={{ backgroundColor: pal.text }} />
-                        </div>
-                        <span className="truncate">{pal.name}</span>
-                      </button>
-                    ))}
+                        <input
+                          type="color"
+                          value={canvas.backgroundColor}
+                          onChange={(e) => onCanvasChange({ ...canvas, backgroundColor: e.target.value })}
+                          className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
+                          title="Pick background color"
+                        />
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Text Color */}
+                  <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-[#09090c] border border-slate-200/80 dark:border-[#18181f]">
+                    <div>
+                      <span className="text-xs font-medium text-slate-800 dark:text-zinc-200 block leading-tight">
+                        Text Color
+                      </span>
+                      <span className="text-[10px] text-slate-500 dark:text-zinc-500 leading-none">
+                        Typography & headings
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-xs px-2 py-1 rounded bg-white dark:bg-[#14141a] border border-slate-200 dark:border-[#22222a] text-slate-700 dark:text-zinc-300 uppercase font-medium shadow-2xs">
+                        {typography.textColor}
+                      </span>
+                      <label
+                        className="relative w-7 h-7 rounded-md border border-black/15 dark:border-white/15 overflow-hidden shadow-xs cursor-pointer block shrink-0"
+                        style={{ backgroundColor: typography.textColor }}
+                      >
+                        <input
+                          type="color"
+                          value={typography.textColor}
+                          onChange={(e) => onTypographyChange({ ...typography, textColor: e.target.value })}
+                          className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
+                          title="Pick text color"
+                        />
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Transparent Background */}
+                  <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-[#09090c] border border-slate-200/80 dark:border-[#18181f]">
+                    <div>
+                      <span className="text-xs font-medium text-slate-800 dark:text-zinc-200 block leading-tight">
+                        Transparent Background
+                      </span>
+                      <span className="text-[10px] text-slate-500 dark:text-zinc-500 leading-none">
+                        Export with alpha channel
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => onCanvasChange({ ...canvas, transparentBackground: !canvas.transparentBackground })}
+                      className={`w-9 h-5 rounded-full p-0.5 transition-colors cursor-pointer ${
+                        canvas.transparentBackground
+                          ? 'bg-slate-900 dark:bg-zinc-200 border border-slate-900 dark:border-zinc-200'
+                          : 'bg-slate-300 dark:bg-[#1e1e26] border border-slate-300 dark:border-[#2a2a36]'
+                      }`}
+                      aria-label="Toggle transparent background"
+                    >
+                      <div
+                        className={`w-4 h-4 rounded-full transition-transform shadow-xs ${
+                          canvas.transparentBackground
+                            ? 'translate-x-4 bg-white dark:bg-zinc-900'
+                            : 'translate-x-0 bg-white dark:bg-zinc-400'
+                        }`}
+                      />
+                    </button>
                   </div>
                 </div>
               </div>
