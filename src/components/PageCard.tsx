@@ -39,6 +39,7 @@ interface PageCardProps {
   allowClippedExport?: boolean;
   onBlockedExport?: (msg: string) => void;
   highlightedParagraphIndex?: number | null;
+  highlightRange?: { startIndex: number; endIndex: number } | null;
   onParagraphHover?: (info: { pageIndex: number; paragraphIndex: number; startIndex: number; endIndex: number } | null) => void;
 }
 
@@ -58,6 +59,7 @@ export const PageCard: React.FC<PageCardProps> = ({
   allowClippedExport = false,
   onBlockedExport,
   highlightedParagraphIndex = null,
+  highlightRange = null,
   onParagraphHover,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -151,13 +153,14 @@ export const PageCard: React.FC<PageCardProps> = ({
           spacing,
           scale: 1, // Preview scale
           highlightedParagraphIndex,
+          highlightRange,
         });
       });
     }
     return () => {
       if (animId) cancelAnimationFrame(animId);
     };
-  }, [page, totalPages, canvas, typography, spacing, highlightedParagraphIndex]);
+  }, [page, totalPages, canvas, typography, spacing, highlightedParagraphIndex, highlightRange]);
 
   const handleCopyText = async (e: React.MouseEvent) => {
     e.stopPropagation();

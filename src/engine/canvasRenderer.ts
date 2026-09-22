@@ -17,6 +17,7 @@ export interface RenderCanvasOptions {
   spacing: SpacingSettings;
   scale?: ExportScale;
   highlightedParagraphIndex?: number | null;
+  highlightRange?: { startIndex: number; endIndex: number } | null;
 }
 
 export interface ParagraphBounds {
@@ -261,20 +262,34 @@ export function renderPageToCanvas(
   }
 
   const hasHighlight =
-    options.highlightedParagraphIndex !== undefined && options.highlightedParagraphIndex !== null;
-  const targetBound = hasHighlight
-    ? getParagraphBoundsForPage(page, totalPages, canvas, spacing, typography).find(
-        (b) => b.paragraphIndex === options.highlightedParagraphIndex
-      )
-    : null;
+    (options.highlightRange !== undefined && options.highlightRange !== null) ||
+    (options.highlightedParagraphIndex !== undefined && options.highlightedParagraphIndex !== null);
+
+  const targetBound =
+    options.highlightedParagraphIndex !== undefined && options.highlightedParagraphIndex !== null
+      ? getParagraphBoundsForPage(page, totalPages, canvas, spacing, typography).find(
+          (b) => b.paragraphIndex === options.highlightedParagraphIndex
+        )
+      : null;
+
+  const highlightRange = options.highlightRange;
+  // Slightly lower dimmed opacity (0.45 vs previous 0.58) to deepen editorial focus without reducing legibility
+  const DIMMED_OPACITY = 0.45;
 
   for (let i = 0; i < page.lines.length; i++) {
     const line = page.lines[i];
     const lineText = line.text;
 
-    if (targetBound) {
-      const isCurrentPara = line.startIndex >= targetBound.startIndex && line.endIndex <= targetBound.endIndex;
-      ctx.globalAlpha = isCurrentPara ? 1.0 : 0.58;
+    if (hasHighlight) {
+      let isCurrentPara = false;
+      if (highlightRange) {
+        // Absolute character range check across all pages
+        isCurrentPara = line.endIndex > highlightRange.startIndex && line.startIndex < highlightRange.endIndex;
+      } else if (targetBound) {
+        // Page-local bound check
+        isCurrentPara = line.startIndex >= targetBound.startIndex && line.endIndex <= targetBound.endIndex;
+      }
+      ctx.globalAlpha = isCurrentPara ? 1.0 : DIMMED_OPACITY;
     } else {
       ctx.globalAlpha = 1.0;
     }

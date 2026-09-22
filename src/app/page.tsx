@@ -1003,6 +1003,7 @@ function Workspace() {
           projectName={proceduralProjectName}
           allowClippedExport={advanced.allowClippedExport}
           onBlockedExport={(msg) => setExportWarning(msg)}
+          highlightRange={highlightedParagraph ? { startIndex: highlightedParagraph.startIndex, endIndex: highlightedParagraph.endIndex } : null}
         />
       )}
     </div>

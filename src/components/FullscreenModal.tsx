@@ -36,6 +36,7 @@ interface FullscreenModalProps {
   projectName: string;
   allowClippedExport?: boolean;
   onBlockedExport?: (msg: string) => void;
+  highlightRange?: { startIndex: number; endIndex: number } | null;
 }
 
 export const FullscreenModal: React.FC<FullscreenModalProps> = ({
@@ -51,6 +52,7 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
   projectName,
   allowClippedExport = false,
   onBlockedExport,
+  highlightRange = null,
 }) => {
   const [currentPageIndex, setCurrentPageIndex] = useState(initialPageIndex);
   const [prevInitialPageIndex, setPrevInitialPageIndex] = useState(initialPageIndex);
@@ -64,6 +66,13 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
   const lastWheelTimeRef = useRef(0);
   const wheelDeltaAccumulatorRef = useRef(0);
   const wheelResetTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const pendingWheelTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Drag-to-flip state for fullscreen
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartXRef = useRef(0);
+  const dragStartYRef = useRef(0);
+  const hasDraggedRef = useRef(false);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -83,26 +92,50 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
       if (zoomLevel === '100%') return;
       if (pages.length <= 1) return;
 
-      const delta = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+      let delta = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+      if (e.deltaMode === 1) delta *= 28;
+      else if (e.deltaMode === 2) delta *= 400;
+
       e.preventDefault();
+
+      // If user reverses scroll direction, reset accumulator immediately
+      if (
+        (wheelDeltaAccumulatorRef.current > 0 && delta < 0) ||
+        (wheelDeltaAccumulatorRef.current < 0 && delta > 0)
+      ) {
+        wheelDeltaAccumulatorRef.current = 0;
+      }
 
       wheelDeltaAccumulatorRef.current += delta;
       if (wheelResetTimerRef.current) clearTimeout(wheelResetTimerRef.current);
       wheelResetTimerRef.current = setTimeout(() => {
         wheelDeltaAccumulatorRef.current = 0;
-      }, 150);
+      }, 120);
 
-      const threshold = 35;
+      const threshold = 22; // Low, highly responsive threshold for effortless page turning
       const now = Date.now();
-      if (now - lastWheelTimeRef.current < 110) return;
+      const cooldown = 55; // Fast enough for rapid wheel notches without swallowing inputs
 
-      if (Math.abs(wheelDeltaAccumulatorRef.current) >= threshold) {
-        lastWheelTimeRef.current = now;
-        const dir = wheelDeltaAccumulatorRef.current > 0 ? 1 : -1;
-        wheelDeltaAccumulatorRef.current = 0;
-        setCurrentPageIndex((prev) =>
-          dir > 0 ? Math.min(pages.length - 1, prev + 1) : Math.max(0, prev - 1)
-        );
+      const processPageTurn = () => {
+        if (Math.abs(wheelDeltaAccumulatorRef.current) >= threshold) {
+          lastWheelTimeRef.current = Date.now();
+          const dir = wheelDeltaAccumulatorRef.current > 0 ? 1 : -1;
+          wheelDeltaAccumulatorRef.current = 0;
+          setCurrentPageIndex((prev) =>
+            dir > 0 ? Math.min(pages.length - 1, prev + 1) : Math.max(0, prev - 1)
+          );
+        }
+      };
+
+      if (now - lastWheelTimeRef.current >= cooldown) {
+        processPageTurn();
+      } else {
+        // Schedule pending page turn at the end of cooldown so it's NEVER swallowed
+        if (pendingWheelTimerRef.current) clearTimeout(pendingWheelTimerRef.current);
+        const remaining = Math.max(10, cooldown - (now - lastWheelTimeRef.current));
+        pendingWheelTimerRef.current = setTimeout(() => {
+          processPageTurn();
+        }, remaining);
       }
     };
 
@@ -112,6 +145,7 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('wheel', handleWheel);
       if (wheelResetTimerRef.current) clearTimeout(wheelResetTimerRef.current);
+      if (pendingWheelTimerRef.current) clearTimeout(pendingWheelTimerRef.current);
     };
   }, [isOpen, pages.length, zoomLevel, onClose]);
 
@@ -142,9 +176,10 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
         typography,
         spacing,
         scale: 1,
+        highlightRange,
       });
     }
-  }, [isOpen, activePage, pages.length, canvas, typography, spacing]);
+  }, [isOpen, activePage, pages.length, canvas, typography, spacing, highlightRange]);
 
   if (!isOpen || !activePage || typeof document === 'undefined') return null;
 
@@ -174,38 +209,84 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
     });
   };
 
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (zoomLevel === '100%') return;
+    if (pages.length <= 1) return;
+    if (e.button !== 0) return;
+    setIsDragging(true);
+    hasDraggedRef.current = false;
+    dragStartXRef.current = e.clientX;
+    dragStartYRef.current = e.clientY;
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    const diffX = e.clientX - dragStartXRef.current;
+    const diffY = e.clientY - dragStartYRef.current;
+    if (Math.abs(diffX) > 8 || Math.abs(diffY) > 8) {
+      hasDraggedRef.current = true;
+    }
+  };
+
+  const handleMouseUp = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    const diffX = e.clientX - dragStartXRef.current;
+    const diffY = e.clientY - dragStartYRef.current;
+    const threshold = 40;
+    if (Math.abs(diffX) > Math.abs(diffY)) {
+      if (diffX < -threshold) {
+        setCurrentPageIndex((prev) => Math.min(pages.length - 1, prev + 1));
+      } else if (diffX > threshold) {
+        setCurrentPageIndex((prev) => Math.max(0, prev - 1));
+      }
+    } else {
+      if (diffY < -threshold) {
+        setCurrentPageIndex((prev) => Math.min(pages.length - 1, prev + 1));
+      } else if (diffY > threshold) {
+        setCurrentPageIndex((prev) => Math.max(0, prev - 1));
+      }
+    }
+  };
+
   return createPortal(
-    <div className="fixed inset-0 z-50 bg-[#f8fafc]/98 dark:bg-[#08080a]/98 backdrop-blur-md flex flex-col select-none transition-colors">
-      {/* Top bar */}
-      <div className="h-12 px-6 border-b border-black/[0.08] dark:border-[#18181f] bg-white/95 dark:bg-[#0c0c0e]/95 backdrop-blur-md flex items-center justify-between text-slate-700 dark:text-zinc-300">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Fullscreen Page Preview"
+      className="fixed inset-0 z-50 flex flex-col bg-slate-100/95 dark:bg-[#060608]/95 backdrop-blur-xl animate-in fade-in duration-200"
+    >
+      {/* Top action bar */}
+      <div className="h-12 border-b border-black/[0.08] dark:border-[#18181f] bg-white/95 dark:bg-[#0c0c0e]/95 backdrop-blur-md px-6 flex items-center justify-between shrink-0 select-none">
+        {/* Left: Page counter & title */}
         <div className="flex items-center gap-3">
-          <span className="font-semibold text-sm text-slate-900 dark:text-white font-mono tracking-tight">
-            Page {String(currentPageIndex + 1).padStart(2, '0')} / {String(pages.length).padStart(2, '0')}
+          <span className="text-xs font-mono font-medium text-slate-800 dark:text-zinc-200">
+            Page {currentPageIndex + 1} of {pages.length}
           </span>
-          <span className="text-xs text-slate-500 dark:text-zinc-400 font-mono">
-            {canvas.width} × {canvas.height} px
-          </span>
-          <span className="text-xs bg-slate-100 dark:bg-[#09090c] border border-slate-200 dark:border-[#18181f] text-slate-600 dark:text-zinc-400 px-2 py-0.5 rounded-[4px] font-mono">
-            Util: {activePage.utilization}%
+          <span className="text-xs text-slate-400 dark:text-zinc-600">|</span>
+          <span className="text-xs text-slate-500 dark:text-zinc-400 truncate max-w-xs">
+            {projectName || 'Untitled'}
           </span>
         </div>
 
+        {/* Right: Zoom & Export Controls */}
         <div className="flex items-center gap-2">
           {/* Zoom toggle */}
           <button
             type="button"
-            onClick={() => setZoomLevel((prev) => (prev === 'fit' ? '100%' : 'fit'))}
-            className="h-7 px-2.5 flex items-center gap-1.5 text-xs bg-slate-100 hover:bg-slate-200 dark:bg-[#0c0c0e] dark:hover:bg-[#16161c] border border-slate-200 dark:border-[#1b1b22] hover:border-slate-300 dark:hover:border-[#2e2e3a] text-slate-700 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white rounded-[6px] transition-colors cursor-pointer"
+            onClick={() => setZoomLevel((z) => (z === 'fit' ? '100%' : 'fit'))}
+            className="h-7 px-2.5 flex items-center gap-1.5 text-xs bg-slate-100 hover:bg-slate-200 dark:bg-[#0c0c0e] dark:hover:bg-[#16161c] border border-slate-200 dark:border-[#1b1b22] hover:border-slate-300 dark:hover:border-[#2e2e3a] text-slate-700 dark:text-zinc-300 hover:text-slate-950 dark:hover:text-white rounded-[6px] transition-colors cursor-pointer"
+            title={zoomLevel === 'fit' ? 'Zoom to 100%' : 'Fit to Window'}
           >
             {zoomLevel === 'fit' ? <ZoomIn className="w-3.5 h-3.5" /> : <ZoomOut className="w-3.5 h-3.5" />}
-            <span>{zoomLevel === 'fit' ? 'Fit View' : '100%'}</span>
+            <span>{zoomLevel === 'fit' ? 'Fit' : '100%'}</span>
           </button>
 
           {/* Copy Text */}
           <button
             type="button"
             onClick={handleCopyText}
-            className="h-7 px-2.5 flex items-center gap-1.5 text-xs bg-slate-100 hover:bg-slate-200 dark:bg-[#0c0c0e] dark:hover:bg-[#16161c] border border-slate-200 dark:border-[#1b1b22] hover:border-slate-300 dark:hover:border-[#2e2e3a] text-slate-700 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white rounded-[6px] transition-colors cursor-pointer"
+            className="h-7 px-2.5 flex items-center gap-1.5 text-xs bg-slate-100 hover:bg-slate-200 dark:bg-[#0c0c0e] dark:hover:bg-[#16161c] border border-slate-200 dark:border-[#1b1b22] hover:border-slate-300 dark:hover:border-[#2e2e3a] text-slate-700 dark:text-zinc-300 hover:text-slate-950 dark:hover:text-white rounded-[6px] transition-colors cursor-pointer"
           >
             {copied ? <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
             <span>{copied ? 'Copied' : 'Copy Text'}</span>
@@ -234,7 +315,13 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
       </div>
 
       {/* Main Display Area: Exactly 1 page centered at a time */}
-      <div className="flex-1 relative flex items-center justify-center p-6 overflow-auto">
+      <div
+        className="flex-1 relative flex items-center justify-center p-6 overflow-auto"
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={() => setIsDragging(false)}
+      >
         {/* Previous page button */}
         {pages.length > 1 && (
           <button
@@ -250,7 +337,13 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
 
         {/* Canvas container */}
         <div
-          className="shadow-2xl border border-black/[0.08] dark:border-zinc-800 transition-all flex items-center justify-center rounded-md overflow-hidden"
+          className={`shadow-2xl border border-black/[0.08] dark:border-zinc-800 transition-all flex items-center justify-center rounded-md overflow-hidden ${
+            zoomLevel === 'fit' && pages.length > 1
+              ? isDragging
+                ? 'cursor-grabbing select-none'
+                : 'cursor-grab'
+              : ''
+          }`}
           style={{
             backgroundColor: canvas.backgroundColor,
             maxHeight: zoomLevel === 'fit' ? '85vh' : 'none',
@@ -260,7 +353,7 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
         >
           <canvas
             ref={canvasRef}
-            className="max-h-full max-w-full block"
+            className="max-h-full max-w-full block pointer-events-none"
           />
         </div>
 

@@ -866,12 +866,25 @@ describe('Typography Pagination and Layout Engine', () => {
       highlightedParagraphIndex: 1,
     });
 
-    // Paragraph 0 should be subtly dimmed (0.58), Paragraph 1 should be full contrast (1.0)
-    expect(alphas).toContain(0.58);
+    // Paragraph 0 should be subtly dimmed (0.45), Paragraph 1 should be full contrast (1.0)
+    expect(alphas).toContain(0.45);
     expect(alphas).toContain(1.0);
     expect(alphas[alphas.length - 1]).toBe(1.0);
 
-    // 2. When highlightedParagraphIndex is null (normal viewing / export)
+    // 2. When highlightRange is on another page entirely
+    alphas.length = 0;
+    renderPageToCanvas(mockCanvas, {
+      page,
+      canvas: options.canvas,
+      typography: options.typography,
+      spacing: options.spacing,
+      highlightRange: { startIndex: 9999, endIndex: 10050 },
+    });
+    // All lines on this page must be dimmed (0.45)
+    expect(alphas.length).toBeGreaterThan(0);
+    expect(alphas.every((a) => a === 0.45)).toBe(true);
+
+    // 3. When highlightedParagraphIndex is null (normal viewing / export)
     alphas.length = 0;
     renderPageToCanvas(mockCanvas, {
       page,
@@ -879,6 +892,7 @@ describe('Typography Pagination and Layout Engine', () => {
       typography: options.typography,
       spacing: options.spacing,
       highlightedParagraphIndex: null,
+      highlightRange: null,
     });
 
     // All text lines must remain 100% full contrast (1.0)

@@ -417,6 +417,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                 allowClippedExport={allowClippedExport}
                 onBlockedExport={onBlockedExport}
                 highlightedParagraphIndex={highlightedParagraph?.pageIndex === activeSinglePage.pageIndex ? highlightedParagraph.paragraphIndex : null}
+                highlightRange={highlightedParagraph ? { startIndex: highlightedParagraph.startIndex, endIndex: highlightedParagraph.endIndex } : null}
                 onParagraphHover={onParagraphHover}
               />
             </div>
@@ -510,6 +511,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                       allowClippedExport={allowClippedExport}
                       onBlockedExport={onBlockedExport}
                       highlightedParagraphIndex={highlightedParagraph?.pageIndex === page.pageIndex ? highlightedParagraph.paragraphIndex : null}
+                      highlightRange={highlightedParagraph ? { startIndex: highlightedParagraph.startIndex, endIndex: highlightedParagraph.endIndex } : null}
                       onParagraphHover={onParagraphHover}
                     />
                   </div>
@@ -544,6 +546,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                 allowClippedExport={allowClippedExport}
                 onBlockedExport={onBlockedExport}
                 highlightedParagraphIndex={highlightedParagraph?.pageIndex === page.pageIndex ? highlightedParagraph.paragraphIndex : null}
+                highlightRange={highlightedParagraph ? { startIndex: highlightedParagraph.startIndex, endIndex: highlightedParagraph.endIndex } : null}
                 onParagraphHover={onParagraphHover}
               />
               <span className="text-[11px] font-mono font-medium text-zinc-600 dark:text-zinc-400 select-none tracking-wide">
