@@ -154,6 +154,7 @@ export const PageCard: React.FC<PageCardProps> = ({
           scale: 1, // Preview scale
           highlightedParagraphIndex,
           highlightRange,
+          snapToPixelGrid: true,
         });
       });
     }

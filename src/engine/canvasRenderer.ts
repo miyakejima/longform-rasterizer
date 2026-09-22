@@ -15,9 +15,10 @@ export interface RenderCanvasOptions {
   canvas: CanvasSettings;
   typography: TypographySettings;
   spacing: SpacingSettings;
-  scale?: ExportScale;
+  scale?: ExportScale | number;
   highlightedParagraphIndex?: number | null;
   highlightRange?: { startIndex: number; endIndex: number } | null;
+  snapToPixelGrid?: boolean;
 }
 
 export interface ParagraphBounds {
@@ -162,7 +163,7 @@ export function renderPageToCanvas(
   targetCanvas: HTMLCanvasElement,
   options: RenderCanvasOptions
 ): void {
-  const { page, totalPages = 1, canvas, typography: baseTypography, spacing, scale = 1 } = options;
+  const { page, totalPages = 1, canvas, typography: baseTypography, spacing, scale = 1, snapToPixelGrid = false } = options;
   const typography: TypographySettings = page.typography
     ? {
         ...baseTypography,
@@ -276,6 +277,8 @@ export function renderPageToCanvas(
   // Slightly lower dimmed opacity (0.45 vs previous 0.58) to deepen editorial focus without reducing legibility
   const DIMMED_OPACITY = 0.45;
 
+  const snapCoord = (val: number) => (snapToPixelGrid ? Math.round(val) : val);
+
   for (let i = 0; i < page.lines.length; i++) {
     const line = page.lines[i];
     const lineText = line.text;
@@ -302,7 +305,8 @@ export function renderPageToCanvas(
       continue;
     }
 
-    const baselineY = currentY + lineBoxHeight / 2;
+    // Pixel-grid integer snapping on baseline prevents subpixel blurring across rows
+    const baselineY = snapCoord(currentY + lineBoxHeight / 2);
 
     if (alignment === 'justify' && !line.isParagraphEnd && !line.isHardBreak) {
       // Justified rendering (only soft-wrapped lines, preserving indentation)
@@ -325,25 +329,25 @@ export function renderPageToCanvas(
         ctx.textAlign = 'left';
         let wordX = paddingLeft + leadingSpaceWidth;
         for (let wIdx = 0; wIdx < words.length; wIdx++) {
-          ctx.fillText(words[wIdx], wordX, baselineY);
+          ctx.fillText(words[wIdx], snapCoord(wordX), baselineY);
           wordX += wordWidths[wIdx] + gapSize;
         }
       } else {
         ctx.textAlign = 'left';
-        ctx.fillText(lineText, paddingLeft, baselineY);
+        ctx.fillText(lineText, snapCoord(paddingLeft), baselineY);
       }
     } else if (alignment === 'center') {
       ctx.textAlign = 'center';
       const centerX = paddingLeft + contentWidth / 2;
-      ctx.fillText(lineText, centerX, baselineY);
+      ctx.fillText(lineText, snapCoord(centerX), baselineY);
     } else if (alignment === 'right') {
       ctx.textAlign = 'right';
       const rightX = canvas.width - paddingRight;
-      ctx.fillText(lineText, rightX, baselineY);
+      ctx.fillText(lineText, snapCoord(rightX), baselineY);
     } else {
       // Left alignment (default)
       ctx.textAlign = 'left';
-      ctx.fillText(lineText, paddingLeft, baselineY);
+      ctx.fillText(lineText, snapCoord(paddingLeft), baselineY);
     }
 
     currentY += lineBoxHeight + extraLineSpacing;

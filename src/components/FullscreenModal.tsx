@@ -169,17 +169,22 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
 
   useEffect(() => {
     if (isOpen && canvasRef.current && activePage) {
+      // High-DPI supersampling scale for maximum sharpness on Retina / 4K / High-DPI screens
+      const dpr = typeof window !== 'undefined' ? (window.devicePixelRatio || 1) : 1;
+      const effectiveScale = canvas.width >= 2000 ? 1 : (dpr > 1.2 ? 2 : 1);
+
       renderPageToCanvas(canvasRef.current, {
         page: activePage,
         totalPages: pages.length,
         canvas,
         typography,
         spacing,
-        scale: 1,
+        scale: effectiveScale,
         highlightRange,
+        snapToPixelGrid: true,
       });
     }
-  }, [isOpen, activePage, pages.length, canvas, typography, spacing, highlightRange]);
+  }, [isOpen, activePage, pages.length, canvas, typography, spacing, highlightRange, zoomLevel]);
 
   if (!isOpen || !activePage || typeof document === 'undefined') return null;
 
@@ -348,12 +353,14 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
             backgroundColor: canvas.backgroundColor,
             maxHeight: zoomLevel === 'fit' ? '85vh' : 'none',
             maxWidth: zoomLevel === 'fit' ? '85vw' : 'none',
+            width: zoomLevel === 'fit' ? 'auto' : `${pageDims.width}px`,
+            height: zoomLevel === 'fit' ? 'auto' : `${pageDims.height}px`,
             aspectRatio: `${pageDims.width} / ${pageDims.height}`,
           }}
         >
           <canvas
             ref={canvasRef}
-            className="max-h-full max-w-full block pointer-events-none"
+            className="w-full h-full block pointer-events-none"
           />
         </div>
 

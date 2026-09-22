@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { PanelLeftClose, PanelLeft } from 'lucide-react';
+import { PanelLeftClose, PanelLeft, Highlighter } from 'lucide-react';
 import { HeaderBar } from '../components/HeaderBar';
 import { EditorPanel } from '../components/EditorPanel';
 import { DockedToolbar } from '../components/DockedToolbar';
@@ -75,6 +75,26 @@ function Workspace() {
   const [showPresetsModal, setShowPresetsModal] = useState(false);
   const [showShortcutsModal, setShowShortcutsModal] = useState(false);
   const [theme, setTheme] = useState<'dark' | 'light'>('light');
+  const [isHighlightEnabled, setIsHighlightEnabled] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('longform-rasterizer-highlight-enabled');
+      return stored !== null ? stored === 'true' : true;
+    }
+    return true;
+  });
+
+  const handleToggleHighlight = useCallback(() => {
+    setIsHighlightEnabled((prev) => {
+      const next = !prev;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('longform-rasterizer-highlight-enabled', String(next));
+      }
+      if (!next) {
+        setHighlightedParagraph(null);
+      }
+      return next;
+    });
+  }, []);
 
   // Load stored session & presets seamlessly on client mount
   useEffect(() => {
@@ -743,7 +763,7 @@ function Workspace() {
             highlightedPageIndex={highlightedPageIndex}
             onSelectPage={(pIdx) => setHighlightedPageIndex(pIdx)}
             typography={effectiveTypography}
-            highlightedParagraph={highlightedParagraph}
+            highlightedParagraph={isHighlightEnabled ? highlightedParagraph : null}
           />
         </div>
 
@@ -871,6 +891,22 @@ function Workspace() {
                 </svg>
               </button>
 
+              {/* Highlight / Spotlight Toggle Button (Left of Export) */}
+              <button
+                type="button"
+                onClick={handleToggleHighlight}
+                className={`h-8 px-2.5 rounded-[8px] border text-xs font-medium transition-all flex items-center gap-1.5 shadow-xs cursor-pointer focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-zinc-500 ${
+                  isHighlightEnabled
+                    ? 'bg-slate-200/80 dark:bg-[#1c1c24] border-slate-300 dark:border-[#2e2e3a] text-slate-900 dark:text-[#f4f4f6]'
+                    : 'bg-transparent border-slate-200/60 dark:border-[#1b1b22] text-slate-400 dark:text-zinc-500 hover:text-slate-700 dark:hover:text-zinc-300 hover:bg-slate-100 dark:hover:bg-[#16161c]'
+                }`}
+                title={isHighlightEnabled ? 'Disable paragraph spotlight' : 'Enable paragraph spotlight'}
+                aria-label={isHighlightEnabled ? 'Disable paragraph spotlight' : 'Enable paragraph spotlight'}
+              >
+                <Highlighter className={`w-3.5 h-3.5 ${isHighlightEnabled ? 'text-amber-600 dark:text-amber-400' : 'text-slate-400 dark:text-zinc-600'}`} />
+                <span className="hidden sm:inline">Highlight</span>
+              </button>
+
               <HeaderBar
                 onExportAll={handleExportAll}
                 onExportZip={handleExportZip}
@@ -914,8 +950,12 @@ function Workspace() {
               onBlockedExport={(msg) => setExportWarning(msg)}
               previewMode={previewMode}
               isEditorCollapsed={isEditorCollapsed}
-              highlightedParagraph={highlightedParagraph}
-              onParagraphHover={setHighlightedParagraph}
+              highlightedParagraph={isHighlightEnabled ? highlightedParagraph : null}
+              onParagraphHover={(info) => {
+                if (isHighlightEnabled) {
+                  setHighlightedParagraph(info);
+                }
+              }}
             />
           </div>
         </div>
@@ -1003,7 +1043,7 @@ function Workspace() {
           projectName={proceduralProjectName}
           allowClippedExport={advanced.allowClippedExport}
           onBlockedExport={(msg) => setExportWarning(msg)}
-          highlightRange={highlightedParagraph ? { startIndex: highlightedParagraph.startIndex, endIndex: highlightedParagraph.endIndex } : null}
+          highlightRange={isHighlightEnabled && highlightedParagraph ? { startIndex: highlightedParagraph.startIndex, endIndex: highlightedParagraph.endIndex } : null}
         />
       )}
     </div>

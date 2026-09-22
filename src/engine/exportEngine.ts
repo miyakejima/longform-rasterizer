@@ -153,6 +153,7 @@ export async function exportSinglePage(
     typography: options.typography,
     spacing: options.spacing,
     scale: options.scale,
+    snapToPixelGrid: true,
   });
 
   const blob = await canvasToBlob(offscreenCanvas, options.format);
@@ -195,6 +196,7 @@ export async function exportAllPagesAsZip(
       typography: options.typography,
       spacing: options.spacing,
       scale: options.scale,
+      snapToPixelGrid: true,
     });
 
     const blob = await canvasToBlob(offscreenCanvas, options.format);
