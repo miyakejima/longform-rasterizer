@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import {
   X,
@@ -60,7 +60,11 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
     setPrevInitialPageIndex(initialPageIndex);
     setCurrentPageIndex(initialPageIndex);
   }
+  const currentPageIndexRef = useRef(currentPageIndex);
+  currentPageIndexRef.current = currentPageIndex;
+
   const [copied, setCopied] = useState(false);
+  const [showShimmer, setShowShimmer] = useState(false);
   const [zoomLevel, setZoomLevel] = useState<'fit' | '100%'>('fit');
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const lastWheelTimeRef = useRef(0);
@@ -68,11 +72,24 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
   const wheelResetTimerRef = useRef<NodeJS.Timeout | null>(null);
   const pendingWheelTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Drag-to-flip state for fullscreen
+  // Drag-to-flip & rubber-banding elasticity state
   const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState(0);
+  const [rubberBandX, setRubberBandX] = useState(0);
+  const rubberBandTimerRef = useRef<NodeJS.Timeout | null>(null);
   const dragStartXRef = useRef(0);
   const dragStartYRef = useRef(0);
   const hasDraggedRef = useRef(false);
+
+  const triggerBounce = useCallback((amount: number) => {
+    if (rubberBandTimerRef.current) clearTimeout(rubberBandTimerRef.current);
+    setRubberBandX(amount);
+    rubberBandTimerRef.current = setTimeout(() => {
+      setRubberBandX(0);
+    }, 200);
+  }, []);
+  const triggerBounceRef = useRef(triggerBounce);
+  triggerBounceRef.current = triggerBounce;
 
   useEffect(() => {
     if (!isOpen) return;
@@ -82,9 +99,17 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
         e.preventDefault();
         onClose();
       } else if (e.key === 'ArrowLeft') {
-        setCurrentPageIndex((prev) => Math.max(0, prev - 1));
+        if (currentPageIndexRef.current <= 0) {
+          triggerBounceRef.current(36);
+        } else {
+          setCurrentPageIndex((prev) => Math.max(0, prev - 1));
+        }
       } else if (e.key === 'ArrowRight') {
-        setCurrentPageIndex((prev) => Math.min(pages.length - 1, prev + 1));
+        if (currentPageIndexRef.current >= pages.length - 1) {
+          triggerBounceRef.current(-36);
+        } else {
+          setCurrentPageIndex((prev) => Math.min(pages.length - 1, prev + 1));
+        }
       }
     };
 
@@ -121,9 +146,23 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
           lastWheelTimeRef.current = Date.now();
           const dir = wheelDeltaAccumulatorRef.current > 0 ? 1 : -1;
           wheelDeltaAccumulatorRef.current = 0;
-          setCurrentPageIndex((prev) =>
-            dir > 0 ? Math.min(pages.length - 1, prev + 1) : Math.max(0, prev - 1)
-          );
+          if (dir > 0) {
+            if (currentPageIndexRef.current >= pages.length - 1) {
+              // Elastic choque / collision bounce at end
+              const bounce = -Math.min(42, Math.sqrt(Math.abs(delta)) * 3.8);
+              triggerBounceRef.current(bounce);
+            } else {
+              setCurrentPageIndex((prev) => Math.min(pages.length - 1, prev + 1));
+            }
+          } else {
+            if (currentPageIndexRef.current <= 0) {
+              // Elastic choque / collision bounce at start
+              const bounce = Math.min(42, Math.sqrt(Math.abs(delta)) * 3.8);
+              triggerBounceRef.current(bounce);
+            } else {
+              setCurrentPageIndex((prev) => Math.max(0, prev - 1));
+            }
+          }
         }
       };
 
@@ -192,6 +231,8 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
     try {
       await navigator.clipboard.writeText(activePage.text.trim());
       setCopied(true);
+      setShowShimmer(true);
+      setTimeout(() => setShowShimmer(false), 700);
       setTimeout(() => setCopied(false), 2000);
     } catch {
       // Ignore
@@ -203,6 +244,8 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
       onBlockedExport?.(`Export blocked: Page ${activePage.pageIndex + 1} contains clipped text.`);
       return;
     }
+    setShowShimmer(true);
+    setTimeout(() => setShowShimmer(false), 700);
     await exportSinglePage(activePage, {
       canvas,
       totalPages: pages.length,
@@ -228,28 +271,62 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
     if (!isDragging) return;
     const diffX = e.clientX - dragStartXRef.current;
     const diffY = e.clientY - dragStartYRef.current;
-    if (Math.abs(diffX) > 8 || Math.abs(diffY) > 8) {
+    if (Math.abs(diffX) > 4 || Math.abs(diffY) > 4) {
       hasDraggedRef.current = true;
+    }
+
+    if (Math.abs(diffX) >= Math.abs(diffY)) {
+      if (currentPageIndexRef.current === 0 && diffX > 0) {
+        // Elastic rubber-band resistance when pulling right at first page (choque)
+        const rubber = Math.min(64, Math.sqrt(diffX) * 4.5);
+        setDragOffset(rubber);
+      } else if (currentPageIndexRef.current >= pages.length - 1 && diffX < 0) {
+        // Elastic rubber-band resistance when pulling left at last page (choque)
+        const rubber = -Math.min(64, Math.sqrt(Math.abs(diffX)) * 4.5);
+        setDragOffset(rubber);
+      } else {
+        // Natural tactile drag displacement
+        setDragOffset(diffX * 0.45);
+      }
     }
   };
 
   const handleMouseUp = (e: React.MouseEvent) => {
     if (!isDragging) return;
     setIsDragging(false);
+    setDragOffset(0);
+
     const diffX = e.clientX - dragStartXRef.current;
     const diffY = e.clientY - dragStartYRef.current;
     const threshold = 40;
+
     if (Math.abs(diffX) > Math.abs(diffY)) {
       if (diffX < -threshold) {
-        setCurrentPageIndex((prev) => Math.min(pages.length - 1, prev + 1));
+        if (currentPageIndexRef.current >= pages.length - 1) {
+          triggerBounceRef.current(-36);
+        } else {
+          setCurrentPageIndex((prev) => Math.min(pages.length - 1, prev + 1));
+        }
       } else if (diffX > threshold) {
-        setCurrentPageIndex((prev) => Math.max(0, prev - 1));
+        if (currentPageIndexRef.current <= 0) {
+          triggerBounceRef.current(36);
+        } else {
+          setCurrentPageIndex((prev) => Math.max(0, prev - 1));
+        }
       }
     } else {
       if (diffY < -threshold) {
-        setCurrentPageIndex((prev) => Math.min(pages.length - 1, prev + 1));
+        if (currentPageIndexRef.current >= pages.length - 1) {
+          triggerBounceRef.current(-36);
+        } else {
+          setCurrentPageIndex((prev) => Math.min(pages.length - 1, prev + 1));
+        }
       } else if (diffY > threshold) {
-        setCurrentPageIndex((prev) => Math.max(0, prev - 1));
+        if (currentPageIndexRef.current <= 0) {
+          triggerBounceRef.current(36);
+        } else {
+          setCurrentPageIndex((prev) => Math.max(0, prev - 1));
+        }
       }
     }
   };
@@ -280,7 +357,7 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
           <button
             type="button"
             onClick={() => setZoomLevel((z) => (z === 'fit' ? '100%' : 'fit'))}
-            className="h-7 px-2.5 flex items-center gap-1.5 text-xs bg-slate-100 hover:bg-slate-200 dark:bg-[#0c0c0e] dark:hover:bg-[#16161c] border border-slate-200 dark:border-[#1b1b22] hover:border-slate-300 dark:hover:border-[#2e2e3a] text-slate-700 dark:text-zinc-300 hover:text-slate-950 dark:hover:text-white rounded-[6px] transition-colors cursor-pointer"
+            className="btn-tactile h-7 px-2.5 flex items-center gap-1.5 text-xs bg-slate-100 hover:bg-slate-200 dark:bg-[#0c0c0e] dark:hover:bg-[#16161c] border border-slate-200 dark:border-[#1b1b22] hover:border-slate-300 dark:hover:border-[#2e2e3a] text-slate-700 dark:text-zinc-300 hover:text-slate-950 dark:hover:text-white rounded-[6px] transition-colors cursor-pointer"
             title={zoomLevel === 'fit' ? 'Zoom to 100%' : 'Fit to Window'}
           >
             {zoomLevel === 'fit' ? <ZoomIn className="w-3.5 h-3.5" /> : <ZoomOut className="w-3.5 h-3.5" />}
@@ -291,9 +368,13 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
           <button
             type="button"
             onClick={handleCopyText}
-            className="h-7 px-2.5 flex items-center gap-1.5 text-xs bg-slate-100 hover:bg-slate-200 dark:bg-[#0c0c0e] dark:hover:bg-[#16161c] border border-slate-200 dark:border-[#1b1b22] hover:border-slate-300 dark:hover:border-[#2e2e3a] text-slate-700 dark:text-zinc-300 hover:text-slate-950 dark:hover:text-white rounded-[6px] transition-colors cursor-pointer"
+            className="btn-tactile h-7 px-2.5 flex items-center gap-1.5 text-xs bg-slate-100 hover:bg-slate-200 dark:bg-[#0c0c0e] dark:hover:bg-[#16161c] border border-slate-200 dark:border-[#1b1b22] hover:border-slate-300 dark:hover:border-[#2e2e3a] text-slate-700 dark:text-zinc-300 hover:text-slate-950 dark:hover:text-white rounded-[6px] transition-colors cursor-pointer"
           >
-            {copied ? <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+            {copied ? (
+              <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 animate-in zoom-in-50 duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]" />
+            ) : (
+              <Copy className="w-3.5 h-3.5" />
+            )}
             <span>{copied ? 'Copied' : 'Copy Text'}</span>
           </button>
 
@@ -301,7 +382,7 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
           <button
             type="button"
             onClick={handleDownloadCurrent}
-            className="h-7 px-3 flex items-center gap-1.5 text-xs bg-slate-900 hover:bg-slate-800 text-white border border-slate-900 dark:bg-[#1c1c24] dark:hover:bg-[#24242e] dark:text-white dark:border-[#2e2e3a] font-medium rounded-[6px] transition-colors shadow-xs cursor-pointer"
+            className="btn-tactile h-7 px-3 flex items-center gap-1.5 text-xs bg-slate-900 hover:bg-slate-800 text-white border border-slate-900 dark:bg-[#1c1c24] dark:hover:bg-[#24242e] dark:text-white dark:border-[#2e2e3a] font-medium rounded-[6px] transition-colors shadow-xs cursor-pointer"
           >
             <Download className="w-3.5 h-3.5" />
             <span>Download</span>
@@ -311,7 +392,7 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="h-7 w-7 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white rounded-[6px] bg-slate-100 hover:bg-slate-200 dark:bg-[#0c0c0e] dark:hover:bg-[#16161c] border border-slate-200 dark:border-[#1b1b22] hover:border-slate-300 dark:hover:border-[#2e2e3a] ml-1 transition-colors cursor-pointer"
+            className="btn-tactile h-7 w-7 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white rounded-[6px] bg-slate-100 hover:bg-slate-200 dark:bg-[#0c0c0e] dark:hover:bg-[#16161c] border border-slate-200 dark:border-[#1b1b22] hover:border-slate-300 dark:hover:border-[#2e2e3a] ml-1 transition-colors cursor-pointer"
             title="Close (Esc)"
           >
             <X className="w-4 h-4" />
@@ -325,24 +406,34 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
-        onMouseLeave={() => setIsDragging(false)}
+        onMouseLeave={() => {
+          setIsDragging(false);
+          setDragOffset(0);
+        }}
       >
         {/* Previous page button */}
         {pages.length > 1 && (
           <button
             type="button"
-            disabled={currentPageIndex === 0}
-            onClick={() => setCurrentPageIndex((prev) => Math.max(0, prev - 1))}
-            className="absolute left-6 z-10 p-3 rounded-full bg-white/90 dark:bg-zinc-900/80 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 hover:text-slate-950 dark:hover:text-white hover:bg-white dark:hover:bg-zinc-800 disabled:opacity-20 transition-all shadow-xl backdrop-blur-xs cursor-pointer hover:scale-105 active:scale-95"
+            onClick={() => {
+              if (currentPageIndex === 0) {
+                triggerBounceRef.current(36);
+              } else {
+                setCurrentPageIndex((prev) => Math.max(0, prev - 1));
+              }
+            }}
+            className={`btn-tactile absolute left-6 z-10 p-3 rounded-full bg-white/90 dark:bg-zinc-900/80 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 hover:text-slate-950 dark:hover:text-white hover:bg-white dark:hover:bg-zinc-800 transition-all shadow-xl backdrop-blur-xs cursor-pointer ${
+              currentPageIndex === 0 ? 'opacity-30 hover:opacity-50' : 'opacity-100'
+            }`}
             title="Previous Page (Left Arrow)"
           >
             <ChevronLeft className="w-6 h-6" />
           </button>
         )}
 
-        {/* Canvas container */}
+        {/* Canvas container with Rubber-Banding Elasticity */}
         <div
-          className={`shadow-2xl border border-black/[0.08] dark:border-zinc-800 transition-all flex items-center justify-center rounded-md overflow-hidden ${
+          className={`shadow-2xl border border-black/[0.08] dark:border-zinc-800 flex items-center justify-center rounded-md overflow-hidden relative ${
             zoomLevel === 'fit' && pages.length > 1
               ? isDragging
                 ? 'cursor-grabbing select-none'
@@ -356,8 +447,18 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
             width: zoomLevel === 'fit' ? 'auto' : `${pageDims.width}px`,
             height: zoomLevel === 'fit' ? 'auto' : `${pageDims.height}px`,
             aspectRatio: `${pageDims.width} / ${pageDims.height}`,
+            transform: `translateX(${dragOffset + rubberBandX}px)`,
+            transition: isDragging ? 'none' : 'transform 260ms cubic-bezier(0.16, 1, 0.3, 1)',
+            willChange: 'transform',
           }}
         >
+          {/* Shimmer sweep on copy/download in fullscreen */}
+          {showShimmer && (
+            <div className="absolute inset-0 pointer-events-none rounded-md overflow-hidden z-20">
+              <div className="w-full h-full animate-shimmer-sweep" />
+            </div>
+          )}
+
           <canvas
             ref={canvasRef}
             className="w-full h-full block pointer-events-none"
@@ -368,9 +469,16 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
         {pages.length > 1 && (
           <button
             type="button"
-            disabled={currentPageIndex === pages.length - 1}
-            onClick={() => setCurrentPageIndex((prev) => Math.min(pages.length - 1, prev + 1))}
-            className="absolute right-6 z-10 p-3 rounded-full bg-white/90 dark:bg-zinc-900/80 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 hover:text-slate-950 dark:hover:text-white hover:bg-white dark:hover:bg-zinc-800 disabled:opacity-20 transition-all shadow-xl backdrop-blur-xs cursor-pointer hover:scale-105 active:scale-95"
+            onClick={() => {
+              if (currentPageIndex >= pages.length - 1) {
+                triggerBounceRef.current(-36);
+              } else {
+                setCurrentPageIndex((prev) => Math.min(pages.length - 1, prev + 1));
+              }
+            }}
+            className={`btn-tactile absolute right-6 z-10 p-3 rounded-full bg-white/90 dark:bg-zinc-900/80 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 hover:text-slate-950 dark:hover:text-white hover:bg-white dark:hover:bg-zinc-800 transition-all shadow-xl backdrop-blur-xs cursor-pointer ${
+              currentPageIndex === pages.length - 1 ? 'opacity-30 hover:opacity-50' : 'opacity-100'
+            }`}
             title="Next Page (Right Arrow)"
           >
             <ChevronRight className="w-6 h-6" />
