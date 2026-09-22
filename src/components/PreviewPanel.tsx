@@ -74,6 +74,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
   const targetScrollLeftRef = useRef<number>(0);
   const rafIdRef = useRef<number | null>(null);
   const isWheelingRef = useRef(false);
+  const wheelIdleTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Mouse drag-to-scroll state
   const [isDragging, setIsDragging] = useState(false);
@@ -83,6 +84,51 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
   const dragVelocityRef = useRef(0);
   const lastDragTimeRef = useRef(0);
   const lastDragXRef = useRef(0);
+
+  const snapToNearestCard = useCallback(() => {
+    const container = carouselContainerRef.current;
+    if (!container || pages.length <= 1) return;
+    const center = container.scrollLeft + container.clientWidth / 2;
+    let closestIndex = 0;
+    let minDistance = Infinity;
+
+    for (let i = 0; i < container.children.length; i++) {
+      const child = container.children[i] as HTMLElement;
+      const childCenter = child.offsetLeft + child.clientWidth / 2;
+      const dist = Math.abs(childCenter - center);
+      if (dist < minDistance) {
+        minDistance = dist;
+        closestIndex = i;
+      }
+    }
+
+    const targetChild = container.children[closestIndex] as HTMLElement | undefined;
+    if (targetChild) {
+      const targetCenter = targetChild.offsetLeft + targetChild.clientWidth / 2;
+      const maxScroll = container.scrollWidth - container.clientWidth;
+      const targetScroll = Math.max(0, Math.min(maxScroll, Math.round(targetCenter - container.clientWidth / 2)));
+
+      targetScrollLeftRef.current = targetScroll;
+      if (rafIdRef.current === null) {
+        const step = () => {
+          const c = carouselContainerRef.current;
+          if (!c) {
+            rafIdRef.current = null;
+            return;
+          }
+          const diff = targetScroll - c.scrollLeft;
+          if (Math.abs(diff) < 0.75) {
+            c.scrollLeft = targetScroll;
+            rafIdRef.current = null;
+            return;
+          }
+          c.scrollLeft += diff * 0.18;
+          rafIdRef.current = requestAnimationFrame(step);
+        };
+        rafIdRef.current = requestAnimationFrame(step);
+      }
+    }
+  }, [pages.length]);
 
   const scrollCarouselTo = useCallback((index: number) => {
     const container = carouselContainerRef.current;
@@ -100,7 +146,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
     onSelectPage(index);
   }, [onSelectPage]);
 
-  // Buttery-smooth, free-scrolling horizontal wheel momentum (RAF lerp)
+  // Buttery-smooth, free-scrolling horizontal wheel momentum (RAF lerp) with subtle magnetic mini-lock
   useEffect(() => {
     if (previewMode !== 'carousel') return;
     const panel = previewPanelRef.current;
@@ -129,10 +175,18 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
       if (e.deltaMode === 1) delta *= 33;
       else if (e.deltaMode === 2) delta *= container.clientWidth;
 
+      // Fast, fluid free-scrolling multiplier (2.2x speed)
       targetScrollLeftRef.current = Math.max(
         0,
-        Math.min(maxScroll, targetScrollLeftRef.current + delta * 1.15)
+        Math.min(maxScroll, targetScrollLeftRef.current + delta * 2.2)
       );
+
+      // Reset magnetic lock timer: only locks once free scrolling ceases
+      if (wheelIdleTimerRef.current) clearTimeout(wheelIdleTimerRef.current);
+      wheelIdleTimerRef.current = setTimeout(() => {
+        isWheelingRef.current = false;
+        snapToNearestCard();
+      }, 160);
 
       if (rafIdRef.current === null) {
         const step = () => {
@@ -148,13 +202,12 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
           const diff = target - current;
 
           if (Math.abs(diff) < 0.5) {
-            c.scrollLeft = target;
-            isWheelingRef.current = false;
+            c.scrollLeft = Math.round(target);
             rafIdRef.current = null;
             return;
           }
 
-          c.scrollLeft = current + diff * 0.18;
+          c.scrollLeft = current + diff * 0.22;
           rafIdRef.current = requestAnimationFrame(step);
         };
         rafIdRef.current = requestAnimationFrame(step);
@@ -168,9 +221,12 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
         cancelAnimationFrame(rafIdRef.current);
         rafIdRef.current = null;
       }
+      if (wheelIdleTimerRef.current) {
+        clearTimeout(wheelIdleTimerRef.current);
+      }
       isWheelingRef.current = false;
     };
-  }, [previewMode, pages.length]);
+  }, [previewMode, pages.length, snapToNearestCard]);
 
   // Drag-to-scroll mouse listener
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -181,8 +237,11 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
     if (rafIdRef.current) {
       cancelAnimationFrame(rafIdRef.current);
       rafIdRef.current = null;
-      isWheelingRef.current = false;
     }
+    if (wheelIdleTimerRef.current) {
+      clearTimeout(wheelIdleTimerRef.current);
+    }
+    isWheelingRef.current = false;
 
     setIsDragging(true);
     hasDraggedRef.current = false;
@@ -221,15 +280,21 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
       const container = carouselContainerRef.current;
       if (!container) return;
 
-      let velocity = -dragVelocityRef.current * 18;
+      let velocity = -dragVelocityRef.current * 26;
       if (Math.abs(velocity) > 1.5) {
         const fling = () => {
-          if (!carouselContainerRef.current || Math.abs(velocity) < 0.5) return;
+          if (!carouselContainerRef.current) return;
+          if (Math.abs(velocity) < 0.8) {
+            snapToNearestCard();
+            return;
+          }
           carouselContainerRef.current.scrollLeft += velocity;
-          velocity *= 0.92;
+          velocity *= 0.93;
           requestAnimationFrame(fling);
         };
         requestAnimationFrame(fling);
+      } else {
+        snapToNearestCard();
       }
     };
 
@@ -239,7 +304,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isDragging]);
+  }, [isDragging, snapToNearestCard]);
 
   const handleCarouselScroll = () => {
     const container = carouselContainerRef.current;

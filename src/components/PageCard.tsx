@@ -262,7 +262,6 @@ export const PageCard: React.FC<PageCardProps> = ({
       <canvas
         ref={canvasRef}
         className="w-full h-full block pointer-events-none rounded-md"
-        style={{ imageRendering: 'crisp-edges' }}
       />
     </div>
   );
