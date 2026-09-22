@@ -37,7 +37,7 @@ import {
   TypographySettings,
   VerticalAlignment,
 } from '../types';
-import { loadCustomFont } from '../engine/fontLoader';
+import { loadCustomFont, getSupportedFontWeights } from '../engine/fontLoader';
 
 interface ControlPanelProps {
   pageCount: number;
@@ -392,7 +392,14 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
             {/* Quick Font Picker */}
             <select
               value={typography.fontFamily}
-              onChange={(e) => onTypographyChange({ ...typography, fontFamily: e.target.value })}
+              onChange={(e) => {
+                const newFont = e.target.value;
+                const supported = getSupportedFontWeights(newFont);
+                const newWeight = supported.includes(typography.fontWeight)
+                  ? typography.fontWeight
+                  : (supported.includes(400) ? 400 : supported[0]);
+                onTypographyChange({ ...typography, fontFamily: newFont, fontWeight: newWeight });
+              }}
               className="w-full bg-[#141417] border border-[#1f1f23] hover:border-[#27272a] rounded-md px-2.5 py-1.5 text-zinc-100 outline-none focus:border-zinc-500 mb-2 font-sans text-xs"
             >
               {fontOptions.map((f) => (
@@ -435,26 +442,43 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
             )}
 
             <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="text-zinc-400 text-[11px]">Weight</label>
-                <span className="font-mono text-zinc-400 text-[10px]">{typography.fontWeight}</span>
-              </div>
-              <div className="grid grid-cols-5 gap-0.5 bg-[#141417] p-0.5 rounded-md border border-[#1f1f23] font-mono text-[10px]">
-                {([300, 400, 500, 600, 700] as FontWeight[]).map((w) => (
-                  <button
-                    key={w}
-                    type="button"
-                    onClick={() => onTypographyChange({ ...typography, fontWeight: w })}
-                    className={`py-1 rounded text-center transition-all ${
-                      typography.fontWeight === w
-                        ? 'bg-[#222228] text-white font-bold shadow-xs'
-                        : 'text-zinc-400 hover:text-zinc-200'
-                    }`}
-                  >
-                    {w}
-                  </button>
-                ))}
-              </div>
+              {(() => {
+                const supportedWeights = getSupportedFontWeights(typography.fontFamily);
+                const isSingleWeight = supportedWeights.length === 1;
+                return (
+                  <>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-zinc-400 text-[11px]">Weight</label>
+                      <span className="font-mono text-zinc-400 text-[10px]">
+                        {isSingleWeight ? '400 (Regular)' : typography.fontWeight}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-5 gap-0.5 bg-[#141417] p-0.5 rounded-md border border-[#1f1f23] font-mono text-[10px]">
+                      {([300, 400, 500, 600, 700] as FontWeight[]).map((w) => {
+                        const isSupported = supportedWeights.includes(w);
+                        return (
+                          <button
+                            key={w}
+                            type="button"
+                            disabled={!isSupported}
+                            onClick={() => isSupported && onTypographyChange({ ...typography, fontWeight: w })}
+                            className={`py-1 rounded text-center transition-all ${
+                              !isSupported
+                                ? 'opacity-20 cursor-not-allowed text-zinc-600'
+                                : typography.fontWeight === w
+                                ? 'bg-[#222228] text-white font-bold shadow-xs'
+                                : 'text-zinc-400 hover:text-zinc-200'
+                            }`}
+                            title={!isSupported ? `${typography.fontFamily} only supports native ${supportedWeights.join(', ')}` : undefined}
+                          >
+                            {w}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </>
+                );
+              })()}
             </div>
           </div>
 

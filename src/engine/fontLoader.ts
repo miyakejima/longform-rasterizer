@@ -1,6 +1,45 @@
-// Font Loader Engine: wait for fonts & custom font upload
-
+import { FontWeight } from '../types';
 import { clearMeasurementCache } from './textMeasurement';
+
+export const FONT_SUPPORTED_WEIGHTS: Record<string, FontWeight[]> = {
+  // Variable / multi-weight Google Fonts
+  'Inter': [300, 400, 500, 600, 700],
+  'Open Sans': [300, 400, 500, 600, 700],
+  'IBM Plex Sans': [300, 400, 500, 600, 700],
+  'Roboto': [300, 400, 500, 700],
+  'Source Sans 3': [300, 400, 600, 700],
+  'Caveat': [400, 500, 600, 700],
+  'Kalam': [300, 400, 700],
+
+  // System & standard web fonts
+  'system-ui': [300, 400, 500, 600, 700],
+  'Arial': [400, 700],
+  'Helvetica': [400, 700],
+  'Georgia': [400, 700],
+  'Times New Roman': [400, 700],
+  'serif': [400, 700],
+  'monospace': [400, 700],
+
+  // Single-weight handwriting & diary fonts
+  'Dudu Calligraphy': [400],
+  'HelvetiHand': [400],
+  'Cutewritten': [400],
+  'Stay With Me': [400],
+  'Internet Friends': [400],
+  'Winkle': [400],
+  'April': [400],
+  'Reading Notes': [400],
+  'Classic Milky': [400],
+  'i eat crayons': [400],
+  'Patrick Hand': [400],
+  'Shadows Into Light': [400],
+};
+
+export function getSupportedFontWeights(fontFamily: string): FontWeight[] {
+  const clean = fontFamily.replace(/['"]/g, '').trim();
+  return FONT_SUPPORTED_WEIGHTS[clean] ?? [400];
+}
+
 
 export async function waitForFonts(): Promise<void> {
   if (typeof document !== 'undefined' && document.fonts) {

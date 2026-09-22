@@ -31,6 +31,7 @@ import {
   VerticalAlignment,
   AdvancedSettings,
 } from '../types';
+import { getSupportedFontWeights } from '../engine/fontLoader';
 
 interface DockedToolbarProps {
   pageCount: number;
@@ -409,7 +410,11 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                       key={font}
                       type="button"
                       onClick={() => {
-                        onTypographyChange({ ...typography, fontFamily: font });
+                        const supported = getSupportedFontWeights(font);
+                        const newWeight = supported.includes(typography.fontWeight)
+                          ? typography.fontWeight
+                          : (supported.includes(400) ? 400 : supported[0]);
+                        onTypographyChange({ ...typography, fontFamily: font, fontWeight: newWeight });
                         setActivePopover(null);
                       }}
                       className={`w-full px-2.5 py-1.5 rounded-[4px] text-xs text-left flex items-center justify-between transition-colors ${
@@ -503,23 +508,43 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
 
                 {/* Font Weight */}
                 <div className="mb-3">
-                  <span className="text-[10px] text-zinc-500 font-mono uppercase block mb-1.5">Font Weight</span>
-                  <div className="grid grid-cols-5 gap-1 bg-[#09090c] p-1 rounded-[6px] border border-[#18181f]">
-                    {([300, 400, 500, 600, 700] as FontWeight[]).map((w) => (
-                      <button
-                        key={w}
-                        type="button"
-                        onClick={() => onTypographyChange({ ...typography, fontWeight: w })}
-                        className={`py-1 text-[10px] rounded-[4px] font-mono transition-colors ${
-                          typography.fontWeight === w
-                            ? 'bg-[#1c1c24] text-[#f4f4f6] font-medium border border-[#2e2e3a]'
-                            : 'text-zinc-400 hover:text-white'
-                        }`}
-                      >
-                        {w}
-                      </button>
-                    ))}
-                  </div>
+                  {(() => {
+                    const supportedWeights = getSupportedFontWeights(typography.fontFamily);
+                    const isSingleWeight = supportedWeights.length === 1;
+                    return (
+                      <>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="text-[10px] text-zinc-500 font-mono uppercase">Font Weight</span>
+                          {isSingleWeight && (
+                            <span className="text-[9px] font-mono text-zinc-500">Regular 400 only</span>
+                          )}
+                        </div>
+                        <div className="grid grid-cols-5 gap-1 bg-[#09090c] p-1 rounded-[6px] border border-[#18181f]">
+                          {([300, 400, 500, 600, 700] as FontWeight[]).map((w) => {
+                            const isSupported = supportedWeights.includes(w);
+                            return (
+                              <button
+                                key={w}
+                                type="button"
+                                disabled={!isSupported}
+                                onClick={() => isSupported && onTypographyChange({ ...typography, fontWeight: w })}
+                                className={`py-1 text-[10px] rounded-[4px] font-mono transition-colors ${
+                                  !isSupported
+                                    ? 'opacity-20 cursor-not-allowed text-zinc-600'
+                                    : typography.fontWeight === w
+                                    ? 'bg-[#1c1c24] text-[#f4f4f6] font-medium border border-[#2e2e3a]'
+                                    : 'text-zinc-400 hover:text-white'
+                                }`}
+                                title={!isSupported ? `${typography.fontFamily} only supports native ${supportedWeights.join(', ')}` : undefined}
+                              >
+                                {w}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
 
                 {/* Line Height */}
