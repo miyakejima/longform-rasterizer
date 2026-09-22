@@ -28,8 +28,9 @@ export function sanitizeFileName(name: string, defaultName: string = 'text'): st
 export function generateProceduralTitle(text: string, maxLength: number = 28): string {
   if (!text || typeof text !== 'string') return 'card-deck';
 
-  // Split into lines and find the first non-empty line
-  const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  // Only inspect the first 1000 characters to extract the title quickly without splitting massive text
+  const firstChunk = text.length > 1000 ? text.slice(0, 1000) : text;
+  const lines = firstChunk.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
   if (lines.length === 0) return 'card-deck';
 
   let candidate = lines[0];

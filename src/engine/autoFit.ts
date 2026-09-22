@@ -16,10 +16,33 @@ export function autoFitFontSize(
     ? Math.max(minFont, options.advanced.maxFontSize)
     : Math.max(minFont, canvasScaleMax);
 
-  let low = minFont;
+  // 1. Check minFont first!
+  // If the document overflows even at minFont, no larger font size can possibly fit.
+  const minOptions: PaginationOptions = {
+    ...options,
+    typography: {
+      ...options.typography,
+      fontSize: minFont,
+    },
+  };
+  const minResult = paginateDocument(doc, minOptions);
+  const minHasOverflow = minResult.pages.some((p) => p.isOverflowing);
+
+  if (minHasOverflow) {
+    const pageCount = doc.pageCount;
+    return {
+      ...minResult,
+      effectiveFontSize: minFont,
+      isAutoFitFailed: true,
+      autoFitWarning: `Text does not fit in ${pageCount} image${pageCount > 1 ? 's' : ''} at the minimum font size (${minFont}px). Increase page count, reduce margins, reduce paragraph spacing, or increase canvas size.`,
+    };
+  }
+
+  // 2. minFont fits cleanly. Binary search between minFont + 1 and maxFont to find largest fitting size
+  let low = minFont + 1;
   let high = maxFont;
   let bestFontSize = minFont;
-  let bestResult: PaginationResult | null = null;
+  let bestResult: PaginationResult = minResult;
 
   while (low <= high) {
     const mid = Math.floor((low + high) / 2);

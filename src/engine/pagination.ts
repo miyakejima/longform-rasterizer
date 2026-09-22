@@ -269,8 +269,24 @@ export function paginateDocument(
     };
   }
 
+  // Precompute heights for lines i..j-1 using prefix sums for O(1) height lookups
+  const prefixLineHeights = new Float64Array(M + 1);
+  const prefixParaEnds = new Int32Array(M + 1);
+  for (let i = 0; i < M; i++) {
+    prefixLineHeights[i + 1] = prefixLineHeights[i] + lineHeightPx;
+    prefixParaEnds[i + 1] = prefixParaEnds[i] + (allLines[i].isParagraphEnd ? 1 : 0);
+  }
+
+  function getSpanHeight(i: number, j: number): number {
+    if (j <= i) return 0;
+    const baseH = prefixLineHeights[j] - prefixLineHeights[i];
+    // paragraph ends strictly between i and j-2 (not including the last line j-1)
+    const paraEnds = Math.max(0, prefixParaEnds[j - 1] - prefixParaEnds[i]);
+    return baseH + paraEnds * spacing.paragraphSpacing;
+  }
+
   // BALANCED & PARAGRAPH-PRESERVING: Dynamic Programming
-  const totalDocHeight = computePageRenderedHeight(allLines, lineHeightPx, spacing.paragraphSpacing);
+  const totalDocHeight = getSpanHeight(0, M);
 
   const avgHeight = totalDocHeight / pageCount;
   let targetHeight = avgHeight;
@@ -303,24 +319,19 @@ export function paginateDocument(
   const parsedParagraphs = parseDocumentParagraphs(originalText);
   if (parsedParagraphs.length >= pageCount) {
     const P = parsedParagraphs.length;
+    const paraLineRanges: { startLine: number; endLine: number }[] = [];
+    let currentLineIdx = 0;
+    for (let p = 0; p < P; p++) {
+      const startLine = currentLineIdx;
+      while (currentLineIdx < M && allLines[currentLineIdx].paragraphIndex === p) {
+        currentLineIdx++;
+      }
+      paraLineRanges.push({ startLine, endLine: currentLineIdx });
+    }
+
     const dpP: number[][] = Array.from({ length: pageCount + 1 }, () => new Array(P + 1).fill(Infinity));
     const parentP: number[][] = Array.from({ length: pageCount + 1 }, () => new Array(P + 1).fill(0));
     dpP[0][0] = 0;
-
-    const paraSpanCache = new Map<number, { height: number; lines: WrappedLine[] }>();
-    function getParaSpan(k: number, j: number) {
-      const key = k * 10000 + j;
-      const cached = paraSpanCache.get(key);
-      if (cached !== undefined) return cached;
-      const startChar = parsedParagraphs[k].startIndex;
-      const endChar = parsedParagraphs[j - 1].endIndex;
-      const spanText = originalText.slice(startChar, endChar);
-      const spanLines = wrapDocument(spanText, { availableWidth, typography });
-      const h = computePageRenderedHeight(spanLines, lineHeightPx, spacing.paragraphSpacing);
-      const data = { height: h, lines: spanLines };
-      paraSpanCache.set(key, data);
-      return data;
-    }
 
     for (let p = 1; p <= pageCount; p++) {
       for (let j = p; j <= P; j++) {
@@ -329,9 +340,11 @@ export function paginateDocument(
 
         for (let k = minK; k <= maxK; k++) {
           if (dpP[p - 1][k] === Infinity) continue;
-          const spanData = getParaSpan(k, j);
+          const startLine = paraLineRanges[k].startLine;
+          const endLine = paraLineRanges[j - 1].endLine;
+          const spanH = getSpanHeight(startLine, endLine);
           // Entire paragraphs: isParagraphEnd is true, isSentenceEnd is true
-          const cost = computeBalanceScore(spanData.height, balanceOpts, true, true, false, false);
+          const cost = computeBalanceScore(spanH, balanceOpts, true, true, false, false);
           const total = dpP[p - 1][k] + cost;
           if (total < dpP[p][j]) {
             dpP[p][j] = total;
@@ -362,13 +375,10 @@ export function paginateDocument(
           const pageText = originalText.slice(startChar, endChar);
           prevEnd = endChar;
 
-          const spanData = getParaSpan(startP, endP);
-          const pageLines = spanData.lines.map((l) => ({
-            ...l,
-            startIndex: l.startIndex + startChar,
-            endIndex: l.endIndex + startChar,
-          }));
-          const renderedH = spanData.height;
+          const startLine = paraLineRanges[startP].startLine;
+          const endLine = paraLineRanges[endP - 1].endLine;
+          const pageLines = allLines.slice(startLine, endLine);
+          const renderedH = getSpanHeight(startLine, endLine);
           const { overflowPx, isOverflowing } = computePageOverflow(renderedH, availableHeight, canvas, spacing);
           const isTrimmedPage = Boolean(
             (canvas.trimAllPages || (canvas.trimLastPageHeight && pageCount > 1 && p === pageCount - 1)) &&
@@ -414,8 +424,10 @@ export function paginateDocument(
 
   // 2. SENTENCE-LEVEL PARTITIONING:
   // Fallback when fewer paragraphs than pages or when an individual paragraph overflows page bounds
-  const sentenceChunks = parseDocumentSentences(originalText);
-  if (sentenceChunks.length >= pageCount) {
+  // Only runs when total document volume can realistically fit in the pages
+  const canFitInCards = totalDocHeight <= maxSafeHeight * pageCount;
+  const sentenceChunks = canFitInCards ? parseDocumentSentences(originalText) : [];
+  if (sentenceChunks.length >= pageCount && sentenceChunks.length <= 120) {
     const S = sentenceChunks.length;
     const dpS: number[][] = Array.from({ length: pageCount + 1 }, () => new Array(S + 1).fill(Infinity));
     const parentS: number[][] = Array.from({ length: pageCount + 1 }, () => new Array(S + 1).fill(0));
@@ -442,7 +454,8 @@ export function paginateDocument(
         const minK = p - 1;
         const maxK = j - 1;
 
-        for (let k = minK; k <= maxK; k++) {
+        // Iterate backwards from maxK; once span height exceeds safe height + margin, break early
+        for (let k = maxK; k >= minK; k--) {
           if (dpS[p - 1][k] === Infinity) continue;
           const spanH = getChunkSpanHeight(k, j);
           const cost = computeBalanceScore(spanH, balanceOpts, isParaEnd, true, false, false);
@@ -450,6 +463,9 @@ export function paginateDocument(
           if (total < dpS[p][j]) {
             dpS[p][j] = total;
             parentS[p][j] = k;
+          }
+          if (spanH > maxSafeHeight * 1.3) {
+            break;
           }
         }
       }
@@ -523,23 +539,8 @@ export function paginateDocument(
     }
   }
 
-  // Precompute heights for lines i..j-1
-  // To keep memory small, compute on the fly or with prefix sums
-  const prefixLineHeights = new Float64Array(M + 1);
-  const prefixParaEnds = new Int32Array(M + 1);
-  for (let i = 0; i < M; i++) {
-    prefixLineHeights[i + 1] = prefixLineHeights[i] + lineHeightPx;
-    prefixParaEnds[i + 1] = prefixParaEnds[i] + (allLines[i].isParagraphEnd ? 1 : 0);
-  }
-
-  function getSpanHeight(i: number, j: number): number {
-    if (j <= i) return 0;
-    const baseH = prefixLineHeights[j] - prefixLineHeights[i];
-    // paragraph ends strictly between i and j-2 (not including the last line j-1)
-    const paraEnds = Math.max(0, prefixParaEnds[j - 1] - prefixParaEnds[i]);
-    return baseH + paraEnds * spacing.paragraphSpacing;
-  }
-
+  // 3. LINE-LEVEL PARTITIONING:
+  // Precomputed heights for lines i..j-1 with prefix sums O(1)
   // DP table: dp[p][j] = min cost to partition first j lines into p pages
   // parent[p][j] = optimal previous line index k
   const dp: number[][] = Array.from({ length: pageCount + 1 }, () => new Array(M + 1).fill(Infinity));
@@ -556,11 +557,11 @@ export function paginateDocument(
       // An orphan at the bottom of the page occurs if the page ends on line 0 of a multi-line paragraph
       const isOrphan = lastLine.lineInParagraph === 0 && lastLine.totalLinesInParagraph > 1;
 
-      // Search previous boundary k
+      // Search previous boundary k backwards from j-1
       const minK = p - 1;
       const maxK = j - 1;
 
-      for (let k = minK; k <= maxK; k++) {
+      for (let k = maxK; k >= minK; k--) {
         if (dp[p - 1][k] === Infinity) continue;
 
         // A widow at the top of page p occurs if page p starts on the lonely last line of a multi-line paragraph
@@ -574,6 +575,10 @@ export function paginateDocument(
         if (total < dp[p][j]) {
           dp[p][j] = total;
           parent[p][j] = k;
+        }
+
+        if (spanH > maxSafeHeight * 1.5) {
+          break;
         }
       }
     }
