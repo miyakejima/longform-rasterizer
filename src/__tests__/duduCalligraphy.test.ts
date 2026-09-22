@@ -17,6 +17,24 @@ describe('Dudu Calligraphy & Life is Strange Font Engine Integration', () => {
     expect(width).toBeGreaterThan(0);
   });
 
+  it('measures text with all new DaFont fonts without error', () => {
+    const fonts = [
+      'Cutewritten',
+      'Stay With Me',
+      'Internet Friends',
+      'Winkle',
+      'April',
+      'Reading Notes',
+      'Classic Milky',
+      'i eat crayons',
+    ];
+    for (const f of fonts) {
+      const w = measureTextWidth('Sample diary handwriting text', f, 27, 400);
+      expect(w).toBeGreaterThan(0);
+    }
+  });
+
+
   it('properly quotes multi-word font families in canvas renderer', () => {
     const mockCtx = {
       save: () => {},

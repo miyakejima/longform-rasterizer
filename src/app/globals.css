@@ -455,7 +455,7 @@ html.dark .spotlight-scrim {
   background-color: rgba(245, 158, 11, 0.14);
 }
 
-/* Life is Strange Native Diary Fonts */
+/* Life is Strange & Creative Journal Native Fonts */
 @font-face {
   font-family: 'Dudu Calligraphy';
   src: url('../../public/fonts/Dudu_Calligraphy.ttf') format('truetype');
@@ -471,5 +471,70 @@ html.dark .spotlight-scrim {
   font-style: normal;
   font-display: swap;
 }
+
+@font-face {
+  font-family: 'Cutewritten';
+  src: url('../../public/fonts/Cutewritten.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Stay With Me';
+  src: url('../../public/fonts/Stay_With_Me.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Internet Friends';
+  src: url('../../public/fonts/Internet_Friends.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Winkle';
+  src: url('../../public/fonts/Winkle.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'April';
+  src: url('../../public/fonts/April.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Reading Notes';
+  src: url('../../public/fonts/Reading_Notes.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Classic Milky';
+  src: url('../../public/fonts/Classic_Milky.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'i eat crayons';
+  src: url('../../public/fonts/I_Eat_Crayons.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 
 

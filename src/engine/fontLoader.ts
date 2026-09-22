@@ -9,6 +9,14 @@ export async function waitForFonts(): Promise<void> {
         await Promise.allSettled([
           document.fonts.load('400 24px "Dudu Calligraphy"'),
           document.fonts.load('400 24px "HelvetiHand"'),
+          document.fonts.load('400 24px "Cutewritten"'),
+          document.fonts.load('400 24px "Stay With Me"'),
+          document.fonts.load('400 24px "Internet Friends"'),
+          document.fonts.load('400 24px "Winkle"'),
+          document.fonts.load('400 24px "April"'),
+          document.fonts.load('400 24px "Reading Notes"'),
+          document.fonts.load('400 24px "Classic Milky"'),
+          document.fonts.load('400 24px "i eat crayons"'),
         ]);
       }
       if (document.fonts.ready) {
