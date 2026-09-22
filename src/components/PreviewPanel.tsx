@@ -75,8 +75,9 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
   const rafIdRef = useRef<number | null>(null);
   const isWheelingRef = useRef(false);
 
-  // Mouse drag-to-scroll state
+  // Mouse drag-to-scroll & rubber-banding elasticity state
   const [isDragging, setIsDragging] = useState(false);
+  const [overscrollOffset, setOverscrollOffset] = useState(0);
   const dragStartXRef = useRef(0);
   const dragStartScrollRef = useRef(0);
   const hasDraggedRef = useRef(false);
@@ -162,10 +163,24 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
       if (e.deltaMode === 1) delta *= 33;
       else if (e.deltaMode === 2) delta *= container.clientWidth;
 
+      // Rubber-banding detection on wheel at boundaries
+      const rawTarget = targetScrollLeftRef.current + delta * 1.3;
+      if (rawTarget < 0) {
+        const excess = -rawTarget;
+        const rubber = Math.min(48, Math.sqrt(excess) * 3.5);
+        setOverscrollOffset(rubber);
+        setTimeout(() => setOverscrollOffset(0), 160);
+      } else if (rawTarget > maxScroll) {
+        const excess = rawTarget - maxScroll;
+        const rubber = -Math.min(48, Math.sqrt(excess) * 3.5);
+        setOverscrollOffset(rubber);
+        setTimeout(() => setOverscrollOffset(0), 160);
+      }
+
       // Natural, buttery speed multiplier (1.3x) - smooth and fully controllable
       targetScrollLeftRef.current = Math.max(
         0,
-        Math.min(maxScroll, targetScrollLeftRef.current + delta * 1.3)
+        Math.min(maxScroll, rawTarget)
       );
 
       if (rafIdRef.current === null) {
@@ -247,19 +262,53 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
       lastDragXRef.current = e.clientX;
       lastDragTimeRef.current = now;
 
-      container.scrollLeft = dragStartScrollRef.current - dx;
+      const target = dragStartScrollRef.current - dx;
+      const maxScroll = Math.max(0, container.scrollWidth - container.clientWidth);
+
+      if (target < 0) {
+        container.scrollLeft = 0;
+        const excess = -target;
+        // Apple rubber-band logarithmic/square-root resistance curve
+        const rubber = Math.min(72, Math.sqrt(excess) * 4.8);
+        setOverscrollOffset(rubber);
+      } else if (target > maxScroll) {
+        container.scrollLeft = maxScroll;
+        const excess = target - maxScroll;
+        const rubber = -Math.min(72, Math.sqrt(excess) * 4.8);
+        setOverscrollOffset(rubber);
+      } else {
+        container.scrollLeft = target;
+        setOverscrollOffset(0);
+      }
     };
 
     const handleMouseUp = () => {
       setIsDragging(false);
+      setOverscrollOffset(0);
       const container = carouselContainerRef.current;
       if (!container) return;
 
       let velocity = -dragVelocityRef.current * 18;
+      const maxScroll = Math.max(0, container.scrollWidth - container.clientWidth);
       if (Math.abs(velocity) > 1.5) {
         const fling = () => {
-          if (!carouselContainerRef.current || Math.abs(velocity) < 0.5) return;
-          carouselContainerRef.current.scrollLeft += velocity;
+          const c = carouselContainerRef.current;
+          if (!c || Math.abs(velocity) < 0.5) return;
+          const nextScroll = c.scrollLeft + velocity;
+          if (nextScroll < 0) {
+            c.scrollLeft = 0;
+            const bounce = Math.min(32, Math.abs(velocity) * 2.2);
+            setOverscrollOffset(bounce);
+            setTimeout(() => setOverscrollOffset(0), 120);
+            return;
+          } else if (nextScroll > maxScroll) {
+            c.scrollLeft = maxScroll;
+            const bounce = -Math.min(32, Math.abs(velocity) * 2.2);
+            setOverscrollOffset(bounce);
+            setTimeout(() => setOverscrollOffset(0), 120);
+            return;
+          }
+          c.scrollLeft = nextScroll;
           velocity *= 0.92;
           requestAnimationFrame(fling);
         };
@@ -364,7 +413,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
           <button
             type="button"
             onClick={onTriggerAutoFit}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-red-900/60 hover:bg-red-800 text-white font-medium transition-colors text-xs"
+            className="btn-tactile flex items-center gap-1.5 px-2.5 py-1 rounded bg-red-900/60 hover:bg-red-800 text-white font-medium transition-colors text-xs"
           >
             <Sparkles className="w-3.5 h-3.5" />
             Auto-fit Text
@@ -385,7 +434,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                   setInternalSingleIndex(nextIdx);
                   onSelectPage(nextIdx);
                 }}
-                className="flex items-center gap-1 text-[11px] font-mono text-zinc-400 hover:text-white bg-[#0c0c0e] hover:bg-[#16161c] px-2.5 py-1 rounded-[6px] border border-[#1b1b22] hover:border-[#2e2e3a] disabled:opacity-20 disabled:pointer-events-none transition-colors shadow-xs"
+                className="btn-tactile flex items-center gap-1 text-[11px] font-mono text-zinc-400 hover:text-white bg-[#0c0c0e] hover:bg-[#16161c] px-2.5 py-1 rounded-[6px] border border-[#1b1b22] hover:border-[#2e2e3a] disabled:opacity-20 disabled:pointer-events-none transition-colors shadow-xs"
                 title="Previous page (Arrow Left)"
               >
                 <ChevronLeft className="w-3.5 h-3.5" />
@@ -404,7 +453,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                   setInternalSingleIndex(nextIdx);
                   onSelectPage(nextIdx);
                 }}
-                className="flex items-center gap-1 text-[11px] font-mono text-zinc-400 hover:text-white bg-[#0c0c0e] hover:bg-[#16161c] px-2.5 py-1 rounded-[6px] border border-[#1b1b22] hover:border-[#2e2e3a] disabled:opacity-20 disabled:pointer-events-none transition-colors shadow-xs"
+                className="btn-tactile flex items-center gap-1 text-[11px] font-mono text-zinc-400 hover:text-white bg-[#0c0c0e] hover:bg-[#16161c] px-2.5 py-1 rounded-[6px] border border-[#1b1b22] hover:border-[#2e2e3a] disabled:opacity-20 disabled:pointer-events-none transition-colors shadow-xs"
                 title="Next page (Arrow Right)"
               >
                 <span>Next</span>
@@ -426,7 +475,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
               effectiveTypo
             );
             return (
-              <div className="flex-1 min-h-0 w-full flex items-center justify-center p-2">
+              <div className="flex-1 min-h-0 w-full flex items-center justify-center p-2 animate-in fade-in duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]">
                 <div
                   className="max-h-full max-w-full relative flex items-center justify-center"
                   style={{
@@ -497,8 +546,13 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                   key={`preview-carousel-${page.pageIndex}`}
                   className={`h-full ${
                     isEditorCollapsed ? 'max-h-[82vh]' : 'max-h-[72vh]'
-                  } min-h-[280px] shrink-0 flex flex-col items-center justify-center`}
-                  style={{ aspectRatio: `${cardDims.width} / ${cardDims.height}` }}
+                  } min-h-[280px] shrink-0 flex flex-col items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] animate-in fade-in zoom-in-95`}
+                  style={{
+                    aspectRatio: `${cardDims.width} / ${cardDims.height}`,
+                    transform: `translateX(${overscrollOffset}px)`,
+                    transition: isDragging ? 'none' : 'transform 260ms cubic-bezier(0.16, 1, 0.3, 1)',
+                    willChange: 'transform',
+                  }}
                 >
                   <div className="w-full h-full relative flex items-center justify-center">
                     <PageCard
@@ -538,7 +592,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
       {previewMode === 'grid' && (
         <div className={`grid ${getGridCols()} gap-6 mx-auto w-full items-start justify-center`}>
           {pages.map((page, idx) => (
-            <div key={`preview-page-${page.pageIndex}`} className="flex flex-col items-center gap-2 w-full">
+            <div key={`preview-page-${page.pageIndex}`} className="flex flex-col items-center gap-2 w-full transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] animate-in fade-in zoom-in-95">
               <PageCard
                 page={page}
                 totalPages={pages.length}

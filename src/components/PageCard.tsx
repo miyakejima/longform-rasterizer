@@ -65,6 +65,7 @@ export const PageCard: React.FC<PageCardProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [copied, setCopied] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [showShimmer, setShowShimmer] = useState(false);
 
   const effectiveTypo = page.typography
     ? { ...typography, ...page.typography, textColor: typography.textColor }
@@ -168,6 +169,8 @@ export const PageCard: React.FC<PageCardProps> = ({
     try {
       await navigator.clipboard.writeText(page.text.trim());
       setCopied(true);
+      setShowShimmer(true);
+      setTimeout(() => setShowShimmer(false), 700);
       setTimeout(() => setCopied(false), 2000);
     } catch {
       // Ignore
@@ -181,6 +184,8 @@ export const PageCard: React.FC<PageCardProps> = ({
       return;
     }
     setIsDownloading(true);
+    setShowShimmer(true);
+    setTimeout(() => setShowShimmer(false), 700);
     try {
       await exportSinglePage(page, {
         canvas,
@@ -222,21 +227,32 @@ export const PageCard: React.FC<PageCardProps> = ({
         onEnlarge();
       }}
     >
+      {/* Shimmer sweep feedback on copy or export */}
+      {showShimmer && (
+        <div className="absolute inset-0 pointer-events-none rounded-md overflow-hidden z-20">
+          <div className="w-full h-full animate-shimmer-sweep" />
+        </div>
+      )}
+
       {/* Floating hover micro-actions in top-right */}
       <div className="absolute top-2 right-2 flex items-center gap-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity bg-[#0c0c0e]/90 backdrop-blur-xs p-1 rounded-[6px] border border-[#1b1b22]">
         <button
           type="button"
           onClick={handleCopyText}
-          className="p-1 text-zinc-400 hover:text-white hover:bg-[#16161c] rounded-[4px] transition-colors"
+          className="btn-tactile p-1 text-zinc-400 hover:text-white hover:bg-[#16161c] rounded-[4px] transition-colors"
           title="Copy text for this page"
         >
-          {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+          {copied ? (
+            <Check className="w-3.5 h-3.5 text-emerald-400 animate-in zoom-in-50 duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]" />
+          ) : (
+            <Copy className="w-3.5 h-3.5" />
+          )}
         </button>
         <button
           type="button"
           onClick={handleDownload}
           disabled={isDownloading}
-          className="p-1 text-zinc-400 hover:text-white hover:bg-[#16161c] rounded-[4px] transition-colors"
+          className="btn-tactile p-1 text-zinc-400 hover:text-white hover:bg-[#16161c] rounded-[4px] transition-colors"
           title="Download this page image"
         >
           <Download className={`w-3.5 h-3.5 ${isDownloading ? 'animate-bounce text-zinc-200' : ''}`} />
@@ -247,7 +263,7 @@ export const PageCard: React.FC<PageCardProps> = ({
             e.stopPropagation();
             onEnlarge();
           }}
-          className="p-1 text-zinc-400 hover:text-white hover:bg-[#16161c] rounded-[4px] transition-colors"
+          className="btn-tactile p-1 text-zinc-400 hover:text-white hover:bg-[#16161c] rounded-[4px] transition-colors"
           title="Enlarge preview"
         >
           <Maximize2 className="w-3.5 h-3.5" />

@@ -269,7 +269,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
           >
             <div
               ref={spotlightRef}
-              className="spotlight-scrim absolute left-0 right-0 rounded-none pointer-events-none transition-all duration-150 ease-out opacity-0"
+              className="spotlight-scrim absolute left-0 right-0 pointer-events-none opacity-0"
               style={{
                 top: 0,
                 height: 0,

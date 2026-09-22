@@ -308,7 +308,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
           <button
             type="button"
             onClick={() => togglePopover('pages')}
-            className={`h-8 px-3 flex items-center gap-1.5 bg-[#0c0c0e] border border-[#1b1b22] rounded-[8px] text-xs transition-colors shadow-xs ${
+            className={`btn-tactile h-8 px-3 flex items-center gap-1.5 bg-[#0c0c0e] border border-[#1b1b22] rounded-[8px] text-xs transition-colors shadow-xs ${
               activePopover === 'pages'
                 ? 'bg-[#16161c] text-white border-[#2e2e3a]'
                 : 'text-zinc-300 hover:bg-[#16161c] hover:text-white'
@@ -367,15 +367,28 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                 <span className="text-[10px] font-semibold text-zinc-500 uppercase font-mono tracking-wider block mb-2">
                   Distribution Mode
                 </span>
-                <div className="grid grid-cols-3 gap-1 bg-[#09090c] p-1 rounded-[6px] border border-[#18181f]">
+                <div className="relative grid grid-cols-3 gap-1 bg-[#09090c] p-1 rounded-[6px] border border-[#18181f]">
+                  {/* Sliding Pill Indicator */}
+                  <div
+                    className="absolute top-1 bottom-1 left-1 w-[calc((100%-8px)/3)] rounded-[4px] bg-[#1c1c24] border border-[#2e2e3a] shadow-xs transition-transform duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none"
+                    style={{
+                      transform: `translateX(${
+                        distributionMode === 'balanced'
+                          ? '0%'
+                          : distributionMode === 'paragraph-preserving'
+                          ? '100%'
+                          : '200%'
+                      })`,
+                    }}
+                  />
                   {(['balanced', 'paragraph-preserving', 'manual'] as DistributionMode[]).map((mode) => (
                     <button
                       key={mode}
                       type="button"
                       onClick={() => onDistributionModeChange(mode)}
-                      className={`py-1 text-[10px] rounded-[4px] transition-colors ${
+                      className={`btn-tactile relative z-10 py-1 text-[10px] rounded-[4px] text-center transition-colors ${
                         distributionMode === mode
-                          ? 'bg-[#1c1c24] text-[#f4f4f6] font-medium border border-[#2e2e3a]'
+                          ? 'text-[#f4f4f6] font-medium'
                           : 'text-zinc-400 hover:text-white'
                       }`}
                     >
@@ -397,7 +410,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
             <button
               type="button"
               onClick={() => togglePopover('font')}
-              className={`h-7 px-2.5 flex items-center gap-1 text-xs rounded-[6px] transition-colors ${
+              className={`btn-tactile h-7 px-2.5 flex items-center gap-1 text-xs rounded-[6px] transition-colors ${
                 activePopover === 'font'
                   ? 'bg-[#16161c] text-white'
                   : 'text-zinc-300 hover:bg-[#16161c] hover:text-white'
@@ -513,7 +526,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
             <button
               type="button"
               onClick={() => togglePopover('size')}
-              className={`h-7 px-2.5 flex items-center gap-1 text-xs rounded-[6px] transition-colors ${
+              className={`btn-tactile h-7 px-2.5 flex items-center gap-1 text-xs rounded-[6px] transition-colors ${
                 activePopover === 'size'
                   ? 'bg-[#16161c] text-white'
                   : 'text-zinc-300 hover:bg-[#16161c] hover:text-white'
@@ -658,7 +671,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
               const nextMin = advanced.minFontSize === 18 ? 8 : (advanced.minFontSize || 8);
               onAdvancedChange({ ...advanced, autoFit: nextAutoFit, minFontSize: nextMin });
             }}
-            className={`h-7 px-2.5 flex items-center gap-1.5 rounded-[6px] text-[11px] font-medium transition-colors ${
+            className={`btn-tactile h-7 px-2.5 flex items-center gap-1.5 rounded-[6px] text-[11px] font-medium transition-colors ${
               advanced.autoFit
                 ? 'bg-[#1c1c24] text-[#f4f4f6] border border-[#2e2e3a] shadow-xs'
                 : 'text-zinc-400 hover:text-white hover:bg-[#16161c]'
@@ -673,7 +686,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
           <button
             type="button"
             onClick={onAuthorPreferred ?? onFillCanvas}
-            className={`h-7 px-2.5 flex items-center gap-1.5 rounded-[6px] text-[11px] font-medium transition-colors ${
+            className={`btn-tactile h-7 px-2.5 flex items-center gap-1.5 rounded-[6px] text-[11px] font-medium transition-colors ${
               isAutoBalanced
                 ? 'bg-[#1c1c24] text-[#f4f4f6] border border-[#2e2e3a] shadow-xs'
                 : 'text-zinc-400 hover:text-white hover:bg-[#16161c]'
@@ -698,7 +711,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
             <button
               type="button"
               onClick={() => togglePopover('format')}
-              className={`h-7 px-2.5 flex items-center gap-1 text-xs rounded-[6px] transition-colors ${
+              className={`btn-tactile h-7 px-2.5 flex items-center gap-1 text-xs rounded-[6px] transition-colors ${
                 activePopover === 'format'
                   ? 'bg-[#16161c] text-white'
                   : 'text-zinc-300 hover:bg-[#16161c] hover:text-white'
@@ -805,14 +818,27 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                   <span className="text-[10px] font-semibold text-zinc-500 uppercase font-mono tracking-wider">
                     Card Height Mode
                   </span>
-                  <div className="grid grid-cols-3 gap-1 bg-[#09090c] p-1 rounded-[6px] border border-[#18181f]">
+                  <div className="relative grid grid-cols-3 gap-1 bg-[#09090c] p-1 rounded-[6px] border border-[#18181f]">
+                    {/* Sliding Pill Indicator */}
+                    <div
+                      className="absolute top-1 bottom-1 left-1 w-[calc((100%-8px)/3)] rounded-[4px] bg-[#1c1c24] border border-[#2e2e3a] shadow-xs transition-transform duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none"
+                      style={{
+                        transform: `translateX(${
+                          canvas.trimAllPages
+                            ? '0%'
+                            : canvas.trimLastPageHeight
+                            ? '100%'
+                            : '200%'
+                        })`,
+                      }}
+                    />
                     <button
                       type="button"
                       onClick={() => onCanvasChange({ ...canvas, trimAllPages: true, trimLastPageHeight: true })}
-                      className={`px-2 py-1 rounded-[4px] text-[11px] font-medium transition-colors ${
+                      className={`btn-tactile relative z-10 px-2 py-1 rounded-[4px] text-[11px] text-center font-medium transition-colors ${
                         canvas.trimAllPages
-                          ? 'bg-[#1c1c24] text-[#f4f4f6] border border-[#2e2e3a]'
-                          : 'text-zinc-400 hover:text-white hover:bg-[#14141a]'
+                          ? 'text-[#f4f4f6]'
+                          : 'text-zinc-400 hover:text-white'
                       }`}
                       title="Auto-fit every card height to content (100% util, no empty space)"
                     >
@@ -821,10 +847,10 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                     <button
                       type="button"
                       onClick={() => onCanvasChange({ ...canvas, trimAllPages: false, trimLastPageHeight: true })}
-                      className={`px-2 py-1 rounded-[4px] text-[11px] font-medium transition-colors ${
+                      className={`btn-tactile relative z-10 px-2 py-1 rounded-[4px] text-[11px] text-center font-medium transition-colors ${
                         !canvas.trimAllPages && canvas.trimLastPageHeight
-                          ? 'bg-[#1c1c24] text-[#f4f4f6] border border-[#2e2e3a]'
-                          : 'text-zinc-400 hover:text-white hover:bg-[#14141a]'
+                          ? 'text-[#f4f4f6]'
+                          : 'text-zinc-400 hover:text-white'
                       }`}
                       title="Cards 1-(N-1) stay uniform 4:5 for carousels; only last card trims"
                     >
@@ -833,10 +859,10 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                     <button
                       type="button"
                       onClick={() => onCanvasChange({ ...canvas, trimAllPages: false, trimLastPageHeight: false })}
-                      className={`px-2 py-1 rounded-[4px] text-[11px] font-medium transition-colors ${
+                      className={`btn-tactile relative z-10 px-2 py-1 rounded-[4px] text-[11px] text-center font-medium transition-colors ${
                         !canvas.trimAllPages && !canvas.trimLastPageHeight
-                          ? 'bg-[#1c1c24] text-[#f4f4f6] border border-[#2e2e3a]'
-                          : 'text-zinc-400 hover:text-white hover:bg-[#14141a]'
+                          ? 'text-[#f4f4f6]'
+                          : 'text-zinc-400 hover:text-white'
                       }`}
                       title="Strict fixed canvas dimensions for all cards"
                     >
@@ -865,7 +891,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                   key={al.id}
                   type="button"
                   onClick={() => onTypographyChange({ ...typography, alignment: al.id as TextAlignment })}
-                  className={`h-7 w-7 flex items-center justify-center rounded-[6px] transition-colors ${
+                  className={`btn-tactile h-7 w-7 flex items-center justify-center rounded-[6px] transition-colors ${
                     isActive
                       ? 'bg-[#1c1c24] text-[#f4f4f6] border border-[#2e2e3a]'
                       : 'text-zinc-400 hover:text-white hover:bg-[#16161c]'
@@ -880,8 +906,18 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
 
           <span className="text-zinc-700 text-[10px] px-0.5 select-none">·</span>
 
-          {/* Vertical Alignment (Top / Center / Justify) */}
-          <div className="flex items-center gap-0.5">
+          {/* Vertical Alignment (Top / Center / Justify) with Sliding Pill */}
+          <div className="relative flex items-center bg-[#09090c] p-0.5 rounded-[6px] border border-[#18181f]">
+            {(() => {
+              const currentVA = typography.verticalAlignment ?? spacing.verticalAlignment ?? 'center';
+              const vaIndex = currentVA === 'top' ? 0 : currentVA === 'center' ? 1 : 2;
+              return (
+                <div
+                  className="absolute top-0.5 bottom-0.5 left-0.5 w-[calc((100%-4px)/3)] rounded-[4px] bg-[#1c1c24] border border-[#2e2e3a] shadow-xs transition-transform duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none"
+                  style={{ transform: `translateX(${vaIndex * 100}%)` }}
+                />
+              );
+            })()}
             {(['top', 'center', 'justify'] as VerticalAlignment[]).map((va) => {
               const currentVA = typography.verticalAlignment ?? spacing.verticalAlignment ?? 'center';
               const isActive = currentVA === va;
@@ -895,10 +931,10 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                     onTypographyChange({ ...typography, verticalAlignment: va });
                     onSpacingChange({ ...spacing, verticalAlignment: va });
                   }}
-                  className={`h-7 px-2 flex items-center justify-center rounded-[6px] text-[11px] font-medium transition-colors ${
+                  className={`btn-tactile relative z-10 h-6 px-2 flex items-center justify-center rounded-[4px] text-[11px] font-medium transition-colors ${
                     isActive
-                      ? 'bg-[#1c1c24] text-[#f4f4f6] border border-[#2e2e3a]'
-                      : 'text-zinc-400 hover:text-white hover:bg-[#16161c]'
+                      ? 'text-[#f4f4f6]'
+                      : 'text-zinc-400 hover:text-white'
                   }`}
                   title={tip}
                 >
@@ -918,7 +954,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
             <button
               type="button"
               onClick={() => togglePopover('margins')}
-              className={`h-7 px-2.5 flex items-center gap-1.5 rounded-[6px] text-xs transition-colors ${
+              className={`btn-tactile h-7 px-2.5 flex items-center gap-1.5 rounded-[6px] text-xs transition-colors ${
                 activePopover === 'margins'
                   ? 'bg-[#16161c] text-white'
                   : 'text-zinc-300 hover:bg-[#16161c] hover:text-white'
@@ -934,7 +970,20 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
               <span className="text-[10px] font-semibold text-zinc-500 uppercase font-mono tracking-wider block mb-2">
                 Margins & Spacing
               </span>
-              <div className="grid grid-cols-3 gap-1 mb-3">
+              <div className="relative grid grid-cols-3 gap-1 mb-3 bg-[#09090c] p-1 rounded-[6px] border border-[#18181f]">
+                {/* Sliding Pill Indicator */}
+                <div
+                  className="absolute top-1 bottom-1 left-1 w-[calc((100%-8px)/3)] rounded-[4px] bg-[#1c1c24] border border-[#2e2e3a] shadow-xs transition-transform duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none"
+                  style={{
+                    transform: `translateX(${
+                      spacing.preset === 'compact'
+                        ? '0%'
+                        : spacing.preset === 'balanced'
+                        ? '100%'
+                        : '200%'
+                    })`,
+                  }}
+                />
                 {[
                   { id: 'compact', name: 'Compact', px: '48px' },
                   { id: 'balanced', name: 'Balanced', px: '96px' },
@@ -944,10 +993,10 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                     key={m.id}
                     type="button"
                     onClick={() => handleMarginPresetChange(m.id as MarginPreset)}
-                    className={`py-1.5 px-2 rounded-[6px] text-xs flex flex-col items-center gap-0.5 border transition-colors ${
+                    className={`btn-tactile relative z-10 py-1.5 px-2 rounded-[4px] text-xs flex flex-col items-center gap-0.5 transition-colors ${
                       spacing.preset === m.id
-                        ? 'bg-[#1c1c24] text-[#f4f4f6] font-medium border-[#2e2e3a] shadow-xs'
-                        : 'bg-[#09090c] border-[#18181f] text-zinc-400 hover:text-white hover:bg-[#14141a]'
+                        ? 'text-[#f4f4f6] font-medium'
+                        : 'text-zinc-400 hover:text-white'
                     }`}
                   >
                     <span>{m.name}</span>
@@ -986,7 +1035,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
             <button
               type="button"
               onClick={() => togglePopover('colors')}
-              className={`h-7 px-2.5 flex items-center gap-2 text-xs rounded-[6px] transition-colors ${
+              className={`btn-tactile h-7 px-2.5 flex items-center gap-2 text-xs rounded-[6px] transition-colors ${
                 activePopover === 'colors'
                   ? 'bg-[#16161c] text-white'
                   : 'text-zinc-300 hover:bg-[#16161c] hover:text-white'
@@ -1199,7 +1248,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
             <button
               type="button"
               onClick={() => togglePopover('more')}
-              className={`h-7 px-2 flex items-center gap-1 text-xs rounded-[6px] transition-colors cursor-pointer ${
+              className={`btn-tactile h-7 px-2 flex items-center gap-1 text-xs rounded-[6px] transition-colors cursor-pointer ${
                 activePopover === 'more'
                   ? 'bg-[#16161c] text-white'
                   : 'text-zinc-400 hover:text-white hover:bg-[#16161c]'

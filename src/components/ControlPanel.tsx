@@ -1107,7 +1107,20 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
             {/* Distribution Mode */}
             <div>
               <label className="text-zinc-400 block mb-1.5 text-[11px]">Distribution Mode</label>
-              <div className="grid grid-cols-3 gap-1 bg-[#141417] p-0.5 rounded border border-[#1f1f23]">
+              <div className="relative grid grid-cols-3 gap-1 bg-[#141417] p-0.5 rounded border border-[#1f1f23]">
+                {/* Sliding Pill Indicator */}
+                <div
+                  className="absolute top-0.5 bottom-0.5 left-0.5 w-[calc((100%-4px)/3)] rounded bg-[#222228] shadow-xs transition-transform duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none"
+                  style={{
+                    transform: `translateX(${
+                      distributionMode === 'balanced'
+                        ? '0%'
+                        : distributionMode === 'paragraph-preserving'
+                        ? '100%'
+                        : '200%'
+                    })`,
+                  }}
+                />
                 {(
                   [
                     { id: 'balanced', label: 'Balanced' },
@@ -1119,9 +1132,9 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                     key={m.id}
                     type="button"
                     onClick={() => onDistributionModeChange(m.id)}
-                    className={`py-1 px-1 rounded text-center truncate transition-all ${
+                    className={`btn-tactile relative z-10 py-1 px-1 rounded text-center truncate transition-colors ${
                       distributionMode === m.id
-                        ? 'bg-[#222228] text-white font-medium shadow-xs'
+                        ? 'text-white font-medium'
                         : 'text-zinc-400 hover:text-zinc-200'
                     }`}
                   >

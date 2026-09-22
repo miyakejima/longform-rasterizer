@@ -122,7 +122,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
           type="button"
           onClick={() => setShowExportMenu((prev) => !prev)}
           disabled={isExporting}
-          className={`h-8 px-3.5 rounded-[8px] bg-[#0c0c0e] hover:bg-[#16161c] border border-[#1b1b22] hover:border-[#2e2e3a] text-xs font-medium text-zinc-300 hover:text-white transition-all shadow-xs flex items-center gap-1.5 focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-zinc-500 ${
+          className={`btn-tactile h-8 px-3.5 rounded-[8px] bg-[#0c0c0e] hover:bg-[#16161c] border border-[#1b1b22] hover:border-[#2e2e3a] text-xs font-medium text-zinc-300 hover:text-white transition-all shadow-xs flex items-center gap-1.5 focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-zinc-500 ${
             showExportMenu ? 'bg-[#16161c] border-[#2e2e3a] text-white' : ''
           }`}
         >
@@ -151,7 +151,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
                   setShowExportMenu(false);
                   onExportAll();
                 }}
-                className="w-full px-2.5 py-1.5 text-xs text-left rounded-[6px] flex items-center justify-between bg-[#09090c] border border-[#18181f] hover:bg-[#14141a] text-zinc-300 hover:text-white transition-colors"
+                className="btn-tactile w-full px-2.5 py-1.5 text-xs text-left rounded-[6px] flex items-center justify-between bg-[#09090c] border border-[#18181f] hover:bg-[#14141a] text-zinc-300 hover:text-white transition-colors"
               >
                 <span className="flex items-center gap-2">
                   <Download className="w-3.5 h-3.5 text-zinc-400" />
@@ -167,7 +167,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
                     setShowExportMenu(false);
                     onExportZip();
                   }}
-                  className="w-full px-2.5 py-1.5 text-xs text-left rounded-[6px] flex items-center justify-between bg-[#09090c] border border-[#18181f] hover:bg-[#14141a] text-zinc-300 hover:text-white transition-colors"
+                  className="btn-tactile w-full px-2.5 py-1.5 text-xs text-left rounded-[6px] flex items-center justify-between bg-[#09090c] border border-[#18181f] hover:bg-[#14141a] text-zinc-300 hover:text-white transition-colors"
                 >
                   <span className="flex items-center gap-2">
                     <FileArchive className="w-3.5 h-3.5 text-zinc-400" />
@@ -182,15 +182,24 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
             <div className="pt-2 space-y-2">
               <div className="flex items-center justify-between text-xs text-zinc-400">
                 <span className="text-[11px]">Format</span>
-                <div className="flex gap-1 bg-[#09090c] p-0.5 rounded-[6px] border border-[#18181f]">
+                <div className="relative grid grid-cols-3 gap-1 bg-[#09090c] p-0.5 rounded-[6px] border border-[#18181f]">
+                  {/* Sliding Pill Indicator */}
+                  <div
+                    className="absolute top-0.5 bottom-0.5 left-0.5 w-[calc((100%-4px)/3)] rounded-[4px] bg-[#1c1c24] border border-[#2e2e3a] shadow-xs transition-transform duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none"
+                    style={{
+                      transform: `translateX(${
+                        exportFormat === 'png' ? '0%' : exportFormat === 'jpeg' ? '100%' : '200%'
+                      })`,
+                    }}
+                  />
                   {(['png', 'jpeg', 'webp'] as ExportFormat[]).map((fmt) => (
                     <button
                       key={fmt}
                       type="button"
                       onClick={() => onExportFormatChange(fmt)}
-                      className={`px-2 py-0.5 text-[10px] rounded-[4px] uppercase font-mono transition-colors ${
+                      className={`btn-tactile relative z-10 px-2 py-0.5 text-[10px] text-center rounded-[4px] uppercase font-mono transition-colors ${
                         exportFormat === fmt
-                          ? 'bg-[#1c1c24] text-[#f4f4f6] font-medium border border-[#2e2e3a]'
+                          ? 'text-[#f4f4f6] font-medium'
                           : 'text-zinc-400 hover:text-zinc-200'
                       }`}
                     >
@@ -202,15 +211,24 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
 
               <div className="flex items-center justify-between text-xs text-zinc-400">
                 <span className="text-[11px]">Resolution Scale</span>
-                <div className="flex gap-1 bg-[#09090c] p-0.5 rounded-[6px] border border-[#18181f]">
+                <div className="relative grid grid-cols-3 gap-1 bg-[#09090c] p-0.5 rounded-[6px] border border-[#18181f]">
+                  {/* Sliding Pill Indicator */}
+                  <div
+                    className="absolute top-0.5 bottom-0.5 left-0.5 w-[calc((100%-4px)/3)] rounded-[4px] bg-[#1c1c24] border border-[#2e2e3a] shadow-xs transition-transform duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none"
+                    style={{
+                      transform: `translateX(${
+                        exportScale === 1 ? '0%' : exportScale === 2 ? '100%' : '200%'
+                      })`,
+                    }}
+                  />
                   {([1, 2, 3] as ExportScale[]).map((sc) => (
                     <button
                       key={sc}
                       type="button"
                       onClick={() => onExportScaleChange(sc)}
-                      className={`px-2 py-0.5 text-[10px] rounded-[4px] font-mono transition-colors ${
+                      className={`btn-tactile relative z-10 px-2 py-0.5 text-[10px] text-center rounded-[4px] font-mono transition-colors ${
                         exportScale === sc
-                          ? 'bg-[#1c1c24] text-[#f4f4f6] font-medium border border-[#2e2e3a]'
+                          ? 'text-[#f4f4f6] font-medium'
                           : 'text-zinc-400 hover:text-zinc-200'
                       }`}
                     >

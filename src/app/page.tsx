@@ -813,16 +813,26 @@ function Workspace() {
               </button>
             </div>
 
-            {/* Center Zone: Symmetrical View Mode Segmented Control */}
+            {/* Center Zone: Symmetrical View Mode Segmented Control with Sliding Pill */}
             <div className="flex items-center justify-center select-none shrink-0">
-              <div className="h-8 p-0.5 rounded-[8px] bg-[#0c0c0e] border border-[#1b1b22] flex items-center gap-1 shadow-xs">
+              <div className="relative h-8 p-0.5 rounded-[8px] bg-[#0c0c0e] border border-[#1b1b22] grid grid-cols-3 gap-0.5 shadow-xs">
+                {/* Continuous Sliding Pill Indicator */}
+                <div
+                  className="absolute top-0.5 bottom-0.5 left-0.5 w-[calc((100%-4px)/3)] rounded-[6px] bg-[#1c1c24] border border-[#2e2e3a] shadow-xs transition-transform duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none"
+                  style={{
+                    transform: `translateX(${
+                      previewMode === 'grid' ? '0%' : previewMode === 'single' ? '100%' : '200%'
+                    })`,
+                  }}
+                />
+
                 <button
                   type="button"
                   onClick={() => setPreviewMode('grid')}
-                  className={`h-7 px-3 rounded-[6px] flex items-center gap-1.5 text-xs transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-zinc-500 ${
+                  className={`btn-tactile relative z-10 h-7 px-2.5 sm:px-3 rounded-[6px] flex items-center justify-center gap-1.5 text-xs transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-zinc-500 ${
                     previewMode === 'grid'
-                      ? 'bg-[#1c1c24] text-[#f4f4f6] font-medium border border-[#2e2e3a] shadow-xs'
-                      : 'text-zinc-400 hover:text-white hover:bg-[#16161c]'
+                      ? 'text-[#f4f4f6] font-medium'
+                      : 'text-zinc-400 hover:text-white'
                   }`}
                   title="Grid view"
                   aria-label="Grid view"
@@ -833,10 +843,10 @@ function Workspace() {
                 <button
                   type="button"
                   onClick={() => setPreviewMode('single')}
-                  className={`h-7 px-3 rounded-[6px] flex items-center gap-1.5 text-xs transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-zinc-500 ${
+                  className={`btn-tactile relative z-10 h-7 px-2.5 sm:px-3 rounded-[6px] flex items-center justify-center gap-1.5 text-xs transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-zinc-500 ${
                     previewMode === 'single'
-                      ? 'bg-[#1c1c24] text-[#f4f4f6] font-medium border border-[#2e2e3a] shadow-xs'
-                      : 'text-zinc-400 hover:text-white hover:bg-[#16161c]'
+                      ? 'text-[#f4f4f6] font-medium'
+                      : 'text-zinc-400 hover:text-white'
                   }`}
                   title="Single page view"
                   aria-label="Single page view"
@@ -847,10 +857,10 @@ function Workspace() {
                 <button
                   type="button"
                   onClick={() => setPreviewMode('carousel')}
-                  className={`h-7 px-3 rounded-[6px] flex items-center gap-1.5 text-xs transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-zinc-500 ${
+                  className={`btn-tactile relative z-10 h-7 px-2.5 sm:px-3 rounded-[6px] flex items-center justify-center gap-1.5 text-xs transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-zinc-500 ${
                     previewMode === 'carousel'
-                      ? 'bg-[#1c1c24] text-[#f4f4f6] font-medium border border-[#2e2e3a] shadow-xs'
-                      : 'text-zinc-400 hover:text-white hover:bg-[#16161c]'
+                      ? 'text-[#f4f4f6] font-medium'
+                      : 'text-zinc-400 hover:text-white'
                   }`}
                   title="Carousel swipe view"
                   aria-label="Carousel view"
@@ -866,7 +876,7 @@ function Workspace() {
               <button
                 type="button"
                 onClick={toggleTheme}
-                className="theme-toggle-btn"
+                className="theme-toggle-btn btn-tactile"
                 title={theme === 'light' ? 'Switch to Dark Theme' : 'Switch to Light Theme'}
                 aria-label="Toggle theme"
               >
@@ -910,7 +920,7 @@ function Workspace() {
               <button
                 type="button"
                 onClick={handleToggleHighlight}
-                className={`h-8 px-2.5 rounded-[8px] border text-xs font-medium transition-all flex items-center gap-1.5 shadow-xs cursor-pointer focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-zinc-500 ${
+                className={`btn-tactile h-8 px-2.5 rounded-[8px] border text-xs font-medium transition-all flex items-center gap-1.5 shadow-xs cursor-pointer focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-zinc-500 ${
                   isHighlightEnabled
                     ? 'bg-slate-200/80 dark:bg-[#1c1c24] border-slate-300 dark:border-[#2e2e3a] text-slate-900 dark:text-[#f4f4f6]'
                     : 'bg-transparent border-slate-200/60 dark:border-[#1b1b22] text-slate-400 dark:text-zinc-500 hover:text-slate-700 dark:hover:text-zinc-300 hover:bg-slate-100 dark:hover:bg-[#16161c]'
