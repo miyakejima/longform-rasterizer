@@ -249,6 +249,18 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
     });
   };
 
+  const [autoFitPulse, setAutoFitPulse] = useState(false);
+  const prevFontSizeRef = useRef(effectiveFontSize);
+  useEffect(() => {
+    if (prevFontSizeRef.current !== effectiveFontSize && advanced.autoFit) {
+      setAutoFitPulse(true);
+      const timer = setTimeout(() => setAutoFitPulse(false), 320);
+      prevFontSizeRef.current = effectiveFontSize;
+      return () => clearTimeout(timer);
+    }
+    prevFontSizeRef.current = effectiveFontSize;
+  }, [effectiveFontSize, advanced.autoFit]);
+
   const allFonts = Array.from(new Set([...customFonts, ...BUILT_IN_FONTS]));
   const filteredFonts = allFonts.filter((f) =>
     f.toLowerCase().includes(fontSearch.toLowerCase())
@@ -508,7 +520,9 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
               }`}
               title="Adjust font size, weight and line height"
             >
-              <span>{Number(effectiveFontSize.toFixed(1))}px</span>
+              <span className={`inline-block transition-colors ${autoFitPulse ? 'animate-pulse-subtle text-amber-300 font-semibold' : ''}`}>
+                {Number(effectiveFontSize.toFixed(1))}px
+              </span>
               <ChevronDown className="w-3 h-3 text-zinc-500" />
             </button>
 

@@ -200,11 +200,11 @@ export const PageCard: React.FC<PageCardProps> = ({
 
   return (
     <div
-      className={`page-card-frame group relative flex flex-col transition-all cursor-zoom-in select-none rounded-md ${
+      className={`page-card-frame page-card-interactive group relative flex flex-col cursor-zoom-in select-none rounded-md ${
         hasOverflow
           ? 'border border-red-800 shadow-red-950/20'
           : isHovered
-          ? 'border border-black/[0.08] dark:border-white/[0.12]'
+          ? 'border border-black/[0.14] dark:border-white/[0.22]'
           : 'border border-black/[0.04] dark:border-white/[0.05]'
       }`}
       style={{
