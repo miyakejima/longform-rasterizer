@@ -94,7 +94,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
   onFillCanvas,
   onAuthorPreferred,
 }) => {
-  const [activePopover, setActivePopover] = useState<'pages' | 'font' | 'size' | 'format' | 'margins' | 'more' | null>(null);
+  const [activePopover, setActivePopover] = useState<'pages' | 'font' | 'size' | 'format' | 'margins' | 'colors' | 'more' | null>(null);
   const [fontSearch, setFontSearch] = useState('');
   const [prevCanvas, setPrevCanvas] = useState({ width: canvas.width, height: canvas.height });
   const [customWidth, setCustomWidth] = useState(String(canvas.width));
@@ -172,7 +172,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
     };
   }, []);
 
-  const togglePopover = (name: 'pages' | 'font' | 'size' | 'format' | 'margins' | 'more') => {
+  const togglePopover = (name: 'pages' | 'font' | 'size' | 'format' | 'margins' | 'colors' | 'more') => {
     setActivePopover((prev) => (prev === name ? null : name));
   };
 
@@ -854,25 +854,40 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
             </div>
           )}
         </div>
+      </div>
 
-        <span className="text-zinc-700 text-[10px] px-0.5 select-none">·</span>
-
-          {/* More Options Trigger */}
+        {/* ========================================================= */}
+        {/* GROUP 5: COLORS (Background & Text Palette)               */}
+        {/* ========================================================= */}
+        <div className="h-8 flex items-center bg-[#0c0c0e] border border-[#1b1b22] rounded-[8px] p-0.5 gap-0.5 shadow-xs">
           <div className="relative">
             <button
               type="button"
-              onClick={() => togglePopover('more')}
-              className={`h-7 w-7 flex items-center justify-center rounded-[6px] text-xs transition-colors ${
-                activePopover === 'more'
+              onClick={() => togglePopover('colors')}
+              className={`h-7 px-2.5 flex items-center gap-2 text-xs rounded-[6px] transition-colors ${
+                activePopover === 'colors'
                   ? 'bg-[#16161c] text-white'
-                  : 'text-zinc-400 hover:text-white hover:bg-[#16161c]'
+                  : 'text-zinc-300 hover:bg-[#16161c] hover:text-white'
               }`}
-              title="More options (colors, presets, lock layout, reset)"
+              title="Change canvas background and text colors"
             >
-              <MoreHorizontal className="w-3.5 h-3.5" />
+              <div className="flex items-center gap-1 shrink-0">
+                <span
+                  className="w-3 h-3 rounded-full border border-black/20 dark:border-white/20 block shrink-0"
+                  style={{ backgroundColor: canvas.transparentBackground ? 'transparent' : canvas.backgroundColor }}
+                  title={`Canvas: ${canvas.backgroundColor}`}
+                />
+                <span
+                  className="w-3 h-3 rounded-full border border-black/20 dark:border-white/20 block shrink-0 -ml-1.5 shadow-xs"
+                  style={{ backgroundColor: typography.textColor }}
+                  title={`Text: ${typography.textColor}`}
+                />
+              </div>
+              <span>Colors</span>
+              <ChevronDown className="w-3 h-3 text-zinc-500" />
             </button>
 
-            {activePopover === 'more' && (
+            {activePopover === 'colors' && (
               <div className="absolute bottom-full right-0 mb-3 w-80 bg-[#0c0c0e] border border-[#1b1b22] rounded-xl shadow-2xl shadow-black p-4 text-zinc-200 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
                 <span className="text-[10px] font-semibold text-zinc-500 uppercase font-mono tracking-wider block mb-2">
                   Colors & Appearance
@@ -912,31 +927,79 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                       onChange={(e) =>
                         onCanvasChange({ ...canvas, transparentBackground: e.target.checked })
                       }
-                      className="rounded border-[#18181f] text-zinc-300 focus:ring-0"
+                      className="rounded border-[#18181f] text-zinc-300 focus:ring-0 cursor-pointer"
                     />
                   </div>
                 </div>
 
-                <div className="space-y-1.5 pt-2 border-t border-[#18181f]">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onToggleLayoutLock();
-                      setActivePopover(null);
-                    }}
-                    className="w-full px-2.5 py-1.5 rounded-[6px] text-xs text-left flex items-center gap-2 bg-[#09090c] border border-[#18181f] text-zinc-300 hover:text-white hover:bg-[#14141a] transition-colors"
-                  >
-                    {layoutLocked ? <Lock className="w-3.5 h-3.5 text-amber-400" /> : <Unlock className="w-3.5 h-3.5 text-zinc-500" />}
-                    <span>{layoutLocked ? 'Layout Locked (Click to Unlock)' : 'Lock Layout'}</span>
-                  </button>
+                {/* Quick Curated Palettes */}
+                <div className="pt-2 border-t border-[#18181f]">
+                  <span className="text-[10px] font-semibold text-zinc-500 uppercase font-mono tracking-wider block mb-2">
+                    Quick Palettes
+                  </span>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {[
+                      { name: 'Dark Obsidian', bg: '#000000', text: '#FFFFFF' },
+                      { name: 'Linen Light', bg: '#F8FAFC', text: '#0F172A' },
+                      { name: 'Warm Editorial', bg: '#FBF9F5', text: '#2D2A26' },
+                      { name: 'Studio Slate', bg: '#09090B', text: '#EDEDED' },
+                    ].map((pal) => (
+                      <button
+                        key={pal.name}
+                        type="button"
+                        onClick={() => {
+                          onCanvasChange({ ...canvas, backgroundColor: pal.bg, transparentBackground: false });
+                          onTypographyChange({ ...typography, textColor: pal.text });
+                        }}
+                        className="flex items-center gap-2 px-2 py-1.5 rounded-[6px] text-xs bg-[#09090c] hover:bg-[#14141a] border border-[#18181f] hover:border-[#2e2e3a] text-zinc-300 transition-colors text-left cursor-pointer"
+                      >
+                        <div className="flex items-center shrink-0">
+                          <span className="w-3 h-3 rounded-full border border-black/30 dark:border-white/30" style={{ backgroundColor: pal.bg }} />
+                          <span className="w-3 h-3 rounded-full border border-black/30 dark:border-white/30 -ml-1" style={{ backgroundColor: pal.text }} />
+                        </div>
+                        <span className="truncate">{pal.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
 
+        {/* ========================================================= */}
+        {/* GROUP 6: UTILITY & SYSTEM (Presets, Shortcuts, Reset)      */}
+        {/* ========================================================= */}
+        <div className="h-8 flex items-center bg-[#0c0c0e] border border-[#1b1b22] rounded-[8px] p-0.5 shadow-xs">
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => togglePopover('more')}
+              className={`h-7 px-2 flex items-center gap-1 text-xs rounded-[6px] transition-colors cursor-pointer ${
+                activePopover === 'more'
+                  ? 'bg-[#16161c] text-white'
+                  : 'text-zinc-400 hover:text-white hover:bg-[#16161c]'
+              }`}
+              title="More options (presets, shortcuts, lock layout, reset)"
+              aria-label="More options"
+            >
+              <MoreHorizontal className="w-4 h-4" />
+            </button>
+
+            {activePopover === 'more' && (
+              <div className="absolute bottom-full right-0 mb-3 w-72 bg-[#0c0c0e] border border-[#1b1b22] rounded-xl shadow-2xl shadow-black p-3 text-zinc-200 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
+                <span className="text-[10px] font-semibold text-zinc-500 uppercase font-mono tracking-wider block mb-2">
+                  System & Presets
+                </span>
+
+                <div className="space-y-1.5">
                   <button
                     type="button"
                     onClick={() => {
                       onOpenPresetsModal();
                       setActivePopover(null);
                     }}
-                    className="w-full px-2.5 py-1.5 rounded-[6px] text-xs text-left flex items-center gap-2 bg-[#09090c] border border-[#18181f] text-zinc-300 hover:text-white hover:bg-[#14141a] transition-colors"
+                    className="w-full px-2.5 py-1.5 rounded-[6px] text-xs text-left flex items-center gap-2 bg-[#09090c] border border-[#18181f] text-zinc-300 hover:text-white hover:bg-[#14141a] transition-colors cursor-pointer"
                   >
                     <Bookmark className="w-3.5 h-3.5 text-zinc-500" />
                     <span>Visual Presets</span>
@@ -948,7 +1011,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                       onOpenShortcutsModal();
                       setActivePopover(null);
                     }}
-                    className="w-full px-2.5 py-1.5 rounded-[6px] text-xs text-left flex items-center gap-2 bg-[#09090c] border border-[#18181f] text-zinc-300 hover:text-white hover:bg-[#14141a] transition-colors"
+                    className="w-full px-2.5 py-1.5 rounded-[6px] text-xs text-left flex items-center gap-2 bg-[#09090c] border border-[#18181f] text-zinc-300 hover:text-white hover:bg-[#14141a] transition-colors cursor-pointer"
                   >
                     <Keyboard className="w-3.5 h-3.5 text-zinc-500" />
                     <span>Keyboard Shortcuts</span>
@@ -957,16 +1020,35 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                   <button
                     type="button"
                     onClick={() => {
-                      if (window.confirm('Reset all settings to defaults?')) {
-                        onResetAll();
-                        setActivePopover(null);
-                      }
+                      onToggleLayoutLock();
+                      setActivePopover(null);
                     }}
-                    className="w-full px-2.5 py-1.5 rounded-[6px] text-xs text-left flex items-center gap-2 bg-[#09090c] border border-[#18181f] text-red-400 hover:text-red-300 hover:bg-red-950/20 transition-colors"
+                    className="w-full px-2.5 py-1.5 rounded-[6px] text-xs text-left flex items-center justify-between bg-[#09090c] border border-[#18181f] text-zinc-300 hover:text-white hover:bg-[#14141a] transition-colors cursor-pointer"
                   >
-                    <RotateCcw className="w-3.5 h-3.5 text-red-400" />
-                    <span>Reset All to Defaults</span>
+                    <div className="flex items-center gap-2">
+                      {layoutLocked ? <Lock className="w-3.5 h-3.5 text-amber-400" /> : <Unlock className="w-3.5 h-3.5 text-zinc-500" />}
+                      <span>{layoutLocked ? 'Layout Locked' : 'Lock Layout'}</span>
+                    </div>
+                    <span className="text-[10px] text-zinc-500 font-mono">
+                      {layoutLocked ? 'ON' : 'OFF'}
+                    </span>
                   </button>
+
+                  <div className="pt-2 border-t border-[#18181f]">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (window.confirm('Reset all settings to defaults?')) {
+                          onResetAll();
+                          setActivePopover(null);
+                        }
+                      }}
+                      className="w-full px-2.5 py-1.5 rounded-[6px] text-xs text-left flex items-center gap-2 bg-[#09090c] border border-[#18181f] text-red-400 hover:text-red-300 hover:bg-red-950/20 transition-colors cursor-pointer"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5 text-red-400" />
+                      <span>Reset All to Defaults</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             )}

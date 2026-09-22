@@ -87,13 +87,46 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
   const scrollCarouselTo = useCallback((index: number) => {
     const container = carouselContainerRef.current;
     if (!container) return;
+
+    if (rafIdRef.current) {
+      cancelAnimationFrame(rafIdRef.current);
+      rafIdRef.current = null;
+    }
+    isWheelingRef.current = false;
+
     const targetChild = container.children[index] as HTMLElement | undefined;
     if (targetChild) {
       const containerWidth = container.clientWidth;
       const childLeft = targetChild.offsetLeft;
       const childWidth = targetChild.clientWidth;
-      const targetScroll = childLeft - (containerWidth - childWidth) / 2;
-      container.scrollTo({ left: targetScroll, behavior: 'smooth' });
+      const targetScroll = Math.max(
+        0,
+        Math.min(container.scrollWidth - containerWidth, Math.round(childLeft - (containerWidth - childWidth) / 2))
+      );
+
+      targetScrollLeftRef.current = targetScroll;
+
+      const startScroll = container.scrollLeft;
+      const startTime = performance.now();
+      const duration = 280;
+
+      const animateScroll = (currentTime: number) => {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(1, elapsed / duration);
+        const ease = 1 - Math.pow(1 - progress, 3);
+        if (carouselContainerRef.current) {
+          carouselContainerRef.current.scrollLeft = startScroll + (targetScroll - startScroll) * ease;
+        }
+        if (progress < 1) {
+          rafIdRef.current = requestAnimationFrame(animateScroll);
+        } else {
+          if (carouselContainerRef.current) {
+            carouselContainerRef.current.scrollLeft = targetScroll;
+          }
+          rafIdRef.current = null;
+        }
+      };
+      rafIdRef.current = requestAnimationFrame(animateScroll);
     }
     setActiveCarouselIndex(index);
     activeCarouselIndexRef.current = index;
@@ -430,29 +463,35 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
       {/* Mode 2: Horizontal Carousel with Streamlined Unified Navigation */}
       {previewMode === 'carousel' && (
         <div className="flex-1 min-h-0 w-full relative flex flex-col items-center justify-center overflow-hidden">
-          {/* Floating Navigation Controls */}
-          {pages.length > 1 && activeCarouselIndex > 0 && (
-            <button
-              type="button"
-              onClick={() => scrollCarouselTo(activeCarouselIndex - 1)}
-              className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 z-30 h-11 w-11 rounded-full flex items-center justify-center bg-white/90 dark:bg-[#14141a]/90 hover:bg-white dark:hover:bg-[#1e1e26] border border-black/10 dark:border-white/10 text-zinc-700 dark:text-zinc-200 shadow-lg backdrop-blur-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
-              title="Previous page"
-              aria-label="Previous page"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-          )}
+          {/* Non-overlapping Carousel Navigation Bar */}
+          {pages.length > 1 && (
+            <div className="flex items-center justify-between w-full max-w-sm mb-3 shrink-0 select-none">
+              <button
+                type="button"
+                disabled={activeCarouselIndex === 0}
+                onClick={() => scrollCarouselTo(Math.max(0, activeCarouselIndex - 1))}
+                className="flex items-center gap-1 text-[11px] font-mono text-zinc-400 hover:text-white bg-[#0c0c0e] hover:bg-[#16161c] px-2.5 py-1 rounded-[6px] border border-[#1b1b22] hover:border-[#2e2e3a] disabled:opacity-20 disabled:pointer-events-none transition-colors shadow-xs cursor-pointer"
+                title="Previous page (Arrow Left)"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" />
+                <span>Prev</span>
+              </button>
 
-          {pages.length > 1 && activeCarouselIndex < pages.length - 1 && (
-            <button
-              type="button"
-              onClick={() => scrollCarouselTo(activeCarouselIndex + 1)}
-              className="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 z-30 h-11 w-11 rounded-full flex items-center justify-center bg-white/90 dark:bg-[#14141a]/90 hover:bg-white dark:hover:bg-[#1e1e26] border border-black/10 dark:border-white/10 text-zinc-700 dark:text-zinc-200 shadow-lg backdrop-blur-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
-              title="Next page"
-              aria-label="Next page"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
+              <span className="text-xs font-mono font-medium text-zinc-300 tracking-wide">
+                Page {activeCarouselIndex + 1} of {pages.length}
+              </span>
+
+              <button
+                type="button"
+                disabled={activeCarouselIndex >= pages.length - 1}
+                onClick={() => scrollCarouselTo(Math.min(pages.length - 1, activeCarouselIndex + 1))}
+                className="flex items-center gap-1 text-[11px] font-mono text-zinc-400 hover:text-white bg-[#0c0c0e] hover:bg-[#16161c] px-2.5 py-1 rounded-[6px] border border-[#1b1b22] hover:border-[#2e2e3a] disabled:opacity-20 disabled:pointer-events-none transition-colors shadow-xs cursor-pointer"
+                title="Next page (Arrow Right)"
+              >
+                <span>Next</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
           )}
 
           {/* Carousel Scroll Track: Free scrolling with buttery kinetic momentum */}
