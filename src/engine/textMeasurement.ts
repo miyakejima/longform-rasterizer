@@ -82,7 +82,8 @@ export function measureTextWidth(
   const ctx = getCanvasContext();
 
   if (ctx) {
-    ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+    const cleanFont = fontFamily.replace(/"/g, '');
+    ctx.font = `${fontWeight} ${fontSize}px "${cleanFont}", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
     let supportsCanvasLetterSpacing = false;
     if ('letterSpacing' in ctx) {
       try {

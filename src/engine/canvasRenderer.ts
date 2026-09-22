@@ -210,8 +210,9 @@ export function renderPageToCanvas(
   const contentWidth = Math.max(10, effectiveCanvasWidth - paddingLeft - paddingRight);
   const lineBoxHeight = fontSize * lineHeight;
 
+  const cleanFont = fontFamily.replace(/"/g, '');
   ctx.fillStyle = textColor;
-  ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+  ctx.font = `${fontWeight} ${fontSize}px "${cleanFont}", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
   ctx.textBaseline = 'middle';
 
   if ('letterSpacing' in ctx) {

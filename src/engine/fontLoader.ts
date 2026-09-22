@@ -3,8 +3,33 @@
 import { clearMeasurementCache } from './textMeasurement';
 
 export async function waitForFonts(): Promise<void> {
-  if (typeof document !== 'undefined' && document.fonts && document.fonts.ready) {
+  if (typeof document !== 'undefined' && document.fonts) {
     try {
+      if (document.fonts.load) {
+        await Promise.allSettled([
+          document.fonts.load('400 24px "Dudu Calligraphy"'),
+          document.fonts.load('400 24px "HelvetiHand"'),
+        ]);
+      }
+      if (document.fonts.ready) {
+        await document.fonts.ready;
+      }
+      clearMeasurementCache();
+    } catch {
+      // Ignore
+    }
+  }
+}
+
+export async function ensureFontLoaded(
+  fontFamily: string,
+  fontSize: number = 24,
+  fontWeight: number = 400
+): Promise<void> {
+  if (typeof document !== 'undefined' && document.fonts && document.fonts.load) {
+    try {
+      const cleanFont = fontFamily.replace(/"/g, '');
+      await document.fonts.load(`${fontWeight} ${fontSize}px "${cleanFont}"`);
       await document.fonts.ready;
       clearMeasurementCache();
     } catch {
@@ -12,6 +37,7 @@ export async function waitForFonts(): Promise<void> {
     }
   }
 }
+
 
 export async function loadCustomFont(
   file: File

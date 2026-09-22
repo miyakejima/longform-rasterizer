@@ -59,6 +59,12 @@ interface DockedToolbarProps {
 
 const BUILT_IN_FONTS = [
   'Inter',
+  'Dudu Calligraphy',
+  'HelvetiHand',
+  'Caveat',
+  'Kalam',
+  'Patrick Hand',
+  'Shadows Into Light',
   'Roboto',
   'Georgia',
   'Source Sans 3',

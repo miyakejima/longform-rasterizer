@@ -236,6 +236,12 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
 
   const fontOptions = [
     'Inter',
+    'Dudu Calligraphy',
+    'HelvetiHand',
+    'Caveat',
+    'Kalam',
+    'Patrick Hand',
+    'Shadows Into Light',
     'Arial',
     'Helvetica',
     'Roboto',

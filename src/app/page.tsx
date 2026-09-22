@@ -37,7 +37,7 @@ import {
 import { paginateDocument } from '../engine/pagination';
 import { autoFitFontSize } from '../engine/autoFit';
 import { optimizeCanvasFill } from '../engine/canvasFillOptimizer';
-import { waitForFonts } from '../engine/fontLoader';
+import { waitForFonts, ensureFontLoaded } from '../engine/fontLoader';
 import { exportAllPagesAsZip, exportAllPagesSeparately, generateProceduralTitle } from '../engine/exportEngine';
 
 interface HistoryItem {
@@ -82,6 +82,7 @@ function Workspace() {
     }
     return true;
   });
+  const [, setFontLoadedTick] = useState(0);
 
   const handleToggleHighlight = useCallback(() => {
     setIsHighlightEnabled((prev) => {
@@ -240,6 +241,14 @@ function Workspace() {
     waitForFonts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Ensure selected font is fully loaded and decoded in document.fonts before re-measuring
+  useEffect(() => {
+    ensureFontLoaded(typography.fontFamily, typography.fontSize, typography.fontWeight).then(() => {
+      setFontLoadedTick((t) => t + 1);
+    });
+  }, [typography.fontFamily, typography.fontSize, typography.fontWeight]);
+
 
   // Debounced session saving to prevent synchronous disk/localStorage serialization lag during typing and color picking
   useEffect(() => {
