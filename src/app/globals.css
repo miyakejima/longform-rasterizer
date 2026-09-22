@@ -536,5 +536,21 @@ html.dark .spotlight-scrim {
   font-display: swap;
 }
 
+@font-face {
+  font-family: 'Tw Cen MT Bold';
+  src: local('Tw Cen MT Bold'), local('Tw Cen MT-Bold'), local('TwCenMT-Bold'), local('Tw Cen MT');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Tw Cen MT';
+  src: local('Tw Cen MT'), local('TwCenMT');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 
 

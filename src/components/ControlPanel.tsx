@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
   Type,
   Maximize2,
@@ -38,6 +38,7 @@ import {
   VerticalAlignment,
 } from '../types';
 import { loadCustomFont, getSupportedFontWeights } from '../engine/fontLoader';
+import { loadStoredFavoriteFonts } from '../engine/presetStore';
 
 interface ControlPanelProps {
   pageCount: number;
@@ -234,8 +235,21 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
     }
   };
 
+  const [favoriteFonts, setFavoriteFonts] = useState<string[]>([]);
+  useEffect(() => {
+    setFavoriteFonts(loadStoredFavoriteFonts());
+  }, []);
+
   const fontOptions = [
     'Inter',
+    'Tw Cen MT Bold',
+    'Source Sans 3',
+    'Atkinson Hyperlegible Next',
+    'Lato',
+    'IBM Plex Sans',
+    'Open Sans',
+    'Roboto',
+    'Georgia',
     'Dudu Calligraphy',
     'HelvetiHand',
     'Cutewritten',
@@ -252,17 +266,20 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
     'Shadows Into Light',
     'Arial',
     'Helvetica',
-    'Roboto',
-    'Open Sans',
-    'Source Sans 3',
-    'IBM Plex Sans',
-    'Georgia',
     'Times New Roman',
     'system-ui',
     'serif',
     'monospace',
     ...customFonts,
   ];
+
+  const sortedFontOptions = [...fontOptions].sort((a, b) => {
+    const aFav = favoriteFonts.includes(a);
+    const bFav = favoriteFonts.includes(b);
+    if (aFav && !bFav) return -1;
+    if (!aFav && bFav) return 1;
+    return 0;
+  });
 
   return (
     <div className="flex flex-col h-full bg-[#0c0c0e] text-zinc-200 text-xs overflow-y-auto select-none divide-y divide-[#1f1f23]">
@@ -402,9 +419,9 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
               }}
               className="w-full bg-[#141417] border border-[#1f1f23] hover:border-[#27272a] rounded-md px-2.5 py-1.5 text-zinc-100 outline-none focus:border-zinc-500 mb-2 font-sans text-xs"
             >
-              {fontOptions.map((f) => (
+              {sortedFontOptions.map((f) => (
                 <option key={f} value={f} className="bg-[#141417] text-zinc-100">
-                  {f}
+                  {favoriteFonts.includes(f) ? `★ ${f}` : f}
                 </option>
               ))}
             </select>

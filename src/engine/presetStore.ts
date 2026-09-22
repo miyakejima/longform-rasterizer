@@ -270,3 +270,29 @@ export async function importProjectFromJson(file: File): Promise<SavedProject> {
   };
 }
 
+export const FAVORITE_FONTS_STORAGE_KEY = 'longform_rasterizer_favorite_fonts';
+
+export function loadStoredFavoriteFonts(): string[] {
+  if (typeof localStorage === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(FAVORITE_FONTS_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      return parsed.filter((x): x is string => typeof x === 'string');
+    }
+  } catch {
+    // Ignore error
+  }
+  return [];
+}
+
+export function saveStoredFavoriteFonts(favorites: string[]): void {
+  if (typeof localStorage === 'undefined') return;
+  try {
+    localStorage.setItem(FAVORITE_FONTS_STORAGE_KEY, JSON.stringify(favorites));
+  } catch {
+    // Ignore error
+  }
+}
+

@@ -18,6 +18,7 @@ import {
   Maximize2,
   MoreHorizontal,
   Wand2,
+  Star,
 } from 'lucide-react';
 import {
   CanvasSettings,
@@ -32,6 +33,7 @@ import {
   AdvancedSettings,
 } from '../types';
 import { getSupportedFontWeights } from '../engine/fontLoader';
+import { loadStoredFavoriteFonts, saveStoredFavoriteFonts } from '../engine/presetStore';
 
 interface DockedToolbarProps {
   pageCount: number;
@@ -60,6 +62,14 @@ interface DockedToolbarProps {
 
 const BUILT_IN_FONTS = [
   'Inter',
+  'Tw Cen MT Bold',
+  'Source Sans 3',
+  'Atkinson Hyperlegible Next',
+  'Lato',
+  'IBM Plex Sans',
+  'Open Sans',
+  'Roboto',
+  'Georgia',
   'Dudu Calligraphy',
   'HelvetiHand',
   'Cutewritten',
@@ -74,11 +84,6 @@ const BUILT_IN_FONTS = [
   'Kalam',
   'Patrick Hand',
   'Shadows Into Light',
-  'Roboto',
-  'Georgia',
-  'Source Sans 3',
-  'IBM Plex Sans',
-  'Open Sans',
   'Arial',
   'serif',
   'monospace',
@@ -229,10 +234,32 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
     });
   };
 
+  const [favoriteFonts, setFavoriteFonts] = useState<string[]>([]);
+
+  useEffect(() => {
+    setFavoriteFonts(loadStoredFavoriteFonts());
+  }, []);
+
+  const toggleFavorite = (font: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setFavoriteFonts((prev) => {
+      const next = prev.includes(font) ? prev.filter((f) => f !== font) : [...prev, font];
+      saveStoredFavoriteFonts(next);
+      return next;
+    });
+  };
+
   const allFonts = Array.from(new Set([...customFonts, ...BUILT_IN_FONTS]));
   const filteredFonts = allFonts.filter((f) =>
     f.toLowerCase().includes(fontSearch.toLowerCase())
   );
+  const sortedFonts = [...filteredFonts].sort((a, b) => {
+    const aFav = favoriteFonts.includes(a);
+    const bFav = favoriteFonts.includes(b);
+    if (aFav && !bFav) return -1;
+    if (!aFav && bFav) return 1;
+    return 0;
+  });
 
   const getFormatLabel = () => {
     let base = `${canvas.width}×${canvas.height}`;
@@ -404,30 +431,64 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                   className="w-full px-2.5 py-1.5 text-xs bg-[#09090c] border border-[#18181f] rounded-[6px] text-white mb-2 placeholder-zinc-600 focus:outline-hidden focus:border-[#2e2e3a]"
                 />
 
-                <div className="max-h-48 overflow-y-auto space-y-0.5 pr-1">
-                  {filteredFonts.map((font) => (
-                    <button
-                      key={font}
-                      type="button"
-                      onClick={() => {
-                        const supported = getSupportedFontWeights(font);
-                        const newWeight = supported.includes(typography.fontWeight)
-                          ? typography.fontWeight
-                          : (supported.includes(400) ? 400 : supported[0]);
-                        onTypographyChange({ ...typography, fontFamily: font, fontWeight: newWeight });
-                        setActivePopover(null);
-                      }}
-                      className={`w-full px-2.5 py-1.5 rounded-[4px] text-xs text-left flex items-center justify-between transition-colors ${
-                        typography.fontFamily === font
-                          ? 'bg-[#1c1c24] text-[#f4f4f6] font-medium border border-[#2e2e3a]'
-                          : 'text-zinc-400 hover:text-white hover:bg-[#14141a]'
-                      }`}
-                      style={{ fontFamily: font }}
-                    >
-                      <span>{font}</span>
-                      {typography.fontFamily === font && <Check className="w-3.5 h-3.5 text-white" />}
-                    </button>
-                  ))}
+                <div className="max-h-56 overflow-y-auto space-y-0.5 pr-1">
+                  {sortedFonts.map((font) => {
+                    const isFav = favoriteFonts.includes(font);
+                    const isSelected = typography.fontFamily === font;
+                    return (
+                      <div
+                        key={font}
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => {
+                          const supported = getSupportedFontWeights(font);
+                          const newWeight = supported.includes(typography.fontWeight)
+                            ? typography.fontWeight
+                            : (supported.includes(400) ? 400 : supported[0]);
+                          onTypographyChange({ ...typography, fontFamily: font, fontWeight: newWeight });
+                          setActivePopover(null);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            const supported = getSupportedFontWeights(font);
+                            const newWeight = supported.includes(typography.fontWeight)
+                              ? typography.fontWeight
+                              : (supported.includes(400) ? 400 : supported[0]);
+                            onTypographyChange({ ...typography, fontFamily: font, fontWeight: newWeight });
+                            setActivePopover(null);
+                          }
+                        }}
+                        className={`w-full px-2 py-1.5 rounded-[4px] text-xs text-left flex items-center justify-between transition-colors cursor-pointer group select-none ${
+                          isSelected
+                            ? 'bg-[#1c1c24] text-[#f4f4f6] font-medium border border-[#2e2e3a]'
+                            : 'text-zinc-400 hover:text-white hover:bg-[#14141a]'
+                        }`}
+                        style={{ fontFamily: font }}
+                      >
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <button
+                            type="button"
+                            onClick={(e) => toggleFavorite(font, e)}
+                            className={`p-0.5 rounded transition-colors ${
+                              isFav
+                                ? 'text-amber-400 hover:text-amber-300 opacity-100'
+                                : 'text-zinc-600 opacity-0 group-hover:opacity-100 hover:text-zinc-300'
+                            }`}
+                            title={isFav ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+                          >
+                            <Star
+                              className={`w-3 h-3 ${
+                                isFav ? 'fill-amber-400 text-amber-400' : 'text-current'
+                              }`}
+                            />
+                          </button>
+                          <span className="truncate">{font}</span>
+                        </div>
+                        {isSelected && <Check className="w-3.5 h-3.5 text-white shrink-0 ml-1" />}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}

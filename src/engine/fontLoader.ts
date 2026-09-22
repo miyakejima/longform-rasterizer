@@ -8,10 +8,14 @@ export const FONT_SUPPORTED_WEIGHTS: Record<string, FontWeight[]> = {
   'IBM Plex Sans': [300, 400, 500, 600, 700],
   'Roboto': [300, 400, 500, 700],
   'Source Sans 3': [300, 400, 600, 700],
+  'Atkinson Hyperlegible Next': [300, 400, 500, 600, 700],
+  'Lato': [300, 400, 700],
   'Caveat': [400, 500, 600, 700],
   'Kalam': [300, 400, 700],
 
   // System & standard web fonts
+  'Tw Cen MT Bold': [700],
+  'Tw Cen MT': [400, 700],
   'system-ui': [300, 400, 500, 600, 700],
   'Arial': [400, 700],
   'Helvetica': [400, 700],
