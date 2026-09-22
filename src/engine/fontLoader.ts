@@ -13,6 +13,13 @@ export const FONT_SUPPORTED_WEIGHTS: Record<string, FontWeight[]> = {
   'Caveat': [400, 500, 600, 700],
   'Kalam': [300, 400, 700],
 
+  // Apple Typography Suite
+  'SF Pro Display': [400, 500, 600, 700],
+  'SF Pro Text': [400, 500, 600, 700],
+  'SF Pro Rounded': [400, 700],
+  'SF Mono': [400, 700],
+  'New York': [400, 700],
+
   // System & standard web fonts
   'Tw Cen MT Bold': [700],
   'Tw Cen MT': [400, 700],
@@ -50,6 +57,16 @@ export async function waitForFonts(): Promise<void> {
     try {
       if (document.fonts.load) {
         await Promise.allSettled([
+          document.fonts.load('400 24px "SF Pro Display"'),
+          document.fonts.load('700 24px "SF Pro Display"'),
+          document.fonts.load('400 24px "SF Pro Text"'),
+          document.fonts.load('700 24px "SF Pro Text"'),
+          document.fonts.load('400 24px "SF Pro Rounded"'),
+          document.fonts.load('700 24px "SF Pro Rounded"'),
+          document.fonts.load('400 24px "SF Mono"'),
+          document.fonts.load('700 24px "SF Mono"'),
+          document.fonts.load('400 24px "New York"'),
+          document.fonts.load('700 24px "New York"'),
           document.fonts.load('400 24px "Dudu Calligraphy"'),
           document.fonts.load('400 24px "HelvetiHand"'),
           document.fonts.load('400 24px "Cutewritten"'),

@@ -62,6 +62,11 @@ interface DockedToolbarProps {
 
 const BUILT_IN_FONTS = [
   'Inter',
+  'SF Pro Display',
+  'SF Pro Text',
+  'SF Pro Rounded',
+  'SF Mono',
+  'New York',
   'Tw Cen MT Bold',
   'Source Sans 3',
   'Atkinson Hyperlegible Next',
@@ -906,18 +911,8 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
 
           <span className="text-zinc-700 text-[10px] px-0.5 select-none">·</span>
 
-          {/* Vertical Alignment (Top / Center / Justify) with Sliding Pill */}
-          <div className="relative flex items-center bg-[#09090c] p-0.5 rounded-[6px] border border-[#18181f]">
-            {(() => {
-              const currentVA = typography.verticalAlignment ?? spacing.verticalAlignment ?? 'center';
-              const vaIndex = currentVA === 'top' ? 0 : currentVA === 'center' ? 1 : 2;
-              return (
-                <div
-                  className="absolute top-0.5 bottom-0.5 left-0.5 w-[calc((100%-4px)/3)] rounded-[4px] bg-[#1c1c24] border border-[#2e2e3a] shadow-xs transition-transform duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none"
-                  style={{ transform: `translateX(${vaIndex * 100}%)` }}
-                />
-              );
-            })()}
+          {/* Vertical Alignment (Top / Center / Justify) */}
+          <div className="flex items-center gap-0.5">
             {(['top', 'center', 'justify'] as VerticalAlignment[]).map((va) => {
               const currentVA = typography.verticalAlignment ?? spacing.verticalAlignment ?? 'center';
               const isActive = currentVA === va;
@@ -931,10 +926,10 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                     onTypographyChange({ ...typography, verticalAlignment: va });
                     onSpacingChange({ ...spacing, verticalAlignment: va });
                   }}
-                  className={`btn-tactile relative z-10 h-6 px-2 flex items-center justify-center rounded-[4px] text-[11px] font-medium transition-colors ${
+                  className={`btn-tactile h-7 px-2.5 flex items-center justify-center rounded-[6px] text-[11px] font-medium transition-colors ${
                     isActive
-                      ? 'text-[#f4f4f6]'
-                      : 'text-zinc-400 hover:text-white'
+                      ? 'bg-[#1c1c24] text-[#f4f4f6] border border-[#2e2e3a] shadow-xs'
+                      : 'text-zinc-400 hover:text-white hover:bg-[#16161c]'
                   }`}
                   title={tip}
                 >
