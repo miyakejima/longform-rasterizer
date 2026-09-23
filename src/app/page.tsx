@@ -165,26 +165,6 @@ function Workspace() {
           // Ignore
         }
       }
-      setCanvas((prevC) => {
-        const bg = prevC.backgroundColor.toLowerCase();
-        if ((bg === '#000000' || bg === '#000' || bg === '#09090b') && next === 'light') {
-          return { ...prevC, backgroundColor: '#FFFFFF' };
-        }
-        if ((bg === '#ffffff' || bg === '#fff') && next === 'dark') {
-          return { ...prevC, backgroundColor: '#000000' };
-        }
-        return prevC;
-      });
-      setTypography((prevT) => {
-        const tc = prevT.textColor.toLowerCase();
-        if ((tc === '#ffffff' || tc === '#fff') && next === 'light') {
-          return { ...prevT, textColor: '#000000' };
-        }
-        if ((tc === '#000000' || tc === '#000') && next === 'dark') {
-          return { ...prevT, textColor: '#FFFFFF' };
-        }
-        return prevT;
-      });
       return next;
     });
   }, []);
