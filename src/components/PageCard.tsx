@@ -42,6 +42,7 @@ interface PageCardProps {
   highlightedParagraphIndex?: number | null;
   highlightRange?: { startIndex: number; endIndex: number } | null;
   onParagraphHover?: (info: { pageIndex: number; paragraphIndex: number; startIndex: number; endIndex: number } | null) => void;
+  className?: string;
 }
 
 export const PageCard: React.FC<PageCardProps> = ({
@@ -62,6 +63,7 @@ export const PageCard: React.FC<PageCardProps> = ({
   highlightedParagraphIndex = null,
   highlightRange = null,
   onParagraphHover,
+  className = '',
 }) => {
   const { t } = useI18n();
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -207,7 +209,7 @@ export const PageCard: React.FC<PageCardProps> = ({
 
   return (
     <div
-      className={`page-card-frame page-card-interactive group relative flex flex-col cursor-zoom-in select-none rounded-md ${
+      className={`page-card-frame page-card-interactive group relative flex flex-col cursor-zoom-in select-none rounded-md ${className} ${
         hasOverflow
           ? 'border border-red-800 shadow-red-950/20'
           : isHovered

@@ -395,7 +395,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
       ref={previewPanelRef}
       className={`flex flex-col h-full w-full bg-[var(--bg)] no-scrollbar ${
         previewMode === 'single' || previewMode === 'carousel'
-          ? 'p-4 justify-between items-center overflow-hidden'
+          ? 'p-2 md:p-3 justify-center items-center overflow-hidden'
           : isEditorCollapsed ? 'overflow-y-auto p-6 md:p-8 lg:p-12' : 'overflow-y-auto p-6 md:p-8'
       } relative`}
     >
@@ -487,6 +487,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                   }}
                 >
               <PageCard
+                className="w-full h-full"
                 page={activeSinglePage}
                 totalPages={pages.length}
                 canvas={canvas}
@@ -514,7 +515,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
 
       {/* Mode 2: Horizontal Carousel with Streamlined Unified Navigation */}
       {previewMode === 'carousel' && (
-        <div className="flex-1 min-h-0 w-full relative flex flex-col items-center justify-center overflow-hidden">
+        <div className="flex-1 min-h-0 h-full w-full relative flex flex-col items-center justify-center overflow-hidden">
 
           {/* Carousel Scroll Track: Free scrolling with buttery kinetic momentum */}
           <div
@@ -527,7 +528,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                 e.preventDefault();
               }
             }}
-            className={`flex-1 min-h-0 w-full flex items-center overflow-x-auto py-2 px-12 gap-8 no-scrollbar ${
+            className={`h-full w-full flex items-center overflow-x-auto py-2 px-8 md:px-12 gap-8 no-scrollbar ${
               isDragging ? 'cursor-grabbing select-none' : 'cursor-grab'
             }`}
             style={{ scrollBehavior: 'auto' }}
@@ -547,7 +548,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
               return (
                 <div
                   key={`preview-carousel-${page.pageIndex}`}
-                  className="h-full min-h-[260px] shrink-0 flex flex-col items-center justify-center py-2 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] animate-in fade-in zoom-in-95"
+                  className="h-full max-h-full shrink-0 flex flex-col items-center justify-center py-2 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] animate-in fade-in zoom-in-95 select-none"
                   style={{
                     transform: `translateX(${overscrollOffset}px)`,
                     transition: isDragging ? 'none' : 'transform 260ms cubic-bezier(0.16, 1, 0.3, 1)',
@@ -555,14 +556,15 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                   }}
                 >
                   <div
-                    className="relative flex items-center justify-center"
+                    className="relative flex items-center justify-center shrink-0 min-h-0"
                     style={{
                       aspectRatio: `${cardDims.width} / ${cardDims.height}`,
-                      height: isEditorCollapsed ? 'min(58vh, calc(100% - 32px))' : 'min(62vh, calc(100% - 32px))',
-                      maxHeight: isEditorCollapsed ? '58vh' : '62vh',
+                      height: 'calc(100% - 36px)',
+                      maxHeight: 'calc(100% - 36px)',
                     }}
                   >
                     <PageCard
+                      className="w-full h-full"
                       page={page}
                       totalPages={pages.length}
                       canvas={canvas}
@@ -585,9 +587,11 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                       onParagraphHover={onParagraphHover}
                     />
                   </div>
-                  <span className="text-[11.5px] font-sans font-normal text-zinc-500 dark:text-zinc-300 mt-2 shrink-0 select-none tracking-wider">
-                    {t('page_singular')} {page.pageIndex + 1}
-                  </span>
+                  <div className="h-6 flex items-center justify-center mt-2 shrink-0">
+                    <span className="text-[11px] font-sans font-normal tracking-wider text-zinc-500 dark:text-zinc-400 select-none">
+                      {t('page_singular')} {page.pageIndex + 1}
+                    </span>
+                  </div>
                 </div>
               );
             })}
@@ -601,6 +605,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
           {pages.map((page, idx) => (
             <div key={`preview-page-${page.pageIndex}`} className="flex flex-col items-center gap-2 w-full transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] animate-in fade-in zoom-in-95">
               <PageCard
+                className="w-full"
                 page={page}
                 totalPages={pages.length}
                 canvas={canvas}
@@ -619,7 +624,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                 highlightRange={highlightedParagraph ? { startIndex: highlightedParagraph.startIndex, endIndex: highlightedParagraph.endIndex } : null}
                 onParagraphHover={onParagraphHover}
               />
-              <span className="text-[11.5px] font-sans font-normal text-zinc-500 dark:text-zinc-300 select-none tracking-wider">
+              <span className="text-[11px] font-sans font-normal tracking-wider text-zinc-500 dark:text-zinc-400 select-none">
                 {t('page_singular')} {page.pageIndex + 1}
               </span>
             </div>
