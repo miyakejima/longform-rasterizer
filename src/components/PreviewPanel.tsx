@@ -547,17 +547,21 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
               return (
                 <div
                   key={`preview-carousel-${page.pageIndex}`}
-                  className={`h-full ${
-                    isEditorCollapsed ? 'max-h-[66vh]' : 'max-h-[68vh]'
-                  } min-h-[280px] shrink-0 flex flex-col items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] animate-in fade-in zoom-in-95`}
+                  className="h-full min-h-[260px] shrink-0 flex flex-col items-center justify-center py-2 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] animate-in fade-in zoom-in-95"
                   style={{
-                    aspectRatio: `${cardDims.width} / ${cardDims.height}`,
                     transform: `translateX(${overscrollOffset}px)`,
                     transition: isDragging ? 'none' : 'transform 260ms cubic-bezier(0.16, 1, 0.3, 1)',
                     willChange: 'transform',
                   }}
                 >
-                  <div className="flex-1 min-h-0 w-full relative flex items-center justify-center">
+                  <div
+                    className="relative flex items-center justify-center"
+                    style={{
+                      aspectRatio: `${cardDims.width} / ${cardDims.height}`,
+                      height: isEditorCollapsed ? 'min(58vh, calc(100% - 32px))' : 'min(62vh, calc(100% - 32px))',
+                      maxHeight: isEditorCollapsed ? '58vh' : '62vh',
+                    }}
+                  >
                     <PageCard
                       page={page}
                       totalPages={pages.length}
@@ -581,7 +585,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                       onParagraphHover={onParagraphHover}
                     />
                   </div>
-                  <span className="text-[11px] font-sans font-light text-zinc-400 dark:text-zinc-500 mt-2 shrink-0 select-none tracking-wider">
+                  <span className="text-[11.5px] font-sans font-normal text-zinc-500 dark:text-zinc-300 mt-2 shrink-0 select-none tracking-wider">
                     {t('page_singular')} {page.pageIndex + 1}
                   </span>
                 </div>
@@ -615,7 +619,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                 highlightRange={highlightedParagraph ? { startIndex: highlightedParagraph.startIndex, endIndex: highlightedParagraph.endIndex } : null}
                 onParagraphHover={onParagraphHover}
               />
-              <span className="text-[11px] font-sans font-light text-zinc-400 dark:text-zinc-500 select-none tracking-wider">
+              <span className="text-[11.5px] font-sans font-normal text-zinc-500 dark:text-zinc-300 select-none tracking-wider">
                 {t('page_singular')} {page.pageIndex + 1}
               </span>
             </div>
