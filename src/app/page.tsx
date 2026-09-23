@@ -864,7 +864,7 @@ function Workspace() {
               </div>
             </div>
 
-            {/* Right Zone: Canvas Tools (Highlight, Export) │ Divider │ App Preferences (Language, Theme) */}
+            {/* Right Zone: Canvas Tools (Highlight, Export) + App Preferences (Language, Theme) */}
             <div className="flex items-center justify-end select-none flex-1 min-w-0 gap-2">
               {/* Highlight / Spotlight Toggle Button */}
               <button
@@ -873,7 +873,7 @@ function Workspace() {
                 className={`btn-tactile h-8 px-3 rounded-[8px] border text-xs font-medium transition-all flex items-center justify-center shadow-xs cursor-pointer focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-zinc-500 ${
                   isHighlightEnabled
                     ? 'bg-slate-200/80 dark:bg-[#1c1c24] border-slate-300 dark:border-[#2e2e3a] text-slate-900 dark:text-[#f4f4f6]'
-                    : 'bg-transparent border-slate-200/60 dark:border-[#1b1b22] text-slate-400 dark:text-zinc-500 hover:text-slate-700 dark:hover:text-zinc-300 hover:bg-slate-100 dark:hover:bg-[#16161c]'
+                    : 'bg-white dark:bg-[#0c0c0e] border-slate-200 dark:border-[#1b1b22] text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-[#16161c]'
                 }`}
                 title={isHighlightEnabled ? t('highlight_disable') : t('highlight_enable')}
                 aria-label={isHighlightEnabled ? t('highlight_disable') : t('highlight_enable')}
@@ -903,65 +903,62 @@ function Workspace() {
                 onCloseShortcutsModal={() => setShowShortcutsModal(false)}
               />
 
-              {/* 1px Vertical Divider separating Canvas Actions from App Preferences */}
-              <div className="w-px h-4 bg-slate-300/60 dark:bg-[#2e2e3a] mx-0.5 shrink-0" />
-
-              {/* Language Toggle Button (en · es) */}
-              <button
-                type="button"
-                onClick={toggleLang}
-                className="lang-toggle-btn btn-tactile"
-                title={t('lang_toggle_title')}
-                aria-label={t('lang_toggle_title')}
-              >
-                <span className={lang === 'en' ? 'text-slate-900 dark:text-white font-semibold' : 'text-slate-400 dark:text-zinc-500'}>en</span>
-                <span className="text-slate-300 dark:text-zinc-600 text-[10px]">·</span>
-                <span className={lang === 'es' ? 'text-slate-900 dark:text-white font-semibold' : 'text-slate-400 dark:text-zinc-500'}>es</span>
-              </button>
-
-              {/* Theme Toggle Button */}
-              <button
-                type="button"
-                onClick={toggleTheme}
-                className="theme-toggle-btn btn-tactile"
-                title={theme === 'light' ? t('theme_dark') : t('theme_light')}
-                aria-label="Toggle theme"
-              >
-                <svg
-                  className="theme-icon sun-icon"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+              {/* Unified Preferences Pill (Language + Theme) */}
+              <div className="h-8 p-0.5 rounded-[8px] bg-slate-100/80 dark:bg-[#0c0c0e] border border-slate-200 dark:border-[#1b1b22] flex items-center gap-0.5 shadow-xs">
+                <button
+                  type="button"
+                  onClick={toggleLang}
+                  className="h-7 px-2 rounded-[6px] text-xs font-mono transition-colors flex items-center gap-1 text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-[#16161c]"
+                  title={t('lang_toggle_title')}
+                  aria-label={t('lang_toggle_title')}
                 >
-                  <circle cx="12" cy="12" r="4" />
-                  <path d="M12 2v2" />
-                  <path d="M12 20v2" />
-                  <path d="m4.93 4.93 1.41 1.41" />
-                  <path d="m17.66 17.66 1.41 1.41" />
-                  <path d="M2 12h2" />
-                  <path d="M20 12h2" />
-                  <path d="m6.34 17.66-1.41 1.41" />
-                  <path d="m19.07 4.93-1.41 1.41" />
-                </svg>
-                <svg
-                  className="theme-icon moon-icon"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+                  <span className={lang === 'en' ? 'text-slate-900 dark:text-white font-semibold' : 'text-slate-400 dark:text-zinc-500'}>en</span>
+                  <span className="text-slate-300 dark:text-zinc-600 text-[10px]">/</span>
+                  <span className={lang === 'es' ? 'text-slate-900 dark:text-white font-semibold' : 'text-slate-400 dark:text-zinc-500'}>es</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={toggleTheme}
+                  className="w-7 h-7 rounded-[6px] flex items-center justify-center text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-[#16161c] transition-colors relative"
+                  title={theme === 'light' ? t('theme_dark') : t('theme_light')}
+                  aria-label="Toggle theme"
                 >
-                  <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
-                </svg>
-              </button>
+                  <svg
+                    className="theme-icon sun-icon"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <circle cx="12" cy="12" r="4" />
+                    <path d="M12 2v2" />
+                    <path d="M12 20v2" />
+                    <path d="m4.93 4.93 1.41 1.41" />
+                    <path d="m17.66 17.66 1.41 1.41" />
+                    <path d="M2 12h2" />
+                    <path d="M20 12h2" />
+                    <path d="m6.34 17.66-1.41 1.41" />
+                    <path d="m19.07 4.93-1.41 1.41" />
+                  </svg>
+                  <svg
+                    className="theme-icon moon-icon"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -998,74 +995,66 @@ function Workspace() {
               }}
             />
           </div>
+
+          {/* Bottom Docked Toolbar (Docked cleanly under the preview canvas ONLY) */}
+          <div className="h-14 border-t border-[var(--border)] px-4 md:px-6 flex items-center justify-center bg-[var(--bg-footer)] backdrop-blur-md shrink-0 select-none z-30">
+            <DockedToolbar
+              pageCount={doc.pageCount}
+              onPageCountChange={(cnt) => {
+                setDoc((prev) => ({ ...prev, pageCount: cnt }));
+                pushHistory({ ...doc, pageCount: cnt }, canvas, typography, spacing, advanced);
+              }}
+              distributionMode={doc.distributionMode}
+              onDistributionModeChange={(m) => {
+                setDoc((prev) => ({ ...prev, distributionMode: m }));
+                pushHistory({ ...doc, distributionMode: m }, canvas, typography, spacing, advanced);
+              }}
+              typography={typography}
+              onTypographyChange={(newTypo) => {
+                setTypography(newTypo);
+                pushHistory(doc, canvas, newTypo, spacing, advanced);
+              }}
+              effectiveFontSize={paginationResult.effectiveFontSize}
+              canvas={canvas}
+              onCanvasChange={(newCanvas) => {
+                setCanvas(newCanvas);
+                pushHistory(doc, newCanvas, typography, spacing, advanced);
+              }}
+              spacing={spacing}
+              onSpacingChange={(newSpacing) => {
+                setSpacing(newSpacing);
+                pushHistory(doc, canvas, typography, newSpacing, advanced);
+              }}
+              advanced={advanced}
+              onAdvancedChange={(newAdv) => {
+                setAdvanced(newAdv);
+                pushHistory(doc, canvas, typography, spacing, newAdv);
+              }}
+              customFonts={customFonts}
+              onCustomFontUpload={async (file) => {
+                const fontName = file.name.replace(/\.[^/.]+$/, '');
+                try {
+                  const buffer = await file.arrayBuffer();
+                  const fontFace = new FontFace(fontName, buffer);
+                  await fontFace.load();
+                  document.fonts.add(fontFace);
+                  setCustomFonts((prev) => [...prev, fontName]);
+                  setTypography((prev) => ({ ...prev, fontFamily: fontName }));
+                } catch (err) {
+                  console.error('Failed to load font:', err);
+                }
+              }}
+              layoutLocked={doc.layoutLocked}
+              onToggleLayoutLock={() => setDoc((prev) => ({ ...prev, layoutLocked: !prev.layoutLocked }))}
+              onOpenPresetsModal={() => setShowPresetsModal(true)}
+              onOpenShortcutsModal={() => setShowShortcutsModal(true)}
+              onResetAll={handleResetAll}
+              onFillCanvas={handleFillCanvas}
+              onAuthorPreferred={handleAuthorPreferred}
+            />
+          </div>
         </div>
       </div>
-
-      {/* Bottom Shelf: Stats on left under editor, Docked Toolbar on right under previews */}
-      <footer className="h-14 border-t border-[var(--border)] px-6 flex items-center justify-between bg-[var(--bg-footer)] backdrop-blur-md shrink-0 select-none z-30">
-        {/* Left: Crisp Doc Stats (positioned under the text editor) */}
-        <div className="flex items-center gap-3 text-xs text-zinc-500 font-mono select-none">
-          <span>
-            {wordCount} {t('words')} · {charCount} {t('chars')}
-          </span>
-        </div>
-
-        {/* Right: Docked Minimalist Toolbar (positioned under the canvas preview) */}
-        <DockedToolbar
-          pageCount={doc.pageCount}
-          onPageCountChange={(cnt) => {
-            setDoc((prev) => ({ ...prev, pageCount: cnt }));
-            pushHistory({ ...doc, pageCount: cnt }, canvas, typography, spacing, advanced);
-          }}
-          distributionMode={doc.distributionMode}
-          onDistributionModeChange={(m) => {
-            setDoc((prev) => ({ ...prev, distributionMode: m }));
-            pushHistory({ ...doc, distributionMode: m }, canvas, typography, spacing, advanced);
-          }}
-          typography={typography}
-          onTypographyChange={(newTypo) => {
-            setTypography(newTypo);
-            pushHistory(doc, canvas, newTypo, spacing, advanced);
-          }}
-          effectiveFontSize={paginationResult.effectiveFontSize}
-          canvas={canvas}
-          onCanvasChange={(newCanvas) => {
-            setCanvas(newCanvas);
-            pushHistory(doc, newCanvas, typography, spacing, advanced);
-          }}
-          spacing={spacing}
-          onSpacingChange={(newSpacing) => {
-            setSpacing(newSpacing);
-            pushHistory(doc, canvas, typography, newSpacing, advanced);
-          }}
-          advanced={advanced}
-          onAdvancedChange={(newAdv) => {
-            setAdvanced(newAdv);
-            pushHistory(doc, canvas, typography, spacing, newAdv);
-          }}
-          customFonts={customFonts}
-          onCustomFontUpload={async (file) => {
-            const fontName = file.name.replace(/\.[^/.]+$/, '');
-            try {
-              const buffer = await file.arrayBuffer();
-              const fontFace = new FontFace(fontName, buffer);
-              await fontFace.load();
-              document.fonts.add(fontFace);
-              setCustomFonts((prev) => [...prev, fontName]);
-              setTypography((prev) => ({ ...prev, fontFamily: fontName }));
-            } catch (err) {
-              console.error('Failed to load font:', err);
-            }
-          }}
-          layoutLocked={doc.layoutLocked}
-          onToggleLayoutLock={() => setDoc((prev) => ({ ...prev, layoutLocked: !prev.layoutLocked }))}
-          onOpenPresetsModal={() => setShowPresetsModal(true)}
-          onOpenShortcutsModal={() => setShowShortcutsModal(true)}
-          onResetAll={handleResetAll}
-          onFillCanvas={handleFillCanvas}
-          onAuthorPreferred={handleAuthorPreferred}
-        />
-      </footer>
 
       {/* Fullscreen Modal */}
       {fullscreenPageIndex !== null && (

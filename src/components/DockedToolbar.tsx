@@ -862,8 +862,6 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
             )}
           </div>
 
-          <div className="w-px h-3.5 bg-[#1e1e28] mx-0.5 shrink-0" />
-
           {/* Horizontal Alignment */}
           <div className="flex items-center gap-0.5">
             {[
@@ -891,8 +889,6 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
               );
             })}
           </div>
-
-          <div className="w-px h-3.5 bg-[#1e1e28] mx-0.5 shrink-0" />
 
           {/* Vertical Alignment (Top / Center / Justify) */}
           <div className="flex items-center gap-0.5">
@@ -1136,8 +1132,6 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
               </div>
             )}
           </div>
-
-          <div className="w-px h-3.5 bg-[#1e1e28] mx-0.5 shrink-0" />
 
           {/* More Trigger */}
           <div className="relative">
