@@ -14,7 +14,6 @@
 <p align="center">
   <a href="https://miyakejima.github.io/longform-rasterizer/"><strong>Launch Web App</strong></a> ·
   <a href="#why-this-exists">Why This Exists</a> ·
-  <a href="#previews">Previews</a> ·
   <a href="#features">Features</a> ·
   <a href="#canvas-presets">Canvas Presets</a> ·
   <a href="#run-locally-optional">Run Locally</a>
@@ -27,6 +26,12 @@
 
 ---
 
+![Carousel](docs/screenshots/workstation-light.png)
+
+![Single](docs/screenshots/single-focus-dark.png)
+
+---
+
 ## Why this exists
 
 Posting long-form writing on visual social platforms (X, Threads, Instagram, LinkedIn) is broken:
@@ -36,18 +41,6 @@ Posting long-form writing on visual social platforms (X, Threads, Instagram, Lin
 - **Manual Design Friction**: Laying out text manually across design tools requires constant re-adjusting whenever text is edited.
 
 longform-rasterizer solves this with dynamic layout partitioning directly in your browser. Paste your text, choose your canvas preset, and the engine automatically balances line heights, font sizes, and paragraph breaks across cards with over 95% vertical utilization—ready for instant high-DPI export.
-
----
-
-## Previews
-
-### Balanced Multi-Card Workstation (Linen Light Theme)
-
-![longform-rasterizer Light Theme](docs/screenshots/workstation-light.png)
-
-### Single Focus View (AMOLED Dark Theme)
-
-![longform-rasterizer Single Focus Dark](docs/screenshots/single-focus-dark.png)
 
 ---
 
