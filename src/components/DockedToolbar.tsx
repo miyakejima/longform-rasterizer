@@ -5,7 +5,6 @@ import {
   ChevronDown,
   Check,
   Upload,
-  Sparkles,
   Lock,
   Unlock,
   RotateCcw,
@@ -17,7 +16,6 @@ import {
   Bookmark,
   Maximize2,
   MoreHorizontal,
-  Wand2,
   Star,
 } from 'lucide-react';
 import {
@@ -281,20 +279,12 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
   });
 
   const getFormatLabel = () => {
-    let base = `${canvas.width}×${canvas.height}`;
-    if (canvas.preset === 'twitter') base = '1080×1350 (4:5)';
-    else if (canvas.preset === 'square') base = '1080×1080 (1:1)';
-    else if (canvas.preset === 'portrait') base = '1080×1440 (3:4)';
-    else if (canvas.preset === 'story') base = '1080×1920 (9:16)';
-    else if (canvas.preset === 'landscape') base = '1600×900 (16:9)';
-
-    if (canvas.trimAllPages) {
-      return `${base} · ${t('trim_all')}`;
-    }
-    if (canvas.trimLastPageHeight) {
-      return `${base} · ${t('trim_last')}`;
-    }
-    return base;
+    if (canvas.preset === 'twitter') return '1080×1350 (4:5)';
+    if (canvas.preset === 'square') return '1080×1080 (1:1)';
+    if (canvas.preset === 'portrait') return '1080×1440 (3:4)';
+    if (canvas.preset === 'story') return '1080×1920 (9:16)';
+    if (canvas.preset === 'landscape') return '1600×900 (16:9)';
+    return `${canvas.width}×${canvas.height}`;
   };
 
   const getMarginLabel = () => {
@@ -526,8 +516,6 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
             )}
           </div>
 
-          <span className="text-zinc-700 text-[10px] px-0.5 select-none">·</span>
-
           {/* Font Size Trigger */}
           <div className="relative">
             <button
@@ -557,12 +545,9 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
 
                 {/* Auto-fit toggle inside size menu */}
                 <div className="flex items-center justify-between p-2 rounded-[6px] bg-[#09090c] border border-[#18181f] mb-3">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="w-3.5 h-3.5 text-zinc-400" />
-                    <div className="flex flex-col">
-                      <span className="text-xs font-medium text-zinc-200">{t('auto_fit_font_size')}</span>
-                      <span className="text-[10px] text-zinc-500">{t('scale_text_to_fill')}</span>
-                    </div>
+                  <div className="flex flex-col">
+                    <span className="text-xs font-medium text-zinc-200">{t('auto_fit_font_size')}</span>
+                    <span className="text-[10px] text-zinc-500">{t('scale_text_to_fill')}</span>
                   </div>
                   <button
                     type="button"
@@ -668,8 +653,6 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
             )}
           </div>
 
-          <span className="text-zinc-700 text-[10px] px-0.5 select-none">·</span>
-
           {/* Auto-fit Toggle */}
           <button
             type="button"
@@ -678,14 +661,13 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
               const nextMin = advanced.minFontSize === 18 ? 8 : (advanced.minFontSize || 8);
               onAdvancedChange({ ...advanced, autoFit: nextAutoFit, minFontSize: nextMin });
             }}
-            className={`btn-tactile h-7 px-2.5 flex items-center gap-1.5 rounded-[6px] text-[11px] font-medium transition-colors ${
+            className={`btn-tactile h-7 px-2.5 flex items-center justify-center rounded-[6px] text-[11px] font-medium transition-colors ${
               advanced.autoFit
                 ? 'bg-[#1c1c24] text-[#f4f4f6] border border-[#2e2e3a] shadow-xs'
                 : 'text-zinc-400 hover:text-white hover:bg-[#16161c]'
             }`}
             title={advanced.autoFit ? t('auto_fit_is_active') : t('enable_auto_fit')}
           >
-            <Sparkles className="w-3 h-3 text-current" />
             <span>{t('auto_fit')}</span>
           </button>
 
@@ -693,7 +675,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
           <button
             type="button"
             onClick={onAuthorPreferred ?? onFillCanvas}
-            className={`btn-tactile h-7 px-2.5 flex items-center gap-1.5 rounded-[6px] text-[11px] font-medium transition-colors ${
+            className={`btn-tactile h-7 px-2.5 flex items-center justify-center rounded-[6px] text-[11px] font-medium transition-colors ${
               isAutoBalanced
                 ? 'bg-[#1c1c24] text-[#f4f4f6] border border-[#2e2e3a] shadow-xs'
                 : 'text-zinc-400 hover:text-white hover:bg-[#16161c]'
@@ -704,7 +686,6 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                 : t('auto_balance_desc')
             }
           >
-            <Wand2 className="w-3 h-3 text-current" />
             <span>{t('auto_balance')}</span>
           </button>
         </div>
@@ -881,7 +862,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
             )}
           </div>
 
-          <span className="text-zinc-700 text-[10px] px-0.5 select-none">·</span>
+          <div className="w-px h-3.5 bg-[#1e1e28] mx-0.5 shrink-0" />
 
           {/* Horizontal Alignment */}
           <div className="flex items-center gap-0.5">
@@ -911,7 +892,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
             })}
           </div>
 
-          <span className="text-zinc-700 text-[10px] px-0.5 select-none">·</span>
+          <div className="w-px h-3.5 bg-[#1e1e28] mx-0.5 shrink-0" />
 
           {/* Vertical Alignment (Top / Center / Justify) */}
           <div className="flex items-center gap-0.5">
@@ -1027,36 +1008,30 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
         {/* ========================================================= */}
         {/* GROUP 5: COLORS (Background & Text Palette)               */}
         {/* ========================================================= */}
+        {/* GROUP 5: COLORS & SYSTEM (Colors + More)                  */}
+        {/* ========================================================= */}
         <div className="h-8 flex items-center bg-[#0c0c0e] border border-[#1b1b22] rounded-[8px] p-0.5 gap-0.5 shadow-xs">
           <div className="relative">
             <button
               type="button"
               onClick={() => togglePopover('colors')}
-              className={`btn-tactile h-7 px-2.5 flex items-center gap-2 text-xs rounded-[6px] transition-colors ${
+              className={`btn-tactile h-7 px-2.5 flex items-center gap-1.5 text-xs rounded-[6px] transition-colors ${
                 activePopover === 'colors'
                   ? 'bg-[#16161c] text-white'
                   : 'text-zinc-300 hover:bg-[#16161c] hover:text-white'
               }`}
               title={t('colors_tooltip')}
             >
-              <div className="flex items-center gap-1 shrink-0">
-                <span
-                  className="w-3 h-3 rounded-full border border-black/20 dark:border-white/20 block shrink-0"
-                  style={{ backgroundColor: canvas.transparentBackground ? 'transparent' : canvas.backgroundColor }}
-                  title={`canvas: ${canvas.backgroundColor}`}
-                />
-                <span
-                  className="w-3 h-3 rounded-full border border-black/20 dark:border-white/20 block shrink-0 -ml-1.5 shadow-xs"
-                  style={{ backgroundColor: typography.textColor }}
-                  title={`text: ${typography.textColor}`}
-                />
-              </div>
+              <span
+                className="w-3 h-3 rounded-full border border-black/20 dark:border-white/30 block shrink-0"
+                style={{ backgroundColor: canvas.transparentBackground ? 'transparent' : canvas.backgroundColor }}
+              />
               <span>{t('colors')}</span>
               <ChevronDown className="w-3 h-3 text-zinc-500" />
             </button>
 
             {activePopover === 'colors' && (
-              <div className="absolute bottom-full right-0 mb-3 w-84 bg-white dark:bg-[#0c0c0e] border border-slate-200 dark:border-[#1b1b22] rounded-xl shadow-2xl shadow-black/10 dark:shadow-black/80 p-4 text-slate-800 dark:text-zinc-200 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
+              <div className="absolute bottom-full right-0 mb-3 w-80 bg-white dark:bg-[#0c0c0e] border border-slate-200 dark:border-[#1b1b22] rounded-xl shadow-2xl shadow-black/10 dark:shadow-black/80 p-4 text-slate-800 dark:text-zinc-200 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
                 <div className="flex items-center justify-between mb-3 pb-2 border-b border-black/[0.06] dark:border-[#18181f]">
                   <span className="text-[10px] font-semibold text-zinc-500 lowercase font-mono tracking-wider">
                     {t('colors_appearance')}
@@ -1068,82 +1043,8 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                   )}
                 </div>
 
-                {/* Quick Curated Palettes as Mini Visual Cards */}
-                <div className="mb-3">
-                  <span className="text-[10px] font-mono lowercase text-zinc-400 dark:text-zinc-500 block mb-2 font-medium">
-                    {t('curated_palettes')}
-                  </span>
-                  <div className="grid grid-cols-2 gap-2">
-                    {[
-                      { name: 'dark obsidian', subtitle: 'black · white', bg: '#000000', text: '#FFFFFF', isLight: false },
-                      { name: 'linen light', subtitle: 'slate · navy', bg: '#F8FAFC', text: '#0F172A', isLight: true },
-                      { name: 'warm editorial', subtitle: 'cream · charcoal', bg: '#FBF9F5', text: '#2D2A26', isLight: true },
-                      { name: 'studio slate', subtitle: 'zinc · off-white', bg: '#09090B', text: '#EDEDED', isLight: false },
-                    ].map((pal) => {
-                      const isActive =
-                        canvas.backgroundColor.toLowerCase() === pal.bg.toLowerCase() &&
-                        typography.textColor.toLowerCase() === pal.text.toLowerCase() &&
-                        !canvas.transparentBackground;
-                      return (
-                        <button
-                          key={pal.name}
-                          type="button"
-                          onClick={() => {
-                            onCanvasChange({ ...canvas, backgroundColor: pal.bg, transparentBackground: false });
-                            onTypographyChange({ ...typography, textColor: pal.text });
-                          }}
-                          className={`relative p-2.5 rounded-lg border text-left flex flex-col justify-between h-16 transition-all cursor-pointer shadow-xs hover:scale-[1.02] active:scale-[0.98] ${
-                            pal.isLight
-                              ? 'border-black/15 hover:border-black/30'
-                              : 'border-white/15 hover:border-white/30'
-                          } ${isActive ? 'ring-2 ring-blue-500/80' : ''}`}
-                          style={{ backgroundColor: pal.bg }}
-                        >
-                          <div className="flex items-center justify-between">
-                            <span
-                              className="text-base font-serif font-bold tracking-tight leading-none"
-                              style={{ color: pal.text }}
-                            >
-                              Aa
-                            </span>
-                            {isActive && (
-                              <span
-                                className="w-4 h-4 rounded-full flex items-center justify-center text-[10px] shadow-xs"
-                                style={{
-                                  backgroundColor: pal.text,
-                                  color: pal.bg,
-                                }}
-                              >
-                                <Check className="w-2.5 h-2.5 stroke-[3]" />
-                              </span>
-                            )}
-                          </div>
-                          <div>
-                            <div
-                              className="text-[11px] font-semibold leading-tight truncate"
-                              style={{ color: pal.text }}
-                            >
-                              {pal.name}
-                            </div>
-                            <div
-                              className="text-[9px] opacity-75 font-mono leading-none mt-0.5"
-                              style={{ color: pal.text }}
-                            >
-                              {pal.subtitle}
-                            </div>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
                 {/* Custom Color Controls */}
-                <div className="pt-3 border-t border-black/[0.06] dark:border-[#18181f] space-y-2">
-                  <span className="text-[10px] font-mono lowercase text-zinc-400 dark:text-zinc-500 block font-medium">
-                    {t('custom_colors')}
-                  </span>
-
+                <div className="space-y-2">
                   {/* Background */}
                   <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-[#09090c] border border-slate-200/80 dark:border-[#18181f]">
                     <div>
@@ -1235,17 +1136,15 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
               </div>
             )}
           </div>
-        </div>
 
-        {/* ========================================================= */}
-        {/* GROUP 6: UTILITY & SYSTEM (Presets, Shortcuts, Reset)      */}
-        {/* ========================================================= */}
-        <div className="h-8 flex items-center bg-[#0c0c0e] border border-[#1b1b22] rounded-[8px] p-0.5 shadow-xs">
+          <div className="w-px h-3.5 bg-[#1e1e28] mx-0.5 shrink-0" />
+
+          {/* More Trigger */}
           <div className="relative">
             <button
               type="button"
               onClick={() => togglePopover('more')}
-              className={`btn-tactile h-7 px-2 flex items-center gap-1 text-xs rounded-[6px] transition-colors cursor-pointer ${
+              className={`btn-tactile h-7 px-2 flex items-center justify-center rounded-[6px] transition-colors cursor-pointer ${
                 activePopover === 'more'
                   ? 'bg-[#16161c] text-white'
                   : 'text-zinc-400 hover:text-white hover:bg-[#16161c]'

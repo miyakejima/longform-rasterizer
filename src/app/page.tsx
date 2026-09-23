@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { PanelLeftClose, PanelLeft, Highlighter } from 'lucide-react';
 import { HeaderBar } from '../components/HeaderBar';
 import { EditorPanel } from '../components/EditorPanel';
 import { DockedToolbar } from '../components/DockedToolbar';
@@ -19,7 +18,6 @@ import {
   VisualPreset,
   PaginationResult,
 } from '../types';
-import { GridModeIcon, SingleModeIcon, CarouselModeIcon } from '../components/icons/ViewModeIcons';
 import { I18nProvider, useI18n } from '../i18n';
 import {
   DEFAULT_ADVANCED,
@@ -801,17 +799,12 @@ function Workspace() {
               <button
                 type="button"
                 onClick={() => setIsEditorCollapsed((prev) => !prev)}
-                className={`h-8 px-2.5 rounded-[8px] bg-[#0c0c0e] border border-[#1b1b22] hover:border-[#2e2e3a] hover:bg-[#16161c] text-zinc-400 hover:text-white transition-all flex items-center gap-2 shadow-xs focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-zinc-500 text-xs font-medium ${
+                className={`h-8 px-3 rounded-[8px] bg-[#0c0c0e] border border-[#1b1b22] hover:border-[#2e2e3a] hover:bg-[#16161c] text-zinc-400 hover:text-white transition-all flex items-center justify-center shadow-xs focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-zinc-500 text-xs font-medium ${
                   isEditorCollapsed ? 'border-zinc-500/40 text-zinc-200 bg-[#16161c]' : ''
                 }`}
                 title={isEditorCollapsed ? `${t('show_editor')} (ctrl+b)` : `${t('collapse_editor')} (ctrl+b)`}
                 aria-label={isEditorCollapsed ? t('show_editor') : t('collapse_editor')}
               >
-                {isEditorCollapsed ? (
-                  <PanelLeft className="w-4 h-4 text-zinc-300" />
-                ) : (
-                  <PanelLeftClose className="w-4 h-4 text-zinc-400" />
-                )}
                 <span>{isEditorCollapsed ? t('show_editor') : t('editor')}</span>
               </button>
             </div>
@@ -832,7 +825,7 @@ function Workspace() {
                 <button
                   type="button"
                   onClick={() => setPreviewMode('grid')}
-                  className={`btn-tactile relative z-10 h-7 px-2.5 sm:px-3 rounded-[6px] flex items-center justify-center gap-1.5 text-xs transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-zinc-500 ${
+                  className={`btn-tactile relative z-10 h-7 px-3 rounded-[6px] flex items-center justify-center text-xs transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-zinc-500 ${
                     previewMode === 'grid'
                       ? 'text-[#f4f4f6] font-medium'
                       : 'text-zinc-400 hover:text-white'
@@ -840,13 +833,12 @@ function Workspace() {
                   title={t('grid')}
                   aria-label={t('grid')}
                 >
-                  <GridModeIcon className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline text-[11.5px] font-medium">{t('grid')}</span>
+                  <span className="text-[11.5px] font-medium">{t('grid')}</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setPreviewMode('single')}
-                  className={`btn-tactile relative z-10 h-7 px-2.5 sm:px-3 rounded-[6px] flex items-center justify-center gap-1.5 text-xs transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-zinc-500 ${
+                  className={`btn-tactile relative z-10 h-7 px-3 rounded-[6px] flex items-center justify-center text-xs transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-zinc-500 ${
                     previewMode === 'single'
                       ? 'text-[#f4f4f6] font-medium'
                       : 'text-zinc-400 hover:text-white'
@@ -854,13 +846,12 @@ function Workspace() {
                   title={t('single')}
                   aria-label={t('single')}
                 >
-                  <SingleModeIcon className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline text-[11.5px] font-medium">{t('single')}</span>
+                  <span className="text-[11.5px] font-medium">{t('single')}</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setPreviewMode('carousel')}
-                  className={`btn-tactile relative z-10 h-7 px-2.5 sm:px-3 rounded-[6px] flex items-center justify-center gap-1.5 text-xs transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-zinc-500 ${
+                  className={`btn-tactile relative z-10 h-7 px-3 rounded-[6px] flex items-center justify-center text-xs transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-zinc-500 ${
                     previewMode === 'carousel'
                       ? 'text-[#f4f4f6] font-medium'
                       : 'text-zinc-400 hover:text-white'
@@ -868,8 +859,7 @@ function Workspace() {
                   title={t('carousel')}
                   aria-label={t('carousel')}
                 >
-                  <CarouselModeIcon className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline text-[11.5px] font-medium">{t('carousel')}</span>
+                  <span className="text-[11.5px] font-medium">{t('carousel')}</span>
                 </button>
               </div>
             </div>
@@ -880,7 +870,7 @@ function Workspace() {
               <button
                 type="button"
                 onClick={handleToggleHighlight}
-                className={`btn-tactile h-8 px-2.5 rounded-[8px] border text-xs font-medium transition-all flex items-center gap-1.5 shadow-xs cursor-pointer focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-zinc-500 ${
+                className={`btn-tactile h-8 px-3 rounded-[8px] border text-xs font-medium transition-all flex items-center justify-center shadow-xs cursor-pointer focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-zinc-500 ${
                   isHighlightEnabled
                     ? 'bg-slate-200/80 dark:bg-[#1c1c24] border-slate-300 dark:border-[#2e2e3a] text-slate-900 dark:text-[#f4f4f6]'
                     : 'bg-transparent border-slate-200/60 dark:border-[#1b1b22] text-slate-400 dark:text-zinc-500 hover:text-slate-700 dark:hover:text-zinc-300 hover:bg-slate-100 dark:hover:bg-[#16161c]'
@@ -888,8 +878,7 @@ function Workspace() {
                 title={isHighlightEnabled ? t('highlight_disable') : t('highlight_enable')}
                 aria-label={isHighlightEnabled ? t('highlight_disable') : t('highlight_enable')}
               >
-                <Highlighter className={`w-3.5 h-3.5 ${isHighlightEnabled ? 'text-amber-600 dark:text-amber-400' : 'text-slate-400 dark:text-zinc-600'}`} />
-                <span className="hidden sm:inline">{t('highlight')}</span>
+                <span>{t('highlight')}</span>
               </button>
 
               <HeaderBar
@@ -1012,9 +1001,16 @@ function Workspace() {
         </div>
       </div>
 
-      {/* Bottom Shelf: Docked Toolbar + Stats */}
+      {/* Bottom Shelf: Stats on left under editor, Docked Toolbar on right under previews */}
       <footer className="h-14 border-t border-[var(--border)] px-6 flex items-center justify-between bg-[var(--bg-footer)] backdrop-blur-md shrink-0 select-none z-30">
-        {/* Left: Docked Minimalist Toolbar (4 pages | Inter ⌵ | 48 ⌵ | ···) */}
+        {/* Left: Crisp Doc Stats (positioned under the text editor) */}
+        <div className="flex items-center gap-3 text-xs text-zinc-500 font-mono select-none">
+          <span>
+            {wordCount} {t('words')} · {charCount} {t('chars')}
+          </span>
+        </div>
+
+        {/* Right: Docked Minimalist Toolbar (positioned under the canvas preview) */}
         <DockedToolbar
           pageCount={doc.pageCount}
           onPageCountChange={(cnt) => {
@@ -1069,13 +1065,6 @@ function Workspace() {
           onFillCanvas={handleFillCanvas}
           onAuthorPreferred={handleAuthorPreferred}
         />
-
-        {/* Right: Crisp Doc Stats */}
-        <div className="flex items-center gap-3 text-xs text-zinc-500 font-mono select-none">
-          <span>
-            {wordCount} {t('words')} · {charCount} {t('chars')}
-          </span>
-        </div>
       </footer>
 
       {/* Fullscreen Modal */}
