@@ -874,8 +874,49 @@ function Workspace() {
               </div>
             </div>
 
-            {/* Right Zone: Language Toggle + Theme Toggle + Highlight + Primary Action (Export Pill) */}
+            {/* Right Zone: Canvas Tools (Highlight, Export) │ Divider │ App Preferences (Language, Theme) */}
             <div className="flex items-center justify-end select-none flex-1 min-w-0 gap-2">
+              {/* Highlight / Spotlight Toggle Button */}
+              <button
+                type="button"
+                onClick={handleToggleHighlight}
+                className={`btn-tactile h-8 px-2.5 rounded-[8px] border text-xs font-medium transition-all flex items-center gap-1.5 shadow-xs cursor-pointer focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-zinc-500 ${
+                  isHighlightEnabled
+                    ? 'bg-slate-200/80 dark:bg-[#1c1c24] border-slate-300 dark:border-[#2e2e3a] text-slate-900 dark:text-[#f4f4f6]'
+                    : 'bg-transparent border-slate-200/60 dark:border-[#1b1b22] text-slate-400 dark:text-zinc-500 hover:text-slate-700 dark:hover:text-zinc-300 hover:bg-slate-100 dark:hover:bg-[#16161c]'
+                }`}
+                title={isHighlightEnabled ? t('highlight_disable') : t('highlight_enable')}
+                aria-label={isHighlightEnabled ? t('highlight_disable') : t('highlight_enable')}
+              >
+                <Highlighter className={`w-3.5 h-3.5 ${isHighlightEnabled ? 'text-amber-600 dark:text-amber-400' : 'text-slate-400 dark:text-zinc-600'}`} />
+                <span className="hidden sm:inline">{t('highlight')}</span>
+              </button>
+
+              <HeaderBar
+                onExportAll={handleExportAll}
+                onExportZip={handleExportZip}
+                exportFormat={exportFormat}
+                onExportFormatChange={setExportFormat}
+                exportScale={exportScale}
+                onExportScaleChange={setExportScale}
+                presets={presets}
+                selectedPresetId={selectedPresetId}
+                onSelectPreset={handleSelectPreset}
+                onSaveCurrentPreset={handleSaveCurrentPreset}
+                onRenamePreset={handleRenamePreset}
+                onDuplicatePreset={handleDuplicatePreset}
+                onDeletePreset={handleDeletePreset}
+                isExporting={isExporting}
+                hasOverflow={hasOverflow}
+                showPresetManagerModal={showPresetsModal}
+                onClosePresetManagerModal={() => setShowPresetsModal(false)}
+                showShortcutsModal={showShortcutsModal}
+                onCloseShortcutsModal={() => setShowShortcutsModal(false)}
+              />
+
+              {/* 1px Vertical Divider separating Canvas Actions from App Preferences */}
+              <div className="w-px h-4 bg-slate-300/60 dark:bg-[#2e2e3a] mx-0.5 shrink-0" />
+
               {/* Language Toggle Button (en · es) */}
               <button
                 type="button"
@@ -889,6 +930,7 @@ function Workspace() {
                 <span className={lang === 'es' ? 'text-slate-900 dark:text-white font-semibold' : 'text-slate-400 dark:text-zinc-500'}>es</span>
               </button>
 
+              {/* Theme Toggle Button */}
               <button
                 type="button"
                 onClick={toggleTheme}
@@ -931,44 +973,6 @@ function Workspace() {
                   <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
                 </svg>
               </button>
-
-              {/* Highlight / Spotlight Toggle Button (Left of Export) */}
-              <button
-                type="button"
-                onClick={handleToggleHighlight}
-                className={`btn-tactile h-8 px-2.5 rounded-[8px] border text-xs font-medium transition-all flex items-center gap-1.5 shadow-xs cursor-pointer focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-zinc-500 ${
-                  isHighlightEnabled
-                    ? 'bg-slate-200/80 dark:bg-[#1c1c24] border-slate-300 dark:border-[#2e2e3a] text-slate-900 dark:text-[#f4f4f6]'
-                    : 'bg-transparent border-slate-200/60 dark:border-[#1b1b22] text-slate-400 dark:text-zinc-500 hover:text-slate-700 dark:hover:text-zinc-300 hover:bg-slate-100 dark:hover:bg-[#16161c]'
-                }`}
-                title={isHighlightEnabled ? t('highlight_disable') : t('highlight_enable')}
-                aria-label={isHighlightEnabled ? t('highlight_disable') : t('highlight_enable')}
-              >
-                <Highlighter className={`w-3.5 h-3.5 ${isHighlightEnabled ? 'text-amber-600 dark:text-amber-400' : 'text-slate-400 dark:text-zinc-600'}`} />
-                <span className="hidden sm:inline">{t('highlight')}</span>
-              </button>
-
-              <HeaderBar
-                onExportAll={handleExportAll}
-                onExportZip={handleExportZip}
-                exportFormat={exportFormat}
-                onExportFormatChange={setExportFormat}
-                exportScale={exportScale}
-                onExportScaleChange={setExportScale}
-                presets={presets}
-                selectedPresetId={selectedPresetId}
-                onSelectPreset={handleSelectPreset}
-                onSaveCurrentPreset={handleSaveCurrentPreset}
-                onRenamePreset={handleRenamePreset}
-                onDuplicatePreset={handleDuplicatePreset}
-                onDeletePreset={handleDeletePreset}
-                isExporting={isExporting}
-                hasOverflow={hasOverflow}
-                showPresetManagerModal={showPresetsModal}
-                onClosePresetManagerModal={() => setShowPresetsModal(false)}
-                showShortcutsModal={showShortcutsModal}
-                onCloseShortcutsModal={() => setShowShortcutsModal(false)}
-              />
             </div>
           </div>
 
