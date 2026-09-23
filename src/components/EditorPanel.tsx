@@ -261,7 +261,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
       )}
 
       {/* Editorial Writing Canvas (snug top start, zero navbar) */}
-      <div className="relative flex-1 w-full pt-5 pb-4 px-7 flex flex-col min-h-0 overflow-hidden">
+      <div className="relative flex-1 w-full pt-5 pb-0 px-7 flex flex-col min-h-0 overflow-hidden">
         {/* Paragraph Spotlight Backdrop / Focus Scrim Layer (clipped to editor viewport) */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden z-20">
           <div
@@ -300,7 +300,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
             letterSpacing: typography?.letterSpacing ? `${typography.letterSpacing}px` : undefined,
             fontWeight: typography?.fontWeight ?? 400,
           }}
-          className="relative z-10 w-full flex-1 bg-transparent text-[var(--text-primary)] text-[17px] tracking-tight outline-none resize-none placeholder:text-[var(--text-dim)] caret-[var(--text-primary)] selection:bg-zinc-800 no-scrollbar overflow-y-auto pb-8"
+          className="relative z-10 w-full flex-1 bg-transparent text-[var(--text-primary)] text-[17px] tracking-tight outline-none resize-none placeholder:text-[var(--text-dim)] caret-[var(--text-primary)] selection:bg-zinc-800 no-scrollbar overflow-y-auto pb-16"
         />
 
         {/* Drag & drop overlay */}

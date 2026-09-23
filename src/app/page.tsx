@@ -997,7 +997,7 @@ function Workspace() {
           </div>
 
           {/* Bottom Docked Toolbar (Docked cleanly under the preview canvas ONLY) */}
-          <div className="h-14 border-t border-[var(--border)] px-4 md:px-6 flex items-center justify-center bg-[var(--bg-footer)] backdrop-blur-md shrink-0 select-none z-30">
+          <div className="h-14 px-4 md:px-6 flex items-center justify-center bg-transparent shrink-0 select-none z-30">
             <DockedToolbar
               pageCount={doc.pageCount}
               onPageCountChange={(cnt) => {
