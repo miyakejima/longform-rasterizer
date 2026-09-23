@@ -111,7 +111,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
 
   const handleSaveRename = (id: string) => {
     if (editingPresetName.trim()) {
-      onRenamePreset(id, editingPresetName.trim().toLowerCase());
+      onRenamePreset(id, editingPresetName.trim());
       setEditingPresetId(null);
     }
   };
@@ -135,7 +135,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
         {/* Export Options Dropdown */}
         {showExportMenu && (
           <div className="absolute right-0 top-full mt-2 w-64 bg-[#0c0c0e] border border-[#1b1b22] rounded-xl shadow-2xl shadow-black p-3 text-zinc-200 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-            <span className="text-[10px] font-semibold text-zinc-500 lowercase font-mono tracking-wider block mb-2">
+            <span className="text-[10px] font-semibold text-zinc-500 uppercase font-mono tracking-wider block mb-2">
               {t('export_options')}
             </span>
 
@@ -159,7 +159,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
                   <Download className="w-3.5 h-3.5 text-zinc-400" />
                   {t('download_all_images')}
                 </span>
-                <span className="text-[10px] text-zinc-500 font-mono lowercase">png</span>
+                <span className="text-[10px] text-zinc-500 font-mono uppercase">PNG</span>
               </button>
 
               {onExportZip && (
@@ -175,7 +175,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
                     <FileArchive className="w-3.5 h-3.5 text-zinc-400" />
                     {t('download_as_zip')}
                   </span>
-                  <span className="text-[10px] text-zinc-500 font-mono lowercase">.zip</span>
+                  <span className="text-[10px] text-zinc-500 font-mono uppercase">.ZIP</span>
                 </button>
               )}
             </div>
@@ -199,7 +199,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
                       key={fmt}
                       type="button"
                       onClick={() => onExportFormatChange(fmt)}
-                      className={`btn-tactile relative z-10 px-2 py-0.5 text-[10px] text-center rounded-[4px] lowercase font-mono transition-colors ${
+                      className={`btn-tactile relative z-10 px-2 py-0.5 text-[10px] text-center rounded-[4px] uppercase font-mono transition-colors ${
                         exportFormat === fmt
                           ? 'text-[#f4f4f6] font-medium'
                           : 'text-zinc-400 hover:text-zinc-200'
