@@ -547,9 +547,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
               return (
                 <div
                   key={`preview-carousel-${page.pageIndex}`}
-                  className={`h-full ${
-                    isEditorCollapsed ? 'max-h-[82vh]' : 'max-h-[72vh]'
-                  } min-h-[280px] shrink-0 flex flex-col items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] animate-in fade-in zoom-in-95`}
+                  className="h-full max-h-full min-h-[280px] shrink-0 flex items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] animate-in fade-in zoom-in-95"
                   style={{
                     aspectRatio: `${cardDims.width} / ${cardDims.height}`,
                     transform: `translateX(${overscrollOffset}px)`,
@@ -581,9 +579,6 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                       onParagraphHover={onParagraphHover}
                     />
                   </div>
-                  <span className="text-[11px] font-mono font-medium text-zinc-600 dark:text-zinc-400 mt-2 shrink-0 select-none tracking-wide">
-                    {t('page_singular')} {page.pageIndex + 1}
-                  </span>
                 </div>
               );
             })}
