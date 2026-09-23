@@ -527,7 +527,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                 e.preventDefault();
               }
             }}
-            className={`flex-1 min-h-0 w-full flex items-center overflow-x-auto py-4 px-12 gap-8 no-scrollbar ${
+            className={`flex-1 min-h-0 w-full flex items-center overflow-x-auto py-2 px-12 gap-8 no-scrollbar ${
               isDragging ? 'cursor-grabbing select-none' : 'cursor-grab'
             }`}
             style={{ scrollBehavior: 'auto' }}
@@ -547,7 +547,9 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
               return (
                 <div
                   key={`preview-carousel-${page.pageIndex}`}
-                  className="h-full max-h-full min-h-[280px] shrink-0 flex items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] animate-in fade-in zoom-in-95"
+                  className={`h-full ${
+                    isEditorCollapsed ? 'max-h-[78vh]' : 'max-h-[70vh]'
+                  } min-h-[280px] shrink-0 flex flex-col items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] animate-in fade-in zoom-in-95`}
                   style={{
                     aspectRatio: `${cardDims.width} / ${cardDims.height}`,
                     transform: `translateX(${overscrollOffset}px)`,
@@ -555,7 +557,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                     willChange: 'transform',
                   }}
                 >
-                  <div className="w-full h-full relative flex items-center justify-center">
+                  <div className="flex-1 min-h-0 w-full relative flex items-center justify-center">
                     <PageCard
                       page={page}
                       totalPages={pages.length}
@@ -579,6 +581,9 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                       onParagraphHover={onParagraphHover}
                     />
                   </div>
+                  <span className="text-[11px] font-mono font-medium text-zinc-600 dark:text-zinc-400 mt-2 shrink-0 select-none tracking-wide">
+                    {t('page_singular')} {page.pageIndex + 1}
+                  </span>
                 </div>
               );
             })}
