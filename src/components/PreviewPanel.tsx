@@ -13,6 +13,7 @@ import {
 } from '../types';
 import { PageCard } from './PageCard';
 import { getPageCanvasDimensions } from '../engine/canvasRenderer';
+import { useI18n } from '../i18n';
 
 interface PreviewPanelProps {
   pages: PageData[];
@@ -55,6 +56,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
   highlightedParagraph = null,
   onParagraphHover,
 }) => {
+  const { t } = useI18n();
   const overflowingPages = pages.filter((p) => p.isOverflowing);
   const hasOverflow = overflowingPages.length > 0;
 
@@ -404,10 +406,11 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
             <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
             <span>
               {overflowingPages.length === 1
-                ? `Page ${overflowingPages[0].pageIndex + 1} overflows by ~${Math.round(
-                    overflowingPages[0].overflowPx
-                  )}px.`
-                : `${overflowingPages.length} pages overflow canvas bounds.`}
+                ? t('page_overflows_by', {
+                    page: overflowingPages[0].pageIndex + 1,
+                    px: Math.round(overflowingPages[0].overflowPx),
+                  })
+                : t('pages_overflow_bounds', { count: overflowingPages.length })}
             </span>
           </div>
           <button
@@ -416,7 +419,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
             className="btn-tactile flex items-center gap-1.5 px-2.5 py-1 rounded bg-red-900/60 hover:bg-red-800 text-white font-medium transition-colors text-xs"
           >
             <Sparkles className="w-3.5 h-3.5" />
-            Auto-fit Text
+            {t('auto_fit_text')}
           </button>
         </div>
       )}
@@ -435,14 +438,14 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                   onSelectPage(nextIdx);
                 }}
                 className="btn-tactile flex items-center gap-1 text-[11px] font-mono text-zinc-400 hover:text-white bg-[#0c0c0e] hover:bg-[#16161c] px-2.5 py-1 rounded-[6px] border border-[#1b1b22] hover:border-[#2e2e3a] disabled:opacity-20 disabled:pointer-events-none transition-colors shadow-xs"
-                title="Previous page (Arrow Left)"
+                title={t('prev_page_arrow')}
               >
                 <ChevronLeft className="w-3.5 h-3.5" />
-                <span>Prev</span>
+                <span>{t('prev')}</span>
               </button>
 
               <span className="text-xs font-mono font-medium text-zinc-300 tracking-wide">
-                Page {effectiveSingleIndex + 1} of {pages.length}
+                {t('page_counter', { current: effectiveSingleIndex + 1, total: pages.length })}
               </span>
 
               <button
@@ -454,9 +457,9 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                   onSelectPage(nextIdx);
                 }}
                 className="btn-tactile flex items-center gap-1 text-[11px] font-mono text-zinc-400 hover:text-white bg-[#0c0c0e] hover:bg-[#16161c] px-2.5 py-1 rounded-[6px] border border-[#1b1b22] hover:border-[#2e2e3a] disabled:opacity-20 disabled:pointer-events-none transition-colors shadow-xs"
-                title="Next page (Arrow Right)"
+                title={t('next_page_arrow')}
               >
-                <span>Next</span>
+                <span>{t('next')}</span>
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -579,7 +582,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                     />
                   </div>
                   <span className="text-[11px] font-mono font-medium text-zinc-600 dark:text-zinc-400 mt-2 shrink-0 select-none tracking-wide">
-                    Page {page.pageIndex + 1}
+                    {t('page_singular')} {page.pageIndex + 1}
                   </span>
                 </div>
               );
@@ -613,7 +616,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                 onParagraphHover={onParagraphHover}
               />
               <span className="text-[11px] font-mono font-medium text-zinc-600 dark:text-zinc-400 select-none tracking-wide">
-                Page {page.pageIndex + 1}
+                {t('page_singular')} {page.pageIndex + 1}
               </span>
             </div>
           ))}

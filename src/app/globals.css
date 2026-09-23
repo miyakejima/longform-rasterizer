@@ -244,6 +244,32 @@ input[type="range"]::-webkit-slider-thumb {
   border-color: var(--btn-ghost-border-hover);
 }
 
+.lang-toggle-btn {
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 8px;
+  background: var(--btn-ghost-bg);
+  border: 1px solid var(--btn-ghost-border);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  outline: none;
+  flex-shrink: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 12px;
+  user-select: none;
+}
+
+.lang-toggle-btn:hover {
+  background: var(--btn-ghost-hover);
+  color: var(--text-primary);
+  border-color: var(--btn-ghost-border-hover);
+}
+
 .theme-icon {
   position: absolute;
   pointer-events: none;

@@ -22,6 +22,7 @@ import {
 } from '../types';
 import { renderPageToCanvas, getPageCanvasDimensions } from '../engine/canvasRenderer';
 import { exportSinglePage } from '../engine/exportEngine';
+import { useI18n } from '../i18n';
 
 interface FullscreenModalProps {
   isOpen: boolean;
@@ -54,6 +55,7 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
   onBlockedExport,
   highlightRange = null,
 }) => {
+  const { t } = useI18n();
   const [currentPageIndex, setCurrentPageIndex] = useState(initialPageIndex);
   const [prevInitialPageIndex, setPrevInitialPageIndex] = useState(initialPageIndex);
   if (initialPageIndex !== prevInitialPageIndex) {
@@ -241,7 +243,7 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
 
   const handleDownloadCurrent = async () => {
     if (activePage.isOverflowing && !allowClippedExport) {
-      onBlockedExport?.(`Export blocked: Page ${activePage.pageIndex + 1} contains clipped text.`);
+      onBlockedExport?.(t('export_blocked_clipped', { page: activePage.pageIndex + 1 }));
       return;
     }
     setShowShimmer(true);
@@ -335,7 +337,7 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Fullscreen Page Preview"
+      aria-label={t('fullscreen_preview_shortcut')}
       className="fixed inset-0 z-50 flex flex-col bg-slate-100/95 dark:bg-[#060608]/95 backdrop-blur-xl animate-in fade-in duration-200"
     >
       {/* Top action bar */}
@@ -343,11 +345,11 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
         {/* Left: Page counter & title */}
         <div className="flex items-center gap-3">
           <span className="text-xs font-mono font-medium text-slate-800 dark:text-zinc-200">
-            Page {currentPageIndex + 1} of {pages.length}
+            {t('page_counter', { current: currentPageIndex + 1, total: pages.length })}
           </span>
           <span className="text-xs text-slate-400 dark:text-zinc-600">|</span>
           <span className="text-xs text-slate-500 dark:text-zinc-400 truncate max-w-xs">
-            {projectName || 'Untitled'}
+            {projectName || t('untitled')}
           </span>
         </div>
 
@@ -358,10 +360,10 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
             type="button"
             onClick={() => setZoomLevel((z) => (z === 'fit' ? '100%' : 'fit'))}
             className="btn-tactile h-7 px-2.5 flex items-center gap-1.5 text-xs bg-slate-100 hover:bg-slate-200 dark:bg-[#0c0c0e] dark:hover:bg-[#16161c] border border-slate-200 dark:border-[#1b1b22] hover:border-slate-300 dark:hover:border-[#2e2e3a] text-slate-700 dark:text-zinc-300 hover:text-slate-950 dark:hover:text-white rounded-[6px] transition-colors cursor-pointer"
-            title={zoomLevel === 'fit' ? 'Zoom to 100%' : 'Fit to Window'}
+            title={zoomLevel === 'fit' ? t('zoom_100_desc') : t('fit_desc')}
           >
             {zoomLevel === 'fit' ? <ZoomIn className="w-3.5 h-3.5" /> : <ZoomOut className="w-3.5 h-3.5" />}
-            <span>{zoomLevel === 'fit' ? 'Fit' : '100%'}</span>
+            <span>{zoomLevel === 'fit' ? t('fit') : t('zoom_100')}</span>
           </button>
 
           {/* Copy Text */}
@@ -375,7 +377,7 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
             ) : (
               <Copy className="w-3.5 h-3.5" />
             )}
-            <span>{copied ? 'Copied' : 'Copy Text'}</span>
+            <span>{copied ? t('copied') : t('copy_text')}</span>
           </button>
 
           {/* Download */}
@@ -385,7 +387,7 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
             className="btn-tactile h-7 px-3 flex items-center gap-1.5 text-xs bg-slate-900 hover:bg-slate-800 text-white border border-slate-900 dark:bg-[#1c1c24] dark:hover:bg-[#24242e] dark:text-white dark:border-[#2e2e3a] font-medium rounded-[6px] transition-colors shadow-xs cursor-pointer"
           >
             <Download className="w-3.5 h-3.5" />
-            <span>Download</span>
+            <span>{t('download')}</span>
           </button>
 
           {/* Close */}
@@ -393,7 +395,7 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
             type="button"
             onClick={onClose}
             className="btn-tactile h-7 w-7 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white rounded-[6px] bg-slate-100 hover:bg-slate-200 dark:bg-[#0c0c0e] dark:hover:bg-[#16161c] border border-slate-200 dark:border-[#1b1b22] hover:border-slate-300 dark:hover:border-[#2e2e3a] ml-1 transition-colors cursor-pointer"
-            title="Close (Esc)"
+            title={t('close_esc')}
           >
             <X className="w-4 h-4" />
           </button>
@@ -425,7 +427,7 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
             className={`btn-tactile absolute left-6 z-10 p-3 rounded-full bg-white/90 dark:bg-zinc-900/80 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 hover:text-slate-950 dark:hover:text-white hover:bg-white dark:hover:bg-zinc-800 transition-all shadow-xl backdrop-blur-xs cursor-pointer ${
               currentPageIndex === 0 ? 'opacity-30 hover:opacity-50' : 'opacity-100'
             }`}
-            title="Previous Page (Left Arrow)"
+            title={t('prev_page_arrow')}
           >
             <ChevronLeft className="w-6 h-6" />
           </button>
@@ -479,7 +481,7 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
             className={`btn-tactile absolute right-6 z-10 p-3 rounded-full bg-white/90 dark:bg-zinc-900/80 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 hover:text-slate-950 dark:hover:text-white hover:bg-white dark:hover:bg-zinc-800 transition-all shadow-xl backdrop-blur-xs cursor-pointer ${
               currentPageIndex === pages.length - 1 ? 'opacity-30 hover:opacity-50' : 'opacity-100'
             }`}
-            title="Next Page (Right Arrow)"
+            title={t('next_page_arrow')}
           >
             <ChevronRight className="w-6 h-6" />
           </button>
@@ -499,7 +501,7 @@ export const FullscreenModal: React.FC<FullscreenModalProps> = ({
                   ? 'w-8 bg-slate-900 dark:bg-[#f4f4f6]'
                   : 'w-2 bg-slate-300 hover:bg-slate-400 dark:bg-zinc-800 dark:hover:bg-zinc-600'
               }`}
-              title={`Jump to Page ${idx + 1}`}
+              title={t('jump_to_page', { page: idx + 1 })}
             />
           ))}
         </div>

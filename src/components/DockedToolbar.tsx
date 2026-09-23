@@ -34,6 +34,7 @@ import {
 } from '../types';
 import { getSupportedFontWeights } from '../engine/fontLoader';
 import { loadStoredFavoriteFonts, saveStoredFavoriteFonts } from '../engine/presetStore';
+import { useI18n } from '../i18n';
 
 interface DockedToolbarProps {
   pageCount: number;
@@ -119,6 +120,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
   onFillCanvas,
   onAuthorPreferred,
 }) => {
+  const { t } = useI18n();
   const [activePopover, setActivePopover] = useState<'pages' | 'font' | 'size' | 'format' | 'margins' | 'colors' | 'more' | null>(null);
   const [fontSearch, setFontSearch] = useState('');
   const [prevCanvas, setPrevCanvas] = useState({ width: canvas.width, height: canvas.height });
@@ -287,18 +289,18 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
     else if (canvas.preset === 'landscape') base = '1600×900 (16:9)';
 
     if (canvas.trimAllPages) {
-      return `${base} · Trim All`;
+      return `${base} · ${t('trim_all')}`;
     }
     if (canvas.trimLastPageHeight) {
-      return `${base} · Trim Last`;
+      return `${base} · ${t('trim_last')}`;
     }
     return base;
   };
 
   const getMarginLabel = () => {
-    if (spacing.preset === 'compact') return 'Compact';
-    if (spacing.preset === 'generous') return 'Generous';
-    return 'Balanced';
+    if (spacing.preset === 'compact') return t('compact');
+    if (spacing.preset === 'generous') return t('generous');
+    return t('balanced');
   };
 
   return (
@@ -318,17 +320,17 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                 ? 'bg-[#16161c] text-white border-[#2e2e3a]'
                 : 'text-zinc-300 hover:bg-[#16161c] hover:text-white'
             }`}
-            title="Number of pages and distribution"
+            title={t('pages_tooltip')}
           >
-            <span>{pageCount} {pageCount === 1 ? 'page' : 'pages'}</span>
+            <span>{pageCount} {pageCount === 1 ? t('page_singular') : t('pages_plural')}</span>
             <ChevronDown className="w-3 h-3 text-zinc-500" />
           </button>
 
           {activePopover === 'pages' && (
             <div className="absolute bottom-full left-0 mb-3 w-68 bg-[#0c0c0e] border border-[#1b1b22] rounded-xl shadow-2xl shadow-black p-4 text-zinc-200 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-[10px] font-semibold text-zinc-500 uppercase font-mono tracking-wider">Number of Pages</span>
-                <span className="text-xs font-mono text-zinc-400">{pageCount} {pageCount === 1 ? 'page' : 'pages'}</span>
+                <span className="text-[10px] font-semibold text-zinc-500 lowercase font-mono tracking-wider">{t('number_of_pages')}</span>
+                <span className="text-xs font-mono text-zinc-400">{pageCount} {pageCount === 1 ? t('page_singular') : t('pages_plural')}</span>
               </div>
 
               {/* Quick Page Picker */}
@@ -351,7 +353,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
 
               {/* Custom count input */}
               <div className="flex items-center gap-2 mb-3 pt-2 border-t border-[#18181f]">
-                <span className="text-xs text-zinc-400">Custom count:</span>
+                <span className="text-xs text-zinc-400">{t('custom_count')}</span>
                 <input
                   type="number"
                   min={1}
@@ -369,8 +371,8 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
 
               {/* Distribution Mode */}
               <div className="pt-2 border-t border-[#18181f]">
-                <span className="text-[10px] font-semibold text-zinc-500 uppercase font-mono tracking-wider block mb-2">
-                  Distribution Mode
+                <span className="text-[10px] font-semibold text-zinc-500 lowercase font-mono tracking-wider block mb-2">
+                  {t('distribution_mode')}
                 </span>
                 <div className="relative grid grid-cols-3 gap-1 bg-[#09090c] p-1 rounded-[6px] border border-[#18181f]">
                   {/* Sliding Pill Indicator */}
@@ -397,7 +399,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                           : 'text-zinc-400 hover:text-white'
                       }`}
                     >
-                      {mode === 'balanced' ? 'Balanced' : mode === 'paragraph-preserving' ? 'Paragraph' : 'Manual'}
+                      {mode === 'balanced' ? t('balanced') : mode === 'paragraph-preserving' ? t('paragraph') : t('manual')}
                     </button>
                   ))}
                 </div>
@@ -420,7 +422,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                   ? 'bg-[#16161c] text-white'
                   : 'text-zinc-300 hover:bg-[#16161c] hover:text-white'
               }`}
-              title="Choose typography font"
+              title={t('font_tooltip')}
             >
               <span className="max-w-[100px] truncate">{typography.fontFamily}</span>
               <ChevronDown className="w-3 h-3 text-zinc-500" />
@@ -429,15 +431,15 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
             {activePopover === 'font' && (
               <div className="absolute bottom-full left-0 mb-3 w-64 bg-[#0c0c0e] border border-[#1b1b22] rounded-xl shadow-2xl shadow-black p-3 text-zinc-200 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-semibold text-zinc-500 uppercase font-mono tracking-wider">Typography</span>
+                  <span className="text-[10px] font-semibold text-zinc-500 lowercase font-mono tracking-wider">{t('typography')}</span>
                   <button
                     type="button"
                     onClick={() => fontFileInputRef.current?.click()}
                     className="text-[11px] text-zinc-400 hover:text-white flex items-center gap-1 hover:underline"
-                    title="Upload .ttf, .otf, .woff, .woff2"
+                    title="upload .ttf, .otf, .woff, .woff2"
                   >
                     <Upload className="w-3 h-3" />
-                    Upload Font
+                    {t('upload_font')}
                   </button>
                   <input
                     ref={fontFileInputRef}
@@ -455,7 +457,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
 
                 <input
                   type="text"
-                  placeholder="Search fonts..."
+                  placeholder={t('search_fonts')}
                   value={fontSearch}
                   onChange={(e) => setFontSearch(e.target.value)}
                   className="w-full px-2.5 py-1.5 text-xs bg-[#09090c] border border-[#18181f] rounded-[6px] text-white mb-2 placeholder-zinc-600 focus:outline-hidden focus:border-[#2e2e3a]"
@@ -505,7 +507,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                                 ? 'text-amber-400 hover:text-amber-300 opacity-100'
                                 : 'text-zinc-600 opacity-0 group-hover:opacity-100 hover:text-zinc-300'
                             }`}
-                            title={isFav ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+                            title={isFav ? t('remove_fav') : t('add_fav')}
                           >
                             <Star
                               className={`w-3 h-3 ${
@@ -536,7 +538,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                   ? 'bg-[#16161c] text-white'
                   : 'text-zinc-300 hover:bg-[#16161c] hover:text-white'
               }`}
-              title="Adjust font size, weight and line height"
+              title={t('size_tooltip')}
             >
               <span className={`inline-block transition-colors ${autoFitPulse ? 'animate-pulse-subtle text-amber-300 font-semibold' : ''}`}>
                 {Number(effectiveFontSize.toFixed(1))}px
@@ -547,9 +549,9 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
             {activePopover === 'size' && (
               <div className="absolute bottom-full left-0 mb-3 w-72 bg-[#0c0c0e] border border-[#1b1b22] rounded-xl shadow-2xl shadow-black p-4 text-zinc-200 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-[10px] font-semibold text-zinc-500 uppercase font-mono tracking-wider">Font Size & Spacing</span>
+                  <span className="text-[10px] font-semibold text-zinc-500 lowercase font-mono tracking-wider">{t('font_size_spacing')}</span>
                   <span className="text-xs font-mono text-zinc-400">
-                    {advanced.autoFit ? `Auto (${Number(effectiveFontSize.toFixed(1))}px)` : `${typography.fontSize}px`}
+                    {advanced.autoFit ? `auto (${Number(effectiveFontSize.toFixed(1))}px)` : `${typography.fontSize}px`}
                   </span>
                 </div>
 
@@ -558,8 +560,8 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                   <div className="flex items-center gap-2">
                     <Sparkles className="w-3.5 h-3.5 text-zinc-400" />
                     <div className="flex flex-col">
-                      <span className="text-xs font-medium text-zinc-200">Auto-fit font size</span>
-                      <span className="text-[10px] text-zinc-500">Scale text to fill pages</span>
+                      <span className="text-xs font-medium text-zinc-200">{t('auto_fit_font_size')}</span>
+                      <span className="text-[10px] text-zinc-500">{t('scale_text_to_fill')}</span>
                     </div>
                   </div>
                   <button
@@ -584,7 +586,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                 {/* Font size slider */}
                 <div className="mb-3">
                   <div className="flex items-center justify-between text-xs text-zinc-400 mb-1.5">
-                    <span>Font Size</span>
+                    <span>{t('font_size')}</span>
                     <span className="font-mono">{typography.fontSize}px</span>
                   </div>
                   <input
@@ -611,9 +613,9 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                     return (
                       <>
                         <div className="flex items-center justify-between mb-1.5">
-                          <span className="text-[10px] text-zinc-500 font-mono uppercase">Font Weight</span>
+                          <span className="text-[10px] text-zinc-500 font-mono lowercase">{t('font_weight')}</span>
                           {isSingleWeight && (
-                            <span className="text-[9px] font-mono text-zinc-500">Regular 400 only</span>
+                            <span className="text-[9px] font-mono text-zinc-500">{t('regular_400_only')}</span>
                           )}
                         </div>
                         <div className="grid grid-cols-5 gap-1 bg-[#09090c] p-1 rounded-[6px] border border-[#18181f]">
@@ -647,7 +649,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                 {/* Line Height */}
                 <div>
                   <div className="flex items-center justify-between text-xs text-zinc-400 mb-1.5">
-                    <span>Line Height</span>
+                    <span>{t('line_height')}</span>
                     <span className="font-mono">{typography.lineHeight.toFixed(2)}</span>
                   </div>
                   <input
@@ -681,10 +683,10 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                 ? 'bg-[#1c1c24] text-[#f4f4f6] border border-[#2e2e3a] shadow-xs'
                 : 'text-zinc-400 hover:text-white hover:bg-[#16161c]'
             }`}
-            title={advanced.autoFit ? 'Auto-fit is active (click to use manual size)' : 'Enable Auto-fit to fill pages'}
+            title={advanced.autoFit ? t('auto_fit_is_active') : t('enable_auto_fit')}
           >
             <Sparkles className="w-3 h-3 text-current" />
-            <span>Auto-fit</span>
+            <span>{t('auto_fit')}</span>
           </button>
 
           {/* 1-Click Auto-Balance / Optimize Toggle */}
@@ -698,12 +700,12 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
             }`}
             title={
               isAutoBalanced
-                ? 'Auto-Balance is ON (Compact 48px, Trim All, Whole Paragraphs) — click to disable'
-                : 'Auto-Balance: 1-click snap to optimal density, compact margins, and 100% vertical fill'
+                ? t('auto_balance_on')
+                : t('auto_balance_desc')
             }
           >
             <Wand2 className="w-3 h-3 text-current" />
-            <span>Auto-Balance</span>
+            <span>{t('auto_balance')}</span>
           </button>
         </div>
 
@@ -721,7 +723,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                   ? 'bg-[#16161c] text-white'
                   : 'text-zinc-300 hover:bg-[#16161c] hover:text-white'
               }`}
-              title="Change canvas aspect ratio & dimensions"
+              title={t('canvas_format_tooltip')}
             >
               <span>{getFormatLabel()}</span>
               <ChevronDown className="w-3 h-3 text-zinc-500" />
@@ -729,16 +731,16 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
 
             {activePopover === 'format' && (
               <div className="absolute bottom-full left-0 mb-3 w-80 bg-[#0c0c0e] border border-[#1b1b22] rounded-xl shadow-2xl shadow-black p-4 text-zinc-200 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
-                <span className="text-[10px] font-semibold text-zinc-500 uppercase font-mono tracking-wider block mb-2">
-                  Canvas Format
+                <span className="text-[10px] font-semibold text-zinc-500 lowercase font-mono tracking-wider block mb-2">
+                  {t('canvas_format')}
                 </span>
                 <div className="space-y-1.5 mb-3">
                   {[
-                    { id: 'twitter', name: 'X / Twitter Portrait', dim: '1080 × 1350 (4:5)' },
-                    { id: 'square', name: 'Square (Instagram/Post)', dim: '1080 × 1080 (1:1)' },
-                    { id: 'portrait', name: 'Standard Portrait', dim: '1080 × 1440 (3:4)' },
-                    { id: 'story', name: 'Story / Reel', dim: '1080 × 1920 (9:16)' },
-                    { id: 'landscape', name: 'Landscape', dim: '1600 × 900 (16:9)' },
+                    { id: 'twitter', name: 'x / twitter (4:5)', dim: '1080 × 1350' },
+                    { id: 'square', name: 'cuadrado / square (1:1)', dim: '1080 × 1080' },
+                    { id: 'portrait', name: 'vertical / portrait (3:4)', dim: '1080 × 1440' },
+                    { id: 'story', name: 'historia / story (9:16)', dim: '1080 × 1920' },
+                    { id: 'landscape', name: 'horizontal / landscape (16:9)', dim: '1600 × 900' },
                   ].map((p) => (
                     <button
                       key={p.id}
@@ -761,15 +763,15 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
 
                 <div className="pt-2.5 border-t border-[#18181f]">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] font-semibold text-zinc-500 uppercase font-mono tracking-wider">
-                      Custom Dimensions
+                    <span className="text-[10px] font-semibold text-zinc-500 lowercase font-mono tracking-wider">
+                      {t('custom_dimensions')}
                     </span>
                     <span className="text-[10px] text-zinc-600 font-mono">200–10000 px</span>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     {/* Width Input */}
                     <div className="flex items-center bg-[#09090c] border border-[#18181f] focus-within:border-[#3e3e4c] focus-within:ring-1 focus-within:ring-[#3e3e4c]/40 rounded-[6px] px-2.5 py-1.5 transition-all">
-                      <span className="text-[11px] font-mono text-zinc-500 select-none mr-1.5 font-medium">W</span>
+                      <span className="text-[11px] font-mono text-zinc-500 select-none mr-1.5 font-medium">w</span>
                       <input
                         type="text"
                         inputMode="numeric"
@@ -794,7 +796,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
 
                     {/* Height Input */}
                     <div className="flex items-center bg-[#09090c] border border-[#18181f] focus-within:border-[#3e3e4c] focus-within:ring-1 focus-within:ring-[#3e3e4c]/40 rounded-[6px] px-2.5 py-1.5 transition-all">
-                      <span className="text-[11px] font-mono text-zinc-500 select-none mr-1.5 font-medium">H</span>
+                      <span className="text-[11px] font-mono text-zinc-500 select-none mr-1.5 font-medium">h</span>
                       <input
                         type="text"
                         inputMode="numeric"
@@ -820,8 +822,8 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                 </div>
 
                 <div className="pt-2.5 mt-2.5 border-t border-[#18181f] flex flex-col gap-1.5">
-                  <span className="text-[10px] font-semibold text-zinc-500 uppercase font-mono tracking-wider">
-                    Card Height Mode
+                  <span className="text-[10px] font-semibold text-zinc-500 lowercase font-mono tracking-wider">
+                    {t('card_height_mode')}
                   </span>
                   <div className="relative grid grid-cols-3 gap-1 bg-[#09090c] p-1 rounded-[6px] border border-[#18181f]">
                     {/* Sliding Pill Indicator */}
@@ -845,9 +847,9 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                           ? 'text-[#f4f4f6]'
                           : 'text-zinc-400 hover:text-white'
                       }`}
-                      title="Auto-fit every card height to content (100% util, no empty space)"
+                      title={t('trim_all_desc')}
                     >
-                      Trim All
+                      {t('trim_all')}
                     </button>
                     <button
                       type="button"
@@ -857,9 +859,9 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                           ? 'text-[#f4f4f6]'
                           : 'text-zinc-400 hover:text-white'
                       }`}
-                      title="Cards 1-(N-1) stay uniform 4:5 for carousels; only last card trims"
+                      title={t('trim_last_desc')}
                     >
-                      Trim Last
+                      {t('trim_last')}
                     </button>
                     <button
                       type="button"
@@ -869,9 +871,9 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                           ? 'text-[#f4f4f6]'
                           : 'text-zinc-400 hover:text-white'
                       }`}
-                      title="Strict fixed canvas dimensions for all cards"
+                      title={t('fixed_desc')}
                     >
-                      Fixed
+                      {t('fixed')}
                     </button>
                   </div>
                 </div>
@@ -884,10 +886,10 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
           {/* Horizontal Alignment */}
           <div className="flex items-center gap-0.5">
             {[
-              { id: 'left', icon: AlignLeft, label: 'Left align' },
-              { id: 'center', icon: AlignCenter, label: 'Center align' },
-              { id: 'right', icon: AlignRight, label: 'Right align' },
-              { id: 'justify', icon: AlignJustify, label: 'Justify' },
+              { id: 'left', icon: AlignLeft, label: t('align_left') },
+              { id: 'center', icon: AlignCenter, label: t('align_center') },
+              { id: 'right', icon: AlignRight, label: t('align_right') },
+              { id: 'justify', icon: AlignJustify, label: t('align_justify') },
             ].map((al) => {
               const Icon = al.icon;
               const isActive = typography.alignment === al.id;
@@ -916,8 +918,8 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
             {(['top', 'center', 'justify'] as VerticalAlignment[]).map((va) => {
               const currentVA = typography.verticalAlignment ?? spacing.verticalAlignment ?? 'center';
               const isActive = currentVA === va;
-              const label = va === 'top' ? 'Top' : va === 'center' ? 'Center' : 'Justify';
-              const tip = va === 'top' ? 'Top align text on canvas' : va === 'center' ? 'Center text vertically' : 'Justify text across canvas height';
+              const label = va === 'top' ? t('top') : va === 'center' ? t('center') : t('justify');
+              const tip = va === 'top' ? t('align_top_tip') : va === 'center' ? t('align_center_tip') : t('align_justify_tip');
               return (
                 <button
                   key={va}
@@ -954,7 +956,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                   ? 'bg-[#16161c] text-white'
                   : 'text-zinc-300 hover:bg-[#16161c] hover:text-white'
               }`}
-              title="Change margins & paragraph spacing"
+              title={t('margins_tooltip')}
             >
               <span>{getMarginLabel()}</span>
               <ChevronDown className="w-3 h-3 text-zinc-500" />
@@ -962,8 +964,8 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
 
           {activePopover === 'margins' && (
             <div className="absolute bottom-full right-0 mb-3 w-72 bg-[#0c0c0e] border border-[#1b1b22] rounded-xl shadow-2xl shadow-black p-4 text-zinc-200 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
-              <span className="text-[10px] font-semibold text-zinc-500 uppercase font-mono tracking-wider block mb-2">
-                Margins & Spacing
+              <span className="text-[10px] font-semibold text-zinc-500 lowercase font-mono tracking-wider block mb-2">
+                {t('margins_spacing')}
               </span>
               <div className="relative grid grid-cols-3 gap-1 mb-3 bg-[#09090c] p-1 rounded-[6px] border border-[#18181f]">
                 {/* Sliding Pill Indicator */}
@@ -980,9 +982,9 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                   }}
                 />
                 {[
-                  { id: 'compact', name: 'Compact', px: '48px' },
-                  { id: 'balanced', name: 'Balanced', px: '96px' },
-                  { id: 'generous', name: 'Generous', px: '144px' },
+                  { id: 'compact', name: t('compact'), px: '48px' },
+                  { id: 'balanced', name: t('balanced'), px: '96px' },
+                  { id: 'generous', name: t('generous'), px: '144px' },
                 ].map((m) => (
                   <button
                     key={m.id}
@@ -1002,7 +1004,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
 
               <div className="pt-2 border-t border-[#18181f] space-y-2">
                 <div className="flex items-center justify-between text-xs text-zinc-400">
-                  <span>Paragraph Spacing</span>
+                  <span>{t('paragraph_spacing')}</span>
                   <span className="font-mono">{spacing.paragraphSpacing}px</span>
                 </div>
                 <input
@@ -1035,48 +1037,48 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                   ? 'bg-[#16161c] text-white'
                   : 'text-zinc-300 hover:bg-[#16161c] hover:text-white'
               }`}
-              title="Change canvas background and text colors"
+              title={t('colors_tooltip')}
             >
               <div className="flex items-center gap-1 shrink-0">
                 <span
                   className="w-3 h-3 rounded-full border border-black/20 dark:border-white/20 block shrink-0"
                   style={{ backgroundColor: canvas.transparentBackground ? 'transparent' : canvas.backgroundColor }}
-                  title={`Canvas: ${canvas.backgroundColor}`}
+                  title={`canvas: ${canvas.backgroundColor}`}
                 />
                 <span
                   className="w-3 h-3 rounded-full border border-black/20 dark:border-white/20 block shrink-0 -ml-1.5 shadow-xs"
                   style={{ backgroundColor: typography.textColor }}
-                  title={`Text: ${typography.textColor}`}
+                  title={`text: ${typography.textColor}`}
                 />
               </div>
-              <span>Colors</span>
+              <span>{t('colors')}</span>
               <ChevronDown className="w-3 h-3 text-zinc-500" />
             </button>
 
             {activePopover === 'colors' && (
               <div className="absolute bottom-full right-0 mb-3 w-84 bg-white dark:bg-[#0c0c0e] border border-slate-200 dark:border-[#1b1b22] rounded-xl shadow-2xl shadow-black/10 dark:shadow-black/80 p-4 text-slate-800 dark:text-zinc-200 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
                 <div className="flex items-center justify-between mb-3 pb-2 border-b border-black/[0.06] dark:border-[#18181f]">
-                  <span className="text-[10px] font-semibold text-zinc-500 uppercase font-mono tracking-wider">
-                    Colors & Appearance
+                  <span className="text-[10px] font-semibold text-zinc-500 lowercase font-mono tracking-wider">
+                    {t('colors_appearance')}
                   </span>
                   {canvas.transparentBackground && (
                     <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-                      Transparent
+                      {t('transparent_bg')}
                     </span>
                   )}
                 </div>
 
                 {/* Quick Curated Palettes as Mini Visual Cards */}
                 <div className="mb-3">
-                  <span className="text-[10px] font-mono uppercase text-zinc-400 dark:text-zinc-500 block mb-2 font-medium">
-                    Curated Palettes
+                  <span className="text-[10px] font-mono lowercase text-zinc-400 dark:text-zinc-500 block mb-2 font-medium">
+                    {t('curated_palettes')}
                   </span>
                   <div className="grid grid-cols-2 gap-2">
                     {[
-                      { name: 'Dark Obsidian', subtitle: 'Black · White', bg: '#000000', text: '#FFFFFF', isLight: false },
-                      { name: 'Linen Light', subtitle: 'Slate · Navy', bg: '#F8FAFC', text: '#0F172A', isLight: true },
-                      { name: 'Warm Editorial', subtitle: 'Cream · Charcoal', bg: '#FBF9F5', text: '#2D2A26', isLight: true },
-                      { name: 'Studio Slate', subtitle: 'Zinc · Off-white', bg: '#09090B', text: '#EDEDED', isLight: false },
+                      { name: 'dark obsidian', subtitle: 'black · white', bg: '#000000', text: '#FFFFFF', isLight: false },
+                      { name: 'linen light', subtitle: 'slate · navy', bg: '#F8FAFC', text: '#0F172A', isLight: true },
+                      { name: 'warm editorial', subtitle: 'cream · charcoal', bg: '#FBF9F5', text: '#2D2A26', isLight: true },
+                      { name: 'studio slate', subtitle: 'zinc · off-white', bg: '#09090B', text: '#EDEDED', isLight: false },
                     ].map((pal) => {
                       const isActive =
                         canvas.backgroundColor.toLowerCase() === pal.bg.toLowerCase() &&
@@ -1138,22 +1140,22 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
 
                 {/* Custom Color Controls */}
                 <div className="pt-3 border-t border-black/[0.06] dark:border-[#18181f] space-y-2">
-                  <span className="text-[10px] font-mono uppercase text-zinc-400 dark:text-zinc-500 block font-medium">
-                    Custom Colors
+                  <span className="text-[10px] font-mono lowercase text-zinc-400 dark:text-zinc-500 block font-medium">
+                    {t('custom_colors')}
                   </span>
 
                   {/* Background */}
                   <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-[#09090c] border border-slate-200/80 dark:border-[#18181f]">
                     <div>
                       <span className="text-xs font-medium text-slate-800 dark:text-zinc-200 block leading-tight">
-                        Background
+                        {t('background')}
                       </span>
                       <span className="text-[10px] text-slate-500 dark:text-zinc-500 leading-none">
-                        Card canvas fill
+                        {t('background_desc')}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs px-2 py-1 rounded bg-white dark:bg-[#14141a] border border-slate-200 dark:border-[#22222a] text-slate-700 dark:text-zinc-300 uppercase font-medium shadow-2xs">
+                      <span className="font-mono text-xs px-2 py-1 rounded bg-white dark:bg-[#14141a] border border-slate-200 dark:border-[#22222a] text-slate-700 dark:text-zinc-300 font-medium shadow-2xs lowercase">
                         {canvas.backgroundColor}
                       </span>
                       <label
@@ -1165,7 +1167,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                           value={canvas.backgroundColor}
                           onChange={(e) => onCanvasChange({ ...canvas, backgroundColor: e.target.value })}
                           className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
-                          title="Pick background color"
+                          title={t('background')}
                         />
                       </label>
                     </div>
@@ -1175,14 +1177,14 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                   <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-[#09090c] border border-slate-200/80 dark:border-[#18181f]">
                     <div>
                       <span className="text-xs font-medium text-slate-800 dark:text-zinc-200 block leading-tight">
-                        Text Color
+                        {t('text_color')}
                       </span>
                       <span className="text-[10px] text-slate-500 dark:text-zinc-500 leading-none">
-                        Typography & headings
+                        {t('text_desc')}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs px-2 py-1 rounded bg-white dark:bg-[#14141a] border border-slate-200 dark:border-[#22222a] text-slate-700 dark:text-zinc-300 uppercase font-medium shadow-2xs">
+                      <span className="font-mono text-xs px-2 py-1 rounded bg-white dark:bg-[#14141a] border border-slate-200 dark:border-[#22222a] text-slate-700 dark:text-zinc-300 font-medium shadow-2xs lowercase">
                         {typography.textColor}
                       </span>
                       <label
@@ -1194,7 +1196,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                           value={typography.textColor}
                           onChange={(e) => onTypographyChange({ ...typography, textColor: e.target.value })}
                           className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
-                          title="Pick text color"
+                          title={t('text_color')}
                         />
                       </label>
                     </div>
@@ -1204,10 +1206,10 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                   <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-[#09090c] border border-slate-200/80 dark:border-[#18181f]">
                     <div>
                       <span className="text-xs font-medium text-slate-800 dark:text-zinc-200 block leading-tight">
-                        Transparent Background
+                        {t('transparent_bg')}
                       </span>
                       <span className="text-[10px] text-slate-500 dark:text-zinc-500 leading-none">
-                        Export with alpha channel
+                        {t('export_alpha')}
                       </span>
                     </div>
                     <button
@@ -1218,7 +1220,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                           ? 'bg-slate-900 dark:bg-zinc-200 border border-slate-900 dark:border-zinc-200'
                           : 'bg-slate-300 dark:bg-[#1e1e26] border border-slate-300 dark:border-[#2a2a36]'
                       }`}
-                      aria-label="Toggle transparent background"
+                      aria-label={t('transparent_bg')}
                     >
                       <div
                         className={`w-4 h-4 rounded-full transition-transform shadow-xs ${
@@ -1248,16 +1250,16 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                   ? 'bg-[#16161c] text-white'
                   : 'text-zinc-400 hover:text-white hover:bg-[#16161c]'
               }`}
-              title="More options (presets, shortcuts, lock layout, reset)"
-              aria-label="More options"
+              title={t('more_tooltip')}
+              aria-label={t('more_tooltip')}
             >
               <MoreHorizontal className="w-4 h-4" />
             </button>
 
             {activePopover === 'more' && (
               <div className="absolute bottom-full right-0 mb-3 w-72 bg-[#0c0c0e] border border-[#1b1b22] rounded-xl shadow-2xl shadow-black p-3 text-zinc-200 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
-                <span className="text-[10px] font-semibold text-zinc-500 uppercase font-mono tracking-wider block mb-2">
-                  System & Presets
+                <span className="text-[10px] font-semibold text-zinc-500 lowercase font-mono tracking-wider block mb-2">
+                  {t('system_presets')}
                 </span>
 
                 <div className="space-y-1.5">
@@ -1270,7 +1272,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                     className="w-full px-2.5 py-1.5 rounded-[6px] text-xs text-left flex items-center gap-2 bg-[#09090c] border border-[#18181f] text-zinc-300 hover:text-white hover:bg-[#14141a] transition-colors cursor-pointer"
                   >
                     <Bookmark className="w-3.5 h-3.5 text-zinc-500" />
-                    <span>Visual Presets</span>
+                    <span>{t('visual_presets')}</span>
                   </button>
 
                   <button
@@ -1282,7 +1284,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                     className="w-full px-2.5 py-1.5 rounded-[6px] text-xs text-left flex items-center gap-2 bg-[#09090c] border border-[#18181f] text-zinc-300 hover:text-white hover:bg-[#14141a] transition-colors cursor-pointer"
                   >
                     <Keyboard className="w-3.5 h-3.5 text-zinc-500" />
-                    <span>Keyboard Shortcuts</span>
+                    <span>{t('shortcuts')}</span>
                   </button>
 
                   <button
@@ -1295,10 +1297,10 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                   >
                     <div className="flex items-center gap-2">
                       {layoutLocked ? <Lock className="w-3.5 h-3.5 text-amber-400" /> : <Unlock className="w-3.5 h-3.5 text-zinc-500" />}
-                      <span>{layoutLocked ? 'Layout Locked' : 'Lock Layout'}</span>
+                      <span>{layoutLocked ? t('layout_locked') : t('lock_layout')}</span>
                     </div>
-                    <span className="text-[10px] text-zinc-500 font-mono">
-                      {layoutLocked ? 'ON' : 'OFF'}
+                    <span className="text-[10px] text-zinc-500 font-mono lowercase">
+                      {layoutLocked ? 'on' : 'off'}
                     </span>
                   </button>
 
@@ -1306,7 +1308,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                     <button
                       type="button"
                       onClick={() => {
-                        if (window.confirm('Reset all settings to defaults?')) {
+                        if (window.confirm(t('reset_confirm'))) {
                           onResetAll();
                           setActivePopover(null);
                         }
@@ -1314,7 +1316,7 @@ export const DockedToolbar: React.FC<DockedToolbarProps> = ({
                       className="w-full px-2.5 py-1.5 rounded-[6px] text-xs text-left flex items-center gap-2 bg-[#09090c] border border-[#18181f] text-red-400 hover:text-red-300 hover:bg-red-950/20 transition-colors cursor-pointer"
                     >
                       <RotateCcw className="w-3.5 h-3.5 text-red-400" />
-                      <span>Reset All to Defaults</span>
+                      <span>{t('reset_all_defaults')}</span>
                     </button>
                   </div>
                 </div>

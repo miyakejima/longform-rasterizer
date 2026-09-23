@@ -22,6 +22,7 @@ import {
   getParagraphBoundsForPage,
 } from '../engine/canvasRenderer';
 import { exportSinglePage } from '../engine/exportEngine';
+import { useI18n } from '../i18n';
 
 interface PageCardProps {
   page: PageData;
@@ -62,6 +63,7 @@ export const PageCard: React.FC<PageCardProps> = ({
   highlightRange = null,
   onParagraphHover,
 }) => {
+  const { t } = useI18n();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [copied, setCopied] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -180,7 +182,7 @@ export const PageCard: React.FC<PageCardProps> = ({
   const handleDownload = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (page.isOverflowing && !allowClippedExport) {
-      onBlockedExport?.(`Export blocked: Page ${page.pageIndex + 1} contains clipped text.`);
+      onBlockedExport?.(t('export_blocked_clipped', { page: page.pageIndex + 1 }));
       return;
     }
     setIsDownloading(true);
@@ -240,7 +242,7 @@ export const PageCard: React.FC<PageCardProps> = ({
           type="button"
           onClick={handleCopyText}
           className="btn-tactile p-1 text-zinc-400 hover:text-white hover:bg-[#16161c] rounded-[4px] transition-colors"
-          title="Copy text for this page"
+          title={t('copy_page_text')}
         >
           {copied ? (
             <Check className="w-3.5 h-3.5 text-emerald-400 animate-in zoom-in-50 duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]" />
@@ -253,7 +255,7 @@ export const PageCard: React.FC<PageCardProps> = ({
           onClick={handleDownload}
           disabled={isDownloading}
           className="btn-tactile p-1 text-zinc-400 hover:text-white hover:bg-[#16161c] rounded-[4px] transition-colors"
-          title="Download this page image"
+          title={t('download_page_image')}
         >
           <Download className={`w-3.5 h-3.5 ${isDownloading ? 'animate-bounce text-zinc-200' : ''}`} />
         </button>
@@ -264,7 +266,7 @@ export const PageCard: React.FC<PageCardProps> = ({
             onEnlarge();
           }}
           className="btn-tactile p-1 text-zinc-400 hover:text-white hover:bg-[#16161c] rounded-[4px] transition-colors"
-          title="Enlarge preview"
+          title={t('enlarge_preview')}
         >
           <Maximize2 className="w-3.5 h-3.5" />
         </button>
@@ -274,7 +276,7 @@ export const PageCard: React.FC<PageCardProps> = ({
       {hasOverflow && (
         <div className="absolute top-2 left-2 z-10 flex items-center gap-1 text-[10px] bg-red-950/90 text-red-300 border border-red-800 px-1.5 py-0.5 rounded font-mono">
           <AlertTriangle className="w-3 h-3" />
-          <span>Overflow ~{Math.round(page.overflowPx)}px</span>
+          <span>{t('overflow_badge', { px: Math.round(page.overflowPx) })}</span>
         </div>
       )}
 

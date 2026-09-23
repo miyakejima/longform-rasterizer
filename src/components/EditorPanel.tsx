@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { FileText, SplitSquareVertical, Plus } from 'lucide-react';
 import { PageData, DistributionMode, TypographySettings } from '../types';
+import { useI18n } from '../i18n';
 
 interface EditorPanelProps {
   text: string;
@@ -33,6 +34,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
   typography,
   highlightedParagraph,
 }) => {
+  const { t } = useI18n();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const mirrorRef = useRef<HTMLDivElement>(null);
   const spotlightRef = useRef<HTMLDivElement>(null);
@@ -245,7 +247,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
         <div className="px-6 py-2 bg-[#08080a] border-b border-[#18181b] flex items-center justify-between text-xs shrink-0 select-none">
           <div className="flex items-center gap-1.5 text-[11px] text-zinc-400">
             <SplitSquareVertical className="w-3.5 h-3.5 text-zinc-400" />
-            <span>Manual breaks ({manualBreaks.length})</span>
+            <span>{t('manual_breaks')} ({manualBreaks.length})</span>
           </div>
           <button
             type="button"
@@ -253,7 +255,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
             className="flex items-center gap-1 text-[11px] bg-[#141417] hover:bg-[#222228] text-zinc-200 border border-[#27272a] px-2.5 py-1 rounded transition-colors"
           >
             <Plus className="w-3 h-3" />
-            <span>Insert break at cursor</span>
+            <span>{t('insert_break_cursor')}</span>
           </button>
         </div>
       )}
@@ -287,7 +289,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
               spotlightLayerRef.current.style.transform = `translateY(-${e.currentTarget.scrollTop}px)`;
             }
           }}
-          placeholder="Start writing or paste your text here..."
+          placeholder={t('editor_placeholder')}
           spellCheck={false}
           autoCorrect="off"
           autoCapitalize="off"
@@ -309,7 +311,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
           <div className="absolute inset-0 bg-black/90 backdrop-blur-xs flex items-center justify-center pointer-events-none z-30">
             <div className="flex flex-col items-center gap-2 text-zinc-300">
               <FileText className="w-8 h-8 text-zinc-400" />
-              <p className="text-sm font-medium">Drop text (.txt) or markdown (.md) here</p>
+              <p className="text-sm font-medium">{t('drop_file')}</p>
             </div>
           </div>
         )}

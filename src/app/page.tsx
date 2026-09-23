@@ -20,6 +20,7 @@ import {
   PaginationResult,
 } from '../types';
 import { GridModeIcon, SingleModeIcon, CarouselModeIcon } from '../components/icons/ViewModeIcons';
+import { I18nProvider, useI18n } from '../i18n';
 import {
   DEFAULT_ADVANCED,
   DEFAULT_CANVAS,
@@ -49,6 +50,8 @@ interface HistoryItem {
 }
 
 function Workspace() {
+  const { lang, toggleLang, t } = useI18n();
+
   // State
   const [doc, setDoc] = useState<DocumentState>(DEFAULT_DOCUMENT);
   const [canvas, setCanvas] = useState<CanvasSettings>(DEFAULT_CANVAS);
@@ -296,7 +299,7 @@ function Workspace() {
   }, []);
 
   const handleResetAll = () => {
-    if (window.confirm('Reset all text, canvas and visual settings to factory defaults?')) {
+    if (window.confirm(t('reset_confirm'))) {
       clearStoredSession();
       setDoc(DEFAULT_DOCUMENT);
       setCanvas(DEFAULT_CANVAS);
@@ -351,7 +354,7 @@ function Workspace() {
     const duplicated: VisualPreset = {
       ...found,
       id: `preset-${Date.now()}`,
-      name: `${found.name} (Copy)`,
+      name: `${found.name} (${t('copy_text')})`,
     };
     const updated = [...presets, duplicated];
     setPresets(updated);
@@ -801,15 +804,15 @@ function Workspace() {
                 className={`h-8 px-2.5 rounded-[8px] bg-[#0c0c0e] border border-[#1b1b22] hover:border-[#2e2e3a] hover:bg-[#16161c] text-zinc-400 hover:text-white transition-all flex items-center gap-2 shadow-xs focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-zinc-500 text-xs font-medium ${
                   isEditorCollapsed ? 'border-zinc-500/40 text-zinc-200 bg-[#16161c]' : ''
                 }`}
-                title={isEditorCollapsed ? 'Show editor panel (Ctrl+B)' : 'Collapse editor to expand preview (Ctrl+B)'}
-                aria-label={isEditorCollapsed ? 'Show editor panel' : 'Collapse editor panel'}
+                title={isEditorCollapsed ? `${t('show_editor')} (ctrl+b)` : `${t('collapse_editor')} (ctrl+b)`}
+                aria-label={isEditorCollapsed ? t('show_editor') : t('collapse_editor')}
               >
                 {isEditorCollapsed ? (
                   <PanelLeft className="w-4 h-4 text-zinc-300" />
                 ) : (
                   <PanelLeftClose className="w-4 h-4 text-zinc-400" />
                 )}
-                <span>{isEditorCollapsed ? 'Show Editor' : 'Editor'}</span>
+                <span>{isEditorCollapsed ? t('show_editor') : t('editor')}</span>
               </button>
             </div>
 
@@ -834,11 +837,11 @@ function Workspace() {
                       ? 'text-[#f4f4f6] font-medium'
                       : 'text-zinc-400 hover:text-white'
                   }`}
-                  title="Grid view"
-                  aria-label="Grid view"
+                  title={t('grid')}
+                  aria-label={t('grid')}
                 >
                   <GridModeIcon className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline text-[11.5px] font-medium">Grid</span>
+                  <span className="hidden sm:inline text-[11.5px] font-medium">{t('grid')}</span>
                 </button>
                 <button
                   type="button"
@@ -848,11 +851,11 @@ function Workspace() {
                       ? 'text-[#f4f4f6] font-medium'
                       : 'text-zinc-400 hover:text-white'
                   }`}
-                  title="Single page view"
-                  aria-label="Single page view"
+                  title={t('single')}
+                  aria-label={t('single')}
                 >
                   <SingleModeIcon className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline text-[11.5px] font-medium">Single</span>
+                  <span className="hidden sm:inline text-[11.5px] font-medium">{t('single')}</span>
                 </button>
                 <button
                   type="button"
@@ -862,22 +865,35 @@ function Workspace() {
                       ? 'text-[#f4f4f6] font-medium'
                       : 'text-zinc-400 hover:text-white'
                   }`}
-                  title="Carousel swipe view"
-                  aria-label="Carousel view"
+                  title={t('carousel')}
+                  aria-label={t('carousel')}
                 >
                   <CarouselModeIcon className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline text-[11.5px] font-medium">Carousel</span>
+                  <span className="hidden sm:inline text-[11.5px] font-medium">{t('carousel')}</span>
                 </button>
               </div>
             </div>
 
-            {/* Right Zone: Primary Action (Export Pill) & Theme Toggle Button */}
+            {/* Right Zone: Language Toggle + Theme Toggle + Highlight + Primary Action (Export Pill) */}
             <div className="flex items-center justify-end select-none flex-1 min-w-0 gap-2">
+              {/* Language Toggle Button (en · es) */}
+              <button
+                type="button"
+                onClick={toggleLang}
+                className="lang-toggle-btn btn-tactile"
+                title={t('lang_toggle_title')}
+                aria-label={t('lang_toggle_title')}
+              >
+                <span className={lang === 'en' ? 'text-slate-900 dark:text-white font-semibold' : 'text-slate-400 dark:text-zinc-500'}>en</span>
+                <span className="text-slate-300 dark:text-zinc-600 text-[10px]">·</span>
+                <span className={lang === 'es' ? 'text-slate-900 dark:text-white font-semibold' : 'text-slate-400 dark:text-zinc-500'}>es</span>
+              </button>
+
               <button
                 type="button"
                 onClick={toggleTheme}
                 className="theme-toggle-btn btn-tactile"
-                title={theme === 'light' ? 'Switch to Dark Theme' : 'Switch to Light Theme'}
+                title={theme === 'light' ? t('theme_dark') : t('theme_light')}
                 aria-label="Toggle theme"
               >
                 <svg
@@ -925,11 +941,11 @@ function Workspace() {
                     ? 'bg-slate-200/80 dark:bg-[#1c1c24] border-slate-300 dark:border-[#2e2e3a] text-slate-900 dark:text-[#f4f4f6]'
                     : 'bg-transparent border-slate-200/60 dark:border-[#1b1b22] text-slate-400 dark:text-zinc-500 hover:text-slate-700 dark:hover:text-zinc-300 hover:bg-slate-100 dark:hover:bg-[#16161c]'
                 }`}
-                title={isHighlightEnabled ? 'Disable paragraph spotlight' : 'Enable paragraph spotlight'}
-                aria-label={isHighlightEnabled ? 'Disable paragraph spotlight' : 'Enable paragraph spotlight'}
+                title={isHighlightEnabled ? t('highlight_disable') : t('highlight_enable')}
+                aria-label={isHighlightEnabled ? t('highlight_disable') : t('highlight_enable')}
               >
                 <Highlighter className={`w-3.5 h-3.5 ${isHighlightEnabled ? 'text-amber-600 dark:text-amber-400' : 'text-slate-400 dark:text-zinc-600'}`} />
-                <span className="hidden sm:inline">Highlight</span>
+                <span className="hidden sm:inline">{t('highlight')}</span>
               </button>
 
               <HeaderBar
@@ -1053,7 +1069,7 @@ function Workspace() {
         {/* Right: Crisp Doc Stats */}
         <div className="flex items-center gap-3 text-xs text-zinc-500 font-mono select-none">
           <span>
-            {wordCount} words · {charCount} chars
+            {wordCount} {t('words')} · {charCount} {t('chars')}
           </span>
         </div>
       </footer>
@@ -1082,5 +1098,9 @@ function Workspace() {
 }
 
 export default function Home() {
-  return <Workspace />;
+  return (
+    <I18nProvider>
+      <Workspace />
+    </I18nProvider>
+  );
 }
